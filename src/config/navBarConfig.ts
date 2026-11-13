@@ -52,12 +52,6 @@ import { LinkPreset } from "../types/config";
 					external: true,
 					icon: "fa7-brands:x-twitter",
 				},
-				{
-					name: "X bot",
-					url: "https://x.com/Akari_Hana_25",
-					external: true,
-					icon: "fa7-brands:x-twitter",
-				},
 			]            // 可选，子菜单数组（支持多级嵌套）
  *   }
  *
