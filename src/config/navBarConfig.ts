@@ -33,7 +33,32 @@ import { LinkPreset } from "../types/config";
  *     url: "/your-page/",        // 必填，链接地址
  *     icon: "icon-set:icon",     // 可选，Iconify 图标，格式为 "集合名:图标名"
  *     external: true,            // 可选，是否为外部链接（默认 false）
- *     children: [...]            // 可选，子菜单数组（支持多级嵌套）
+ *     children: [
+				{
+					name: "GitHub",
+					url: "https://github.com/Akiyama-25",
+					external: true,
+					icon: "fa7-brands:github",
+				},
+				{
+					name: "Bilibili",
+					url: "https://space.bilibili.com/1858179207",
+					external: true,
+					icon: "fa7-brands:bilibili",
+				},
+				{
+					name: "X",
+					url: "https://x.com/FascinatingAnon",
+					external: true,
+					icon: "fa7-brands:x-twitter",
+				},
+				{
+					name: "X bot",
+					url: "https://x.com/Akari_Hana_25",
+					external: true,
+					icon: "fa7-brands:x-twitter",
+				},
+			]            // 可选，子菜单数组（支持多级嵌套）
  *   }
  *
  * ══════════════════════════════════════════════════════════════
