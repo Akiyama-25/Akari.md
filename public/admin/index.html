@@ -676,7 +676,7 @@
           <div>
             <div class="brand-title">
               Akari 管理后台
-              <span class="badge-pill" title="v2.0: 前端草稿编辑与本地原子同步">v2.0</span>
+              <span class="badge-pill" title="v2.1: 修复跨域预检与CORS请求头">v2.1</span>
             </div>
             <div class="brand-subtitle">anon-akari.top · 站点管理中心</div>
           </div>
@@ -1355,8 +1355,6 @@
               'Authorization': `Bearer ${repoConfig.token}`,
               'Accept': 'application/vnd.github.v3+json',
               'Content-Type': 'application/json',
-              'Cache-Control': 'no-cache, no-store, must-revalidate',
-              'Pragma': 'no-cache',
               ...(options.headers || {})
             }
           });
