@@ -26,7 +26,7 @@
 
 ### 🌐 网页在线入口
 * **网页主页**：[https://akiyama-25.github.io/Akari.md/](https://akiyama-25.github.io/Akari.md/)
-* 具备自适应移动端布局、深浅色模式切换、即时随想小帖子发布（支持本地持久化）与常用工具看板。
+* 基于 [Mizuki](https://github.com/matsuzaka-yuki/Mizuki) (Next-Gen Material Design 3 Blog Theme, Powered by Astro) 构建，具备全端自适应响应式布局、流畅页面转场、Material Design 3 风格与深浅色模式切换。
 
 ---
 
@@ -48,4 +48,6 @@
 
 ---
 
-<sub>Built with simplicity & care. Deployed via GitHub Pages.</sub>
+### 🌸 Template Acknowledgements
+This site is built with the [Mizuki](https://github.com/matsuzaka-yuki/Mizuki) template by [matsuzaka-yuki](https://github.com/matsuzaka-yuki).
+* Documentation: [Mizuki Docs](https://docs.mizuki.mysqil.com/)
