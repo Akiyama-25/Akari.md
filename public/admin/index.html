@@ -647,7 +647,7 @@
           <div>
             <div class="brand-title">
               Akari 管理后台
-              <span class="badge-pill">v1.3</span>
+              <span class="badge-pill">v1.4</span>
             </div>
             <div class="brand-subtitle">anon-akari.top · 站点管理中心</div>
           </div>
@@ -768,7 +768,7 @@
             <div class="grid-4" style="margin-top: 1rem;">
               <div v-for="(path, idx) in desktopBanners" :key="'desk-'+idx" class="banner-slot-card">
                 <div class="banner-preview-box aspect-desktop">
-                  <img :src="path + (path.includes('?') ? '&' : '?') + 't=' + imageCacheBust" class="banner-preview-img" alt="Desktop banner">
+                  <img :src="getBannerSrc(path)" @error="onBannerImgError($event, path)" class="banner-preview-img" alt="Desktop banner">
                 </div>
                 <div class="banner-slot-info">
                   <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 70px;">#{{ idx + 1 }}</span>
@@ -802,7 +802,7 @@
             <div class="grid-4" style="margin-top: 1rem;">
               <div v-for="(path, idx) in mobileBanners" :key="'mob-'+idx" class="banner-slot-card">
                 <div class="banner-preview-box aspect-mobile">
-                  <img :src="path + (path.includes('?') ? '&' : '?') + 't=' + imageCacheBust" class="banner-preview-img" alt="Mobile banner">
+                  <img :src="getBannerSrc(path)" @error="onBannerImgError($event, path)" class="banner-preview-img" alt="Mobile banner">
                 </div>
                 <div class="banner-slot-info">
                   <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 70px;">#{{ idx + 1 }}</span>
@@ -1222,21 +1222,46 @@
           showToast('已复制到剪贴板！');
         };
 
+        const localPreviews = reactive({});
+
+        const getBannerSrc = (path) => {
+          if (localPreviews[path]) return localPreviews[path];
+          const sep = path.includes('?') ? '&' : '?';
+          return `${path}${sep}t=${imageCacheBust.value}`;
+        };
+
+        const onBannerImgError = (event, path) => {
+          const clean = path.replace(/^\//, '');
+          const rawUrl = `https://raw.githubusercontent.com/${repoConfig.owner}/${repoConfig.repo}/${repoConfig.branch}/public/${clean}`;
+          if (event.target.src !== rawUrl) {
+            event.target.src = rawUrl;
+          }
+        };
+
         const githubFetch = async (endpoint, options = {}) => {
           if (!repoConfig.token) throw new Error('请先配置 GitHub Token');
-          const url = `https://api.github.com/repos/${repoConfig.owner}/${repoConfig.repo}${endpoint}`;
+          const isGet = !options.method || options.method === 'GET';
+          const sep = endpoint.includes('?') ? '&' : '?';
+          const cacheBuster = isGet ? `${sep}_t=${Date.now()}` : '';
+          const url = `https://api.github.com/repos/${repoConfig.owner}/${repoConfig.repo}${endpoint}${cacheBuster}`;
           const res = await fetch(url, {
+            cache: 'no-store',
             ...options,
             headers: {
               'Authorization': `Bearer ${repoConfig.token}`,
               'Accept': 'application/vnd.github.v3+json',
               'Content-Type': 'application/json',
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
               ...(options.headers || {})
             }
           });
           if (!res.ok) {
             const err = await res.json().catch(() => ({}));
-            throw new Error(err.message || `HTTP ${res.status}`);
+            const errMsg = err.message || `HTTP ${res.status}`;
+            const errorObj = new Error(errMsg);
+            errorObj.status = res.status;
+            throw errorObj;
           }
           return res.json();
         };
@@ -1247,28 +1272,72 @@
           return { sha: data.sha, content };
         };
 
-        const putFile = async (path, contentUtf8OrBase64, message, sha = null, isBase64 = false) => {
+        const putFile = async (path, contentUtf8OrBase64, message, sha = null, isBase64 = false, retries = 2) => {
           const base64Content = isBase64
             ? contentUtf8OrBase64
             : btoa(unescape(encodeURIComponent(contentUtf8OrBase64)));
-          const body = {
-            message,
-            content: base64Content,
-            branch: repoConfig.branch
-          };
-          if (sha) body.sha = sha;
-          return githubFetch(`/contents/${path}`, {
-            method: 'PUT',
-            body: JSON.stringify(body)
-          });
+          let currentSha = sha;
+          for (let attempt = 0; attempt <= retries; attempt++) {
+            try {
+              const body = {
+                message,
+                content: base64Content,
+                branch: repoConfig.branch
+              };
+              if (currentSha) body.sha = currentSha;
+              return await githubFetch(`/contents/${path}`, {
+                method: 'PUT',
+                body: JSON.stringify(body)
+              });
+            } catch (err) {
+              const isConflict = err.status === 409 || (err.message && err.message.includes('does not match'));
+              if (isConflict && attempt < retries) {
+                console.warn(`409 conflict on ${path}, retrying attempt ${attempt + 1}...`);
+                await new Promise(r => setTimeout(r, 600 * (attempt + 1)));
+                try {
+                  const fresh = await getFile(path);
+                  currentSha = fresh.sha;
+                  continue;
+                } catch (_e) {}
+              }
+              throw err;
+            }
+          }
         };
 
-        const deleteFile = async (path, sha, message) => {
+        const updateFileSafe = async (path, transformFn, message) => {
+          for (let attempt = 0; attempt < 3; attempt++) {
+            try {
+              const file = await getFile(path);
+              const updatedContent = transformFn(file.content);
+              return await putFile(path, updatedContent, message, file.sha, false, 0);
+            } catch (err) {
+              const isConflict = err.status === 409 || (err.message && err.message.includes('does not match'));
+              if (isConflict && attempt < 2) {
+                console.warn(`Safe update conflict on ${path}, retrying attempt ${attempt + 1}...`, err);
+                await new Promise(r => setTimeout(r, 800 * (attempt + 1)));
+                continue;
+              }
+              throw err;
+            }
+          }
+        };
+
+        const deleteFile = async (path, sha = null, message = 'delete file') => {
+          let currentSha = sha;
+          if (!currentSha) {
+            try {
+              const f = await getFile(path);
+              currentSha = f.sha;
+            } catch (_e) {
+              return; // File does not exist, treat as deleted
+            }
+          }
           return githubFetch(`/contents/${path}`, {
             method: 'DELETE',
             body: JSON.stringify({
               message,
-              sha,
+              sha: currentSha,
               branch: repoConfig.branch
             })
           });
@@ -1375,35 +1444,42 @@
         };
 
         // Sync Banner Arrays to Configuration Files
-        const syncBannersToRepo = async (message) => {
+        const syncBannersToRepo = async (newListDesktop, newListMobile, message) => {
+          const dStr = newListDesktop.map(s => `\t\t\t"${s}",`).join('\n');
+          const mStr = newListMobile.map(s => `\t\t\t"${s}",`).join('\n');
+          const dStrSc = newListDesktop.map(s => `\t\t\t\t"${s}",`).join('\n');
+          const mStrSc = newListMobile.map(s => `\t\t\t\t"${s}",`).join('\n');
+
           // 1. backgroundWallpaper.ts
-          const bwFile = await getFile('src/config/backgroundWallpaper.ts');
-          const dStr = desktopBanners.value.map(s => `\t\t\t"${s}",`).join('\n');
-          const mStr = mobileBanners.value.map(s => `\t\t\t"${s}",`).join('\n');
-          let newBw = bwFile.content.replace(/desktop:\s*\[[\s\S]*?\]/, `desktop: [\n${dStr}\n\t\t]`);
-          newBw = newBw.replace(/mobile:\s*\[[\s\S]*?\]/, `mobile: [\n${mStr}\n\t\t]`);
-          await putFile('src/config/backgroundWallpaper.ts', newBw, message, bwFile.sha);
+          await updateFileSafe('src/config/backgroundWallpaper.ts', (content) => {
+            let res = content.replace(/desktop:\s*\[[\s\S]*?\]/, `desktop: [\n${dStr}\n\t\t]`);
+            res = res.replace(/mobile:\s*\[[\s\S]*?\]/, `mobile: [\n${mStr}\n\t\t]`);
+            return res;
+          }, message);
 
           // 2. siteConfig.ts
-          const scFile = await getFile('src/config/siteConfig.ts');
-          const dStrSc = desktopBanners.value.map(s => `\t\t\t\t"${s}",`).join('\n');
-          const mStrSc = mobileBanners.value.map(s => `\t\t\t\t"${s}",`).join('\n');
-          let newSc = scFile.content.replace(/desktop:\s*\[[\s\S]*?\]/, `desktop: [\n${dStrSc}\n\t\t\t]`);
-          newSc = newSc.replace(/mobile:\s*\[[\s\S]*?\]/, `mobile: [\n${mStrSc}\n\t\t\t]`);
-          await putFile('src/config/siteConfig.ts', newSc, message, scFile.sha);
+          await updateFileSafe('src/config/siteConfig.ts', (content) => {
+            let res = content.replace(/desktop:\s*\[[\s\S]*?\]/, `desktop: [\n${dStrSc}\n\t\t\t]`);
+            res = res.replace(/mobile:\s*\[[\s\S]*?\]/, `mobile: [\n${mStrSc}\n\t\t\t]`);
+            return res;
+          }, message);
         };
 
         // Replace Banner
         const replaceBanner = async (event, type, index) => {
           const file = event.target.files?.[0];
           if (!file) return;
-          showToast(`正在转换并替换${type === 'desktop' ? '电脑' : '手机'}壁纸 #${index + 1}...`, 'info');
+          const isDesk = type === 'desktop';
+          showToast(`正在转换并替换${isDesk ? '电脑' : '手机'}壁纸 #${index + 1}...`, 'info');
           try {
-            const maxWidth = type === 'desktop' ? 1920 : 1080;
+            const maxWidth = isDesk ? 1920 : 1080;
             const base64 = await convertToWebpBase64(file, maxWidth, 0.9);
-            const targetPath = (type === 'desktop' ? desktopBanners.value[index] : mobileBanners.value[index]).replace(/^\//, '');
+            const targetPath = (isDesk ? desktopBanners.value[index] : mobileBanners.value[index]).replace(/^\//, '');
             const filePath = `public/${targetPath}`;
             
+            // Save local instant preview
+            localPreviews[`/${targetPath}`] = `data:image/webp;base64,${base64}`;
+
             let sha = null;
             try {
               const existing = await getFile(filePath);
@@ -1422,29 +1498,47 @@
 
         // Delete Banner
         const deleteBanner = async (type, index) => {
-          const bannerList = type === 'desktop' ? desktopBanners.value : mobileBanners.value;
-          if (bannerList.length <= 1) {
+          const isDesk = type === 'desktop';
+          const list = isDesk ? [...desktopBanners.value] : [...mobileBanners.value];
+          if (list.length <= 1) {
             showToast('至少保留一张壁纸，无法全部删除哦！', 'error');
             return;
           }
-          if (!confirm(`确定要彻底删除该张${type === 'desktop' ? '电脑' : '手机'}壁纸（#${index + 1}）吗？`)) return;
+          if (!confirm(`确定要彻底删除该张${isDesk ? '电脑' : '手机'}壁纸（#${index + 1}）吗？`)) return;
 
           showToast('正在从仓库删除壁纸并更新配置...', 'info');
           try {
-            const removedPath = bannerList[index];
+            const removedPath = list[index];
             const cleanPath = `public/${removedPath.replace(/^\//, '')}`;
+            
+            // 1. Try deleting physical file from git repo
             try {
               const fileData = await getFile(cleanPath);
               await deleteFile(cleanPath, fileData.sha, `feat(banner): delete ${cleanPath}`);
-            } catch (_e) {}
+            } catch (_e) {
+              console.warn('壁纸物理文件不存在或已被删除，继续更新配置', _e);
+            }
 
-            bannerList.splice(index, 1);
-            await syncBannersToRepo(`feat(banner): remove ${type} banner #${index + 1}`);
+            // 2. Prepare new arrays
+            const updatedDesk = isDesk ? list.filter((_, i) => i !== index) : [...desktopBanners.value];
+            const updatedMob = !isDesk ? list.filter((_, i) => i !== index) : [...mobileBanners.value];
 
+            // 3. Synchronize configuration files safely with conflict retries
+            await syncBannersToRepo(updatedDesk, updatedMob, `feat(banner): remove ${type} banner #${index + 1}`);
+
+            // 4. Update local state
+            if (isDesk) {
+              desktopBanners.value = updatedDesk;
+            } else {
+              mobileBanners.value = updatedMob;
+            }
+
+            delete localPreviews[removedPath];
             showToast(`壁纸 #${index + 1} 已彻底删除！`);
             imageCacheBust.value = Date.now();
           } catch (err) {
             showToast('删除壁纸失败: ' + err.message, 'error');
+            await fetchBannersConfig();
           }
         };
 
@@ -1452,34 +1546,41 @@
         const addNewBanner = async (event, type) => {
           const file = event.target.files?.[0];
           if (!file) return;
-          showToast(`正在转换并添加新${type === 'desktop' ? '电脑' : '手机'}壁纸...`, 'info');
+          const isDesk = type === 'desktop';
+          showToast(`正在转换并添加新${isDesk ? '电脑' : '手机'}壁纸...`, 'info');
           try {
-            const maxWidth = type === 'desktop' ? 1920 : 1080;
+            const maxWidth = isDesk ? 1920 : 1080;
             const base64 = await convertToWebpBase64(file, maxWidth, 0.9);
             const timestamp = Date.now();
             const relPath = `assets/${type}-banner/banner_${timestamp}.webp`;
             const fullPath = `public/${relPath}`;
 
+            // Save local instant preview so it shows immediately without 404
+            localPreviews[`/${relPath}`] = `data:image/webp;base64,${base64}`;
+
             await putFile(fullPath, base64, `feat(banner): add new ${type} banner`, null, true);
 
-            if (type === 'desktop') {
-              desktopBanners.value.push(`/${relPath}`);
-            } else {
-              mobileBanners.value.push(`/${relPath}`);
-            }
+            const updatedDesk = isDesk ? [...desktopBanners.value, `/${relPath}`] : [...desktopBanners.value];
+            const updatedMob = !isDesk ? [...mobileBanners.value, `/${relPath}`] : [...mobileBanners.value];
 
-            await syncBannersToRepo(`feat(banner): register new ${type} banner in config`);
+            await syncBannersToRepo(updatedDesk, updatedMob, `feat(banner): register new ${type} banner in config`);
+
+            if (isDesk) {
+              desktopBanners.value = updatedDesk;
+            } else {
+              mobileBanners.value = updatedMob;
+            }
 
             showToast('新壁纸添加成功！');
             imageCacheBust.value = Date.now();
           } catch (err) {
             showToast('添加新壁纸失败: ' + err.message, 'error');
+            await fetchBannersConfig();
           } finally {
             event.target.value = '';
           }
         };
 
-        // Delete Media File in Library
         const deleteMediaFile = async (media) => {
           if (!confirm(`确定要从图库永久删除图片《${media.name}》吗？`)) return;
           showToast(`正在删除 ${media.name}...`, 'info');
@@ -1787,20 +1888,17 @@
         const saveLinksConfig = async () => {
           saving.links = true;
           try {
-            const navFile = await getFile('src/config/navBarConfig.ts');
-            let navContent = navFile.content;
-            
             const childrenCode = navLinks.value.map(l => `\t\t\t\t{\n\t\t\t\t\tname: "${l.name}",\n\t\t\t\t\turl: "${l.url}",\n\t\t\t\t\texternal: true,\n\t\t\t\t\ticon: "${l.icon}",\n\t\t\t\t}`).join(',\n');
             const newChildrenBlock = `children: [\n${childrenCode},\n\t\t\t]`;
-            navContent = navContent.replace(/children:\s*\[[\s\S]*?\]/, newChildrenBlock);
-            await putFile('src/config/navBarConfig.ts', navContent, 'feat(nav): update custom navigation links', navFile.sha);
+            await updateFileSafe('src/config/navBarConfig.ts', (content) => {
+              return content.replace(/children:\s*\[[\s\S]*?\]/, newChildrenBlock);
+            }, 'feat(nav): update custom navigation links');
 
-            const profFile = await getFile('src/config/profileConfig.ts');
-            let profContent = profFile.content;
             const profLinksCode = profileLinks.value.map(l => `\t\t{\n\t\t\tname: "${l.name}",\n\t\t\ticon: "${l.icon}",\n\t\t\turl: "${l.url}",\n\t\t}`).join(',\n');
             const newProfBlock = `links: [\n${profLinksCode},\n\t]`;
-            profContent = profContent.replace(/links:\s*\[[\s\S]*?\]/, newProfBlock);
-            await putFile('src/config/profileConfig.ts', profContent, 'feat(profile): update profile links', profFile.sha);
+            await updateFileSafe('src/config/profileConfig.ts', (content) => {
+              return content.replace(/links:\s*\[[\s\S]*?\]/, newProfBlock);
+            }, 'feat(profile): update profile links');
 
             showToast('所有链接配置已成功保存！');
           } catch (err) {
@@ -1813,24 +1911,24 @@
         const saveSiteConfig = async () => {
           saving.site = true;
           try {
-            const musicFile = await getFile('src/config/musicConfig.ts');
-            let musicText = musicFile.content;
-            musicText = musicText.replace(/id:\s*["'][^"']*["']/, `id: "${musicConfig.id}"`);
-            musicText = musicText.replace(/server:\s*["'][^"']*["']/, `server: "${musicConfig.server}"`);
-            musicText = musicText.replace(/meting_api:\s*["'][^"']*["']/, `meting_api: "${musicConfig.meting_api}"`);
-            await putFile('src/config/musicConfig.ts', musicText, `feat(music): set playlist to ${musicConfig.id}`, musicFile.sha);
+            await updateFileSafe('src/config/musicConfig.ts', (content) => {
+              let text = content.replace(/id:\s*["'][^"']*["']/, `id: "${musicConfig.id}"`);
+              text = text.replace(/server:\s*["'][^"']*["']/, `server: "${musicConfig.server}"`);
+              text = text.replace(/meting_api:\s*["'][^"']*["']/, `meting_api: "${musicConfig.meting_api}"`);
+              return text;
+            }, `feat(music): set playlist to ${musicConfig.id}`);
 
-            const siteFile = await getFile('src/config/siteConfig.ts');
-            let siteText = siteFile.content;
-            siteText = siteText.replace(/hue:\s*\d+/, `hue: ${siteMeta.hue}`);
-            siteText = siteText.replace(/title:\s*["'][^"']*["']/, `title: "${siteMeta.title}"`);
-            await putFile('src/config/siteConfig.ts', siteText, `feat(site): update hue to ${siteMeta.hue} and title`, siteFile.sha);
+            await updateFileSafe('src/config/siteConfig.ts', (content) => {
+              let text = content.replace(/hue:\s*\d+/, `hue: ${siteMeta.hue}`);
+              text = text.replace(/title:\s*["'][^"']*["']/, `title: "${siteMeta.title}"`);
+              return text;
+            }, `feat(site): update hue to ${siteMeta.hue} and title`);
 
-            const profFile = await getFile('src/config/profileConfig.ts');
-            let profText = profFile.content;
-            profText = profText.replace(/name:\s*["'][^"']*["']/, `name: "${siteMeta.name}"`);
-            profText = profText.replace(/bio:\s*`[\s\S]*?`/, `bio: \`${siteMeta.bio}\``);
-            await putFile('src/config/profileConfig.ts', profText, 'feat(profile): update name and bio', profFile.sha);
+            await updateFileSafe('src/config/profileConfig.ts', (content) => {
+              let text = content.replace(/name:\s*["'][^"']*["']/, `name: "${siteMeta.name}"`);
+              text = text.replace(/bio:\s*`[\s\S]*?`/, `bio: \`${siteMeta.bio}\``);
+              return text;
+            }, 'feat(profile): update name and bio');
 
             showToast('站点与音乐配置已全部保存生效！');
           } catch (err) {
@@ -1902,7 +2000,9 @@
           addProfileLink,
           removeProfileLink,
           saveLinksConfig,
-          saveSiteConfig
+          saveSiteConfig,
+          getBannerSrc,
+          onBannerImgError
         };
       }
     }).mount('#app');
