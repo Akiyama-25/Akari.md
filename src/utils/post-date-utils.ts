@@ -9,6 +9,11 @@ export interface PostDateParts {
 
 const formatterCache = new Map<string, Intl.DateTimeFormat>();
 
+export function normalizeTimeZone(timeZone: string): string {
+	if (timeZone === "Asia/Beijing") return "Asia/Shanghai";
+	return timeZone;
+}
+
 function assertValidDate(date: Date): void {
 	if (Number.isNaN(date.getTime())) {
 		throw new RangeError("Invalid published date");
@@ -16,13 +21,14 @@ function assertValidDate(date: Date): void {
 }
 
 function getFormatter(timeZone: string): Intl.DateTimeFormat {
-	const cached = formatterCache.get(timeZone);
+	const normalized = normalizeTimeZone(timeZone);
+	const cached = formatterCache.get(normalized);
 	if (cached) {
 		return cached;
 	}
 
 	const formatter = new Intl.DateTimeFormat("en-US-u-ca-gregory-nu-latn", {
-		timeZone,
+		timeZone: normalized,
 		year: "numeric",
 		month: "2-digit",
 		day: "2-digit",
@@ -31,7 +37,7 @@ function getFormatter(timeZone: string): Intl.DateTimeFormat {
 		second: "2-digit",
 		hourCycle: "h23",
 	});
-	formatterCache.set(timeZone, formatter);
+	formatterCache.set(normalized, formatter);
 	return formatter;
 }
 
