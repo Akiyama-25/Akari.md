@@ -25,6 +25,8 @@
       --radius-lg: 20px;
       --danger: #ef4444;
       --danger-hover: #dc2626;
+      --danger-light: #fef2f2;
+      --danger-border: #fecaca;
     }
 
     * {
@@ -302,9 +304,9 @@
     }
 
     .btn-danger {
-      background: #fef2f2;
+      background: var(--danger-light);
       color: var(--danger);
-      border-color: #fecaca;
+      border-color: var(--danger-border);
     }
 
     .btn-danger:hover {
@@ -377,7 +379,7 @@
       }
     }
 
-    /* Banner Slots */
+    /* Banner Slots with Delete & Replace Actions */
     .banner-slot-card {
       border: 1px solid var(--card-border);
       border-radius: 14px;
@@ -386,6 +388,7 @@
       display: flex;
       flex-direction: column;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+      position: relative;
     }
 
     .banner-preview-box {
@@ -415,8 +418,16 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 0.3rem;
       font-size: 0.75rem;
       font-weight: 600;
+      background: #ffffff;
+    }
+
+    .banner-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
     }
 
     /* Post list item */
@@ -455,6 +466,44 @@
       flex-wrap: wrap;
       gap: 0.6rem;
       margin-top: 0.25rem;
+    }
+
+    /* Media Library Item */
+    .media-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.2s;
+    }
+
+    .media-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      border-color: var(--primary);
+    }
+
+    .media-thumb {
+      aspect-ratio: 16 / 10;
+      width: 100%;
+      background: #e2e8f0;
+      overflow: hidden;
+    }
+
+    .media-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .media-footer {
+      padding: 0.5rem 0.65rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.3rem;
+      font-size: 0.72rem;
     }
 
     /* Modals */
@@ -509,7 +558,7 @@
       color: var(--text-muted);
     }
 
-    /* Markdown Editor with Inline Image Support */
+    /* Markdown Editor */
     .editor-toolbar {
       display: flex;
       flex-wrap: wrap;
@@ -557,12 +606,6 @@
     .editor-preview code { background: var(--primary-light); color: var(--primary); padding: 0.1rem 0.3rem; border-radius: 4px; font-size: 0.8rem; }
     .editor-preview blockquote { border-left: 3px solid var(--primary); padding-left: 0.6rem; color: var(--text-muted); margin: 0.4rem 0; }
 
-    /* Drag & Drop Area */
-    .drop-active {
-      border-color: var(--primary) !important;
-      background: var(--primary-light) !important;
-    }
-
     /* Toast */
     .toast {
       position: fixed;
@@ -604,7 +647,7 @@
           <div>
             <div class="brand-title">
               Akari 管理后台
-              <span class="badge-pill">v1.2</span>
+              <span class="badge-pill">v1.3</span>
             </div>
             <div class="brand-subtitle">anon-akari.top · 站点管理中心</div>
           </div>
@@ -627,7 +670,7 @@
     <!-- Main Content -->
     <div class="main-wrap">
 
-      <!-- Navigation Tabs (4 Equal Columns on Mobile - No cut-offs!) -->
+      <!-- Navigation Tabs (4 Equal Columns on Mobile) -->
       <nav class="nav-tabs">
         <button
           v-for="tab in tabs"
@@ -702,85 +745,138 @@
           </div>
         </div>
 
-        <!-- TAB 2: 网页换图 -->
+        <!-- TAB 2: 网页换图与素材删除管理 -->
         <div v-if="currentTab === 'banners'">
           <div style="margin-bottom: 1rem;">
-            <h2 style="font-size: 1.15rem; font-weight: 700;">网页展示图与壁纸管理</h2>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">直接选择手机相册照片，浏览器自动无损转为高质量 WebP 并极速替换！</div>
+            <h2 style="font-size: 1.15rem; font-weight: 700;">网页展示图与素材管理</h2>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">全功能图片管理：支持壁纸自由新增、更换与删除，以及已上传素材库清理！</div>
           </div>
 
-          <!-- Desktop Banners -->
+          <!-- Desktop Banners with Delete & Add -->
           <div class="card">
-            <div class="card-title">🖥️ 电脑端轮换壁纸 (Desktop Banners)</div>
-            <div class="card-subtitle">public/assets/desktop-banner/ (推荐 16:9 横屏，如 1920x1080)</div>
-            <div class="grid-4">
-              <div v-for="slot in [1, 2, 3, 4]" :key="'d-'+slot" class="banner-slot-card">
-                <div class="banner-preview-box aspect-desktop">
-                  <img :src="'/assets/desktop-banner/' + slot + '.webp?t=' + imageCacheBust" class="banner-preview-img" alt="Desktop banner">
-                </div>
-                <div class="banner-slot-info">
-                  <span>壁纸 #{{ slot }}</span>
-                  <label class="btn btn-secondary btn-sm" style="cursor: pointer;">
-                    更换
-                    <input type="file" accept="image/*" style="display: none;" @change="uploadBanner($event, 'desktop', slot)">
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Mobile Banners -->
-          <div class="card">
-            <div class="card-title">📱 手机端轮换壁纸 (Mobile Banners)</div>
-            <div class="card-subtitle">public/assets/mobile-banner/ (推荐 9:16 竖屏，如 1080x1920)</div>
-            <div class="grid-4">
-              <div v-for="slot in [1, 2, 3, 4]" :key="'m-'+slot" class="banner-slot-card">
-                <div class="banner-preview-box aspect-mobile">
-                  <img :src="'/assets/mobile-banner/' + slot + '.webp?t=' + imageCacheBust" class="banner-preview-img" alt="Mobile banner">
-                </div>
-                <div class="banner-slot-info">
-                  <span>竖屏 #{{ slot }}</span>
-                  <label class="btn btn-secondary btn-sm" style="cursor: pointer;">
-                    更换
-                    <input type="file" accept="image/*" style="display: none;" @change="uploadBanner($event, 'mobile', slot)">
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Avatar & Post Image -->
-          <div class="grid-2">
-            <!-- Avatar -->
-            <div class="card">
-              <div class="card-title">👤 博主头像更换</div>
-              <div class="card-subtitle">同步更新 avatar.webp 与 home.webp</div>
-              <div style="display: flex; align-items: center; gap: 1rem;">
-                <div style="width: 68px; height: 68px; border-radius: 16px; overflow: hidden; border: 2px solid #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.06); flex-shrink: 0;">
-                  <img :src="'/assets/home/home.webp?t=' + imageCacheBust" style="width:100%; height:100%; object-fit:cover;" alt="Avatar">
-                </div>
-                <div>
-                  <label class="btn btn-primary btn-sm" style="cursor: pointer;">
-                    📸 选择新头像
-                    <input type="file" accept="image/*" style="display: none;" @change="uploadAvatar">
-                  </label>
-                  <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.35rem;">自动缩放为 400x400 正方形 WebP</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Standalone Post Image Upload -->
-            <div class="card">
-              <div class="card-title">📎 通用素材与配图上传</div>
-              <div class="card-subtitle">上传到 public/images/posts/ 并复制 Markdown 语法</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; flex-wrap: wrap; gap: 0.5rem;">
               <div>
-                <label class="btn btn-secondary btn-sm" style="cursor: pointer; width: 100%; justify-content: center; padding: 0.85rem 0;">
-                  📤 选择本地图片上传
+                <div class="card-title" style="margin: 0;">🖥️ 电脑端轮换壁纸 (Desktop Banners)</div>
+                <div class="card-subtitle" style="margin: 0;">建议 16:9 横屏，可更换或彻底删除任意壁纸</div>
+              </div>
+              <label class="btn btn-primary btn-sm" style="cursor: pointer;">
+                ➕ 添加新电脑壁纸
+                <input type="file" accept="image/*" style="display: none;" @change="addNewBanner($event, 'desktop')">
+              </label>
+            </div>
+
+            <div class="grid-4" style="margin-top: 1rem;">
+              <div v-for="(path, idx) in desktopBanners" :key="'desk-'+idx" class="banner-slot-card">
+                <div class="banner-preview-box aspect-desktop">
+                  <img :src="path + (path.includes('?') ? '&' : '?') + 't=' + imageCacheBust" class="banner-preview-img" alt="Desktop banner">
+                </div>
+                <div class="banner-slot-info">
+                  <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 70px;">#{{ idx + 1 }}</span>
+                  <div class="banner-actions">
+                    <label class="btn btn-secondary btn-sm" style="cursor: pointer; padding: 0.2rem 0.5rem; font-size: 0.72rem;">
+                      更换
+                      <input type="file" accept="image/*" style="display: none;" @change="replaceBanner($event, 'desktop', idx)">
+                    </label>
+                    <button @click="deleteBanner('desktop', idx)" class="btn btn-danger btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;">
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mobile Banners with Delete & Add -->
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; flex-wrap: wrap; gap: 0.5rem;">
+              <div>
+                <div class="card-title" style="margin: 0;">📱 手机端轮换壁纸 (Mobile Banners)</div>
+                <div class="card-subtitle" style="margin: 0;">建议 9:16 竖屏，可更换或彻底删除任意壁纸</div>
+              </div>
+              <label class="btn btn-primary btn-sm" style="cursor: pointer;">
+                ➕ 添加新手机壁纸
+                <input type="file" accept="image/*" style="display: none;" @change="addNewBanner($event, 'mobile')">
+              </label>
+            </div>
+
+            <div class="grid-4" style="margin-top: 1rem;">
+              <div v-for="(path, idx) in mobileBanners" :key="'mob-'+idx" class="banner-slot-card">
+                <div class="banner-preview-box aspect-mobile">
+                  <img :src="path + (path.includes('?') ? '&' : '?') + 't=' + imageCacheBust" class="banner-preview-img" alt="Mobile banner">
+                </div>
+                <div class="banner-slot-info">
+                  <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 70px;">#{{ idx + 1 }}</span>
+                  <div class="banner-actions">
+                    <label class="btn btn-secondary btn-sm" style="cursor: pointer; padding: 0.2rem 0.5rem; font-size: 0.72rem;">
+                      更换
+                      <input type="file" accept="image/*" style="display: none;" @change="replaceBanner($event, 'mobile', idx)">
+                    </label>
+                    <button @click="deleteBanner('mobile', idx)" class="btn btn-danger btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;">
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Avatar & Post Image Uploader -->
+          <div class="card">
+            <div class="card-title">👤 博主头像更换</div>
+            <div class="card-subtitle">同步更新 avatar.webp 与 home.webp</div>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+              <div style="width: 68px; height: 68px; border-radius: 16px; overflow: hidden; border: 2px solid #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.06); flex-shrink: 0;">
+                <img :src="'/assets/home/home.webp?t=' + imageCacheBust" style="width:100%; height:100%; object-fit:cover;" alt="Avatar">
+              </div>
+              <div>
+                <label class="btn btn-primary btn-sm" style="cursor: pointer;">
+                  📸 选择新头像
+                  <input type="file" accept="image/*" style="display: none;" @change="uploadAvatar">
+                </label>
+                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.35rem;">自动缩放为 400x400 正方形 WebP</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Uploaded Media Library & Post Images Gallery with Delete Option -->
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+              <div>
+                <div class="card-title" style="margin: 0;">📁 文章配图与已上传素材库</div>
+                <div class="card-subtitle" style="margin: 0;">public/images/posts/ 下的所有图片，支持复制 Markdown 引用与彻底删除</div>
+              </div>
+              <div style="display: flex; gap: 0.4rem;">
+                <button @click="fetchMediaGallery" :disabled="loading.media" class="btn btn-secondary btn-sm">
+                  🔄 {{ loading.media ? '加载中...' : '刷新图库' }}
+                </button>
+                <label class="btn btn-primary btn-sm" style="cursor: pointer;">
+                  📤 上传新图片
                   <input type="file" accept="image/*" style="display: none;" @change="uploadPostImage">
                 </label>
-                <div v-if="lastUploadedImageMarkdown" style="margin-top: 0.5rem; background: var(--primary-light); color: var(--primary-hover); padding: 0.4rem 0.6rem; border-radius: 8px; font-size: 0.75rem; display: flex; justify-content: space-between; align-items: center;">
-                  <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: monospace;">{{ lastUploadedImageMarkdown }}</span>
-                  <button @click="copyText(lastUploadedImageMarkdown)" class="btn btn-primary btn-sm" style="padding: 0.15rem 0.4rem; font-size: 0.68rem;">复制</button>
+              </div>
+            </div>
+
+            <div v-if="mediaFiles.length === 0 && !loading.media" style="text-align: center; color: var(--text-muted); padding: 2rem 0; font-size: 0.8rem;">
+              图库暂无已上传的配图，点击右上角“上传新图片”，或在撰写文章时直接粘贴/拖入图片！
+            </div>
+            <div v-if="loading.media" style="text-align: center; color: var(--text-muted); padding: 2rem 0; font-size: 0.8rem;">
+              正在读取已上传图库...
+            </div>
+            <div v-else class="grid-4" style="margin-top: 1rem;">
+              <div v-for="media in mediaFiles" :key="media.path" class="media-card">
+                <div class="media-thumb">
+                  <img :src="media.download_url || ('/' + media.path.replace(/^public\//, ''))" :alt="media.name">
+                </div>
+                <div class="media-footer">
+                  <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 75px; font-family: monospace;">{{ media.name }}</span>
+                  <div style="display: flex; gap: 0.3rem;">
+                    <button @click="copyText('![配图](/' + media.path.replace(/^public\//, '') + ')')" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.4rem; font-size: 0.65rem;">
+                      📋
+                    </button>
+                    <button @click="deleteMediaFile(media)" class="btn btn-danger btn-sm" style="padding: 0.15rem 0.4rem; font-size: 0.65rem;">
+                      🗑️
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -903,7 +999,7 @@
       </main>
     </div>
 
-    <!-- Article Editor Modal (Enhanced with Direct Image Upload) -->
+    <!-- Article Editor Modal -->
     <div v-if="editingPost" class="modal-overlay">
       <div class="modal-card modal-card-lg">
         <div class="modal-header">
@@ -948,16 +1044,15 @@
                 📷 上传封面图
                 <input type="file" accept="image/*" style="display: none;" @change="uploadArticleCover">
               </label>
-              <button v-if="editingPost.meta.image" @click="editingPost.meta.image = ''" class="btn btn-secondary btn-sm">清除</button>
+              <button v-if="editingPost.meta.image" @click="editingPost.meta.image = ''" class="btn btn-danger btn-sm">🗑️ 清除封面</button>
             </div>
           </div>
         </div>
 
-        <!-- Markdown Editor with In-Content Image Upload Tool -->
+        <!-- Markdown Editor with Image Upload Tool -->
         <div class="form-group">
           <div class="editor-toolbar">
             <div class="editor-tools">
-              <!-- Direct Image Insert Button -->
               <label class="btn btn-primary btn-sm" style="cursor: pointer; background: linear-gradient(135deg, #10b981, #0d9488);">
                 🖼️ 插入配图
                 <input type="file" accept="image/*" style="display: none;" @change="insertImageIntoArticle">
@@ -1067,7 +1162,7 @@
         const showTokenModal = ref(!repoConfig.token);
         const isConnected = computed(() => !!repoConfig.token);
 
-        const loading = reactive({ posts: false });
+        const loading = reactive({ posts: false, media: false });
         const saving = reactive({ post: false, links: false, site: false });
         const toast = reactive({ show: false, message: '', type: 'info' });
         const imageCacheBust = ref(Date.now());
@@ -1075,6 +1170,21 @@
         const posts = ref([]);
         const editingPost = ref(null);
         const postTextarea = ref(null);
+
+        // Dynamic Banners List
+        const desktopBanners = ref([
+          '/assets/desktop-banner/1.webp',
+          '/assets/desktop-banner/2.webp',
+          '/assets/desktop-banner/3.webp',
+          '/assets/desktop-banner/4.webp',
+        ]);
+        const mobileBanners = ref([
+          '/assets/mobile-banner/1.webp',
+          '/assets/mobile-banner/2.webp',
+          '/assets/mobile-banner/3.webp',
+          '/assets/mobile-banner/4.webp',
+        ]);
+        const mediaFiles = ref([]);
 
         const navLinks = ref([
           { name: 'GitHub', url: 'https://github.com/Akiyama-25', icon: 'fa7-brands:github' },
@@ -1153,6 +1263,17 @@
           });
         };
 
+        const deleteFile = async (path, sha, message) => {
+          return githubFetch(`/contents/${path}`, {
+            method: 'DELETE',
+            body: JSON.stringify({
+              message,
+              sha,
+              branch: repoConfig.branch
+            })
+          });
+        };
+
         const saveTokenConfig = async () => {
           try {
             const userRes = await fetch('https://api.github.com/user', {
@@ -1212,6 +1333,162 @@
             showToast('获取文章列表失败: ' + err.message, 'error');
           } finally {
             loading.posts = false;
+          }
+        };
+
+        // Fetch Banners from backgroundWallpaper.ts
+        const fetchBannersConfig = async () => {
+          if (!repoConfig.token) return;
+          try {
+            const file = await getFile('src/config/backgroundWallpaper.ts');
+            const dMatch = file.content.match(/desktop:\s*\[([\s\S]*?)\]/);
+            if (dMatch) {
+              const list = dMatch[1].match(/["']([^"']+)["']/g);
+              if (list && list.length > 0) {
+                desktopBanners.value = list.map(s => s.replace(/["']/g, ''));
+              }
+            }
+            const mMatch = file.content.match(/mobile:\s*\[([\s\S]*?)\]/);
+            if (mMatch) {
+              const list = mMatch[1].match(/["']([^"']+)["']/g);
+              if (list && list.length > 0) {
+                mobileBanners.value = list.map(s => s.replace(/["']/g, ''));
+              }
+            }
+          } catch (err) {
+            console.warn('获取壁纸配置失败:', err);
+          }
+        };
+
+        // Fetch Media Gallery from public/images/posts/
+        const fetchMediaGallery = async () => {
+          if (!repoConfig.token) return;
+          loading.media = true;
+          try {
+            const files = await githubFetch(`/contents/public/images/posts?ref=${repoConfig.branch}`);
+            mediaFiles.value = files.filter(f => f.type === 'file' && !f.name.startsWith('.'));
+          } catch (_e) {
+            mediaFiles.value = [];
+          } finally {
+            loading.media = false;
+          }
+        };
+
+        // Sync Banner Arrays to Configuration Files
+        const syncBannersToRepo = async (message) => {
+          // 1. backgroundWallpaper.ts
+          const bwFile = await getFile('src/config/backgroundWallpaper.ts');
+          const dStr = desktopBanners.value.map(s => `\t\t\t"${s}",`).join('\n');
+          const mStr = mobileBanners.value.map(s => `\t\t\t"${s}",`).join('\n');
+          let newBw = bwFile.content.replace(/desktop:\s*\[[\s\S]*?\]/, `desktop: [\n${dStr}\n\t\t]`);
+          newBw = newBw.replace(/mobile:\s*\[[\s\S]*?\]/, `mobile: [\n${mStr}\n\t\t]`);
+          await putFile('src/config/backgroundWallpaper.ts', newBw, message, bwFile.sha);
+
+          // 2. siteConfig.ts
+          const scFile = await getFile('src/config/siteConfig.ts');
+          const dStrSc = desktopBanners.value.map(s => `\t\t\t\t"${s}",`).join('\n');
+          const mStrSc = mobileBanners.value.map(s => `\t\t\t\t"${s}",`).join('\n');
+          let newSc = scFile.content.replace(/desktop:\s*\[[\s\S]*?\]/, `desktop: [\n${dStrSc}\n\t\t\t]`);
+          newSc = newSc.replace(/mobile:\s*\[[\s\S]*?\]/, `mobile: [\n${mStrSc}\n\t\t\t]`);
+          await putFile('src/config/siteConfig.ts', newSc, message, scFile.sha);
+        };
+
+        // Replace Banner
+        const replaceBanner = async (event, type, index) => {
+          const file = event.target.files?.[0];
+          if (!file) return;
+          showToast(`正在转换并替换${type === 'desktop' ? '电脑' : '手机'}壁纸 #${index + 1}...`, 'info');
+          try {
+            const maxWidth = type === 'desktop' ? 1920 : 1080;
+            const base64 = await convertToWebpBase64(file, maxWidth, 0.9);
+            const targetPath = (type === 'desktop' ? desktopBanners.value[index] : mobileBanners.value[index]).replace(/^\//, '');
+            const filePath = `public/${targetPath}`;
+            
+            let sha = null;
+            try {
+              const existing = await getFile(filePath);
+              sha = existing.sha;
+            } catch (_e) {}
+
+            await putFile(filePath, base64, `feat(banner): replace ${type} banner #${index + 1}`, sha, true);
+            showToast(`壁纸 #${index + 1} 已成功更换！`);
+            imageCacheBust.value = Date.now();
+          } catch (err) {
+            showToast('更换壁纸失败: ' + err.message, 'error');
+          } finally {
+            event.target.value = '';
+          }
+        };
+
+        // Delete Banner
+        const deleteBanner = async (type, index) => {
+          const bannerList = type === 'desktop' ? desktopBanners.value : mobileBanners.value;
+          if (bannerList.length <= 1) {
+            showToast('至少保留一张壁纸，无法全部删除哦！', 'error');
+            return;
+          }
+          if (!confirm(`确定要彻底删除该张${type === 'desktop' ? '电脑' : '手机'}壁纸（#${index + 1}）吗？`)) return;
+
+          showToast('正在从仓库删除壁纸并更新配置...', 'info');
+          try {
+            const removedPath = bannerList[index];
+            const cleanPath = `public/${removedPath.replace(/^\//, '')}`;
+            try {
+              const fileData = await getFile(cleanPath);
+              await deleteFile(cleanPath, fileData.sha, `feat(banner): delete ${cleanPath}`);
+            } catch (_e) {}
+
+            bannerList.splice(index, 1);
+            await syncBannersToRepo(`feat(banner): remove ${type} banner #${index + 1}`);
+
+            showToast(`壁纸 #${index + 1} 已彻底删除！`);
+            imageCacheBust.value = Date.now();
+          } catch (err) {
+            showToast('删除壁纸失败: ' + err.message, 'error');
+          }
+        };
+
+        // Add New Banner
+        const addNewBanner = async (event, type) => {
+          const file = event.target.files?.[0];
+          if (!file) return;
+          showToast(`正在转换并添加新${type === 'desktop' ? '电脑' : '手机'}壁纸...`, 'info');
+          try {
+            const maxWidth = type === 'desktop' ? 1920 : 1080;
+            const base64 = await convertToWebpBase64(file, maxWidth, 0.9);
+            const timestamp = Date.now();
+            const relPath = `assets/${type}-banner/banner_${timestamp}.webp`;
+            const fullPath = `public/${relPath}`;
+
+            await putFile(fullPath, base64, `feat(banner): add new ${type} banner`, null, true);
+
+            if (type === 'desktop') {
+              desktopBanners.value.push(`/${relPath}`);
+            } else {
+              mobileBanners.value.push(`/${relPath}`);
+            }
+
+            await syncBannersToRepo(`feat(banner): register new ${type} banner in config`);
+
+            showToast('新壁纸添加成功！');
+            imageCacheBust.value = Date.now();
+          } catch (err) {
+            showToast('添加新壁纸失败: ' + err.message, 'error');
+          } finally {
+            event.target.value = '';
+          }
+        };
+
+        // Delete Media File in Library
+        const deleteMediaFile = async (media) => {
+          if (!confirm(`确定要从图库永久删除图片《${media.name}》吗？`)) return;
+          showToast(`正在删除 ${media.name}...`, 'info');
+          try {
+            await deleteFile(media.path, media.sha, `feat(media): delete ${media.name}`);
+            showToast(`图片 ${media.name} 已成功删除！`);
+            await fetchMediaGallery();
+          } catch (err) {
+            showToast('删除图片失败: ' + err.message, 'error');
           }
         };
 
@@ -1315,7 +1592,6 @@
           });
         };
 
-        // Direct In-Editor Image Upload
         const uploadFileAndGetPath = async (file, prefix = 'img') => {
           const timestamp = Date.now();
           const fileName = `${prefix}_${timestamp}.webp`;
@@ -1333,6 +1609,7 @@
             const imgUrl = await uploadFileAndGetPath(file, 'img');
             insertText(`\n![配图](${imgUrl})\n`);
             showToast('配图上传成功并已插入正文！');
+            await fetchMediaGallery();
           } catch (err) {
             showToast('配图上传失败: ' + err.message, 'error');
           } finally {
@@ -1348,6 +1625,7 @@
             const imgUrl = await uploadFileAndGetPath(file, 'cover');
             editingPost.value.meta.image = imgUrl;
             showToast('封面图上传成功！');
+            await fetchMediaGallery();
           } catch (err) {
             showToast('封面图上传失败: ' + err.message, 'error');
           } finally {
@@ -1367,6 +1645,7 @@
                   const imgUrl = await uploadFileAndGetPath(file, 'paste');
                   insertText(`\n![截图](${imgUrl})\n`);
                   showToast('粘贴图片上传成功并已插入正文！');
+                  await fetchMediaGallery();
                 } catch (err) {
                   showToast('粘贴图片上传失败: ' + err.message, 'error');
                 }
@@ -1385,6 +1664,7 @@
               const imgUrl = await uploadFileAndGetPath(files[0], 'drop');
               insertText(`\n![图片](${imgUrl})\n`);
               showToast('拖入图片上传成功并已插入！');
+              await fetchMediaGallery();
             } catch (err) {
               showToast('拖放图片失败: ' + err.message, 'error');
             }
@@ -1443,44 +1723,11 @@
         const deletePost = async (post) => {
           if (!confirm(`确定要删除文章《${post.meta?.title || post.name}》吗？`)) return;
           try {
-            await githubFetch(`/contents/${post.path}`, {
-              method: 'DELETE',
-              body: JSON.stringify({
-                message: `feat(post): delete ${post.name}`,
-                sha: post.sha,
-                branch: repoConfig.branch
-              })
-            });
+            await deleteFile(post.path, post.sha, `feat(post): delete ${post.name}`);
             showToast('文章已删除！');
             await fetchPosts();
           } catch (err) {
             showToast('删除失败: ' + err.message, 'error');
-          }
-        };
-
-        const uploadBanner = async (event, type, slot) => {
-          const file = event.target.files?.[0];
-          if (!file) return;
-          const targetPath = type === 'desktop'
-            ? `public/assets/desktop-banner/${slot}.webp`
-            : `public/assets/mobile-banner/${slot}.webp`;
-          
-          showToast(`正在转换并上传 ${type === 'desktop' ? '电脑' : '手机'}壁纸 #${slot}...`, 'info');
-          try {
-            const maxWidth = type === 'desktop' ? 1920 : 1080;
-            const base64 = await convertToWebpBase64(file, maxWidth, 0.9);
-            
-            let sha = null;
-            try {
-              const existing = await getFile(targetPath);
-              sha = existing.sha;
-            } catch (_e) {}
-
-            await putFile(targetPath, base64, `feat(banner): update ${type} banner #${slot}`, sha, true);
-            showToast(`壁纸 #${slot} 更换成功！`);
-            imageCacheBust.value = Date.now();
-          } catch (err) {
-            showToast('上传壁纸失败: ' + err.message, 'error');
           }
         };
 
@@ -1509,15 +1756,18 @@
         const uploadPostImage = async (event) => {
           const file = event.target.files?.[0];
           if (!file) return;
-          showToast('正在上传配图...', 'info');
+          showToast('正在上传图片到素材库...', 'info');
           try {
             const imgUrl = await uploadFileAndGetPath(file, 'img');
             const markdownTag = `![配图](${imgUrl})`;
             lastUploadedImageMarkdown.value = markdownTag;
             copyText(markdownTag);
-            showToast('配图上传成功并已自动复制 Markdown 语法！');
+            showToast('图片上传成功并已复制 Markdown 语法！');
+            await fetchMediaGallery();
           } catch (err) {
-            showToast('上传配图失败: ' + err.message, 'error');
+            showToast('上传图片失败: ' + err.message, 'error');
+          } finally {
+            event.target.value = '';
           }
         };
 
@@ -1593,6 +1843,8 @@
         const fetchAllData = async () => {
           if (!repoConfig.token) return;
           fetchPosts();
+          fetchBannersConfig();
+          fetchMediaGallery();
         };
 
         onMounted(() => {
@@ -1616,6 +1868,9 @@
           postTextarea,
           renderedMarkdown,
           imageCacheBust,
+          desktopBanners,
+          mobileBanners,
+          mediaFiles,
           navLinks,
           profileLinks,
           musicConfig,
@@ -1626,11 +1881,16 @@
           saveTokenConfig,
           disconnectRepo,
           fetchPosts,
+          fetchBannersConfig,
+          fetchMediaGallery,
+          replaceBanner,
+          deleteBanner,
+          addNewBanner,
+          deleteMediaFile,
           openPostEditor,
           insertText,
           saveArticle,
           deletePost,
-          uploadBanner,
           uploadAvatar,
           uploadPostImage,
           uploadArticleCover,
