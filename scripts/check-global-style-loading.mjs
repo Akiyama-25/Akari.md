@@ -44,10 +44,14 @@ async function loadPageStyles(htmlPath) {
 				return "";
 			}
 
-			const assetPath = path.resolve(
-				distDirectory,
-				pathname.startsWith("/") ? pathname.slice(1) : pathname,
-			);
+			const base = (process.env.ASTRO_BASE || "").replace(/^\/|\/$/g, "");
+			let normalized = pathname.startsWith("/") ? pathname.slice(1) : pathname;
+			if (base && (normalized === base || normalized.startsWith(base + "/"))) {
+				normalized = normalized.slice(base.length);
+				if (normalized.startsWith("/")) normalized = normalized.slice(1);
+			}
+
+			const assetPath = path.resolve(distDirectory, normalized);
 			const relativePath = path.relative(distDirectory, assetPath);
 			if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
 				throw new Error(
