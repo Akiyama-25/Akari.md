@@ -8,37 +8,67 @@ const projectRoot = path.resolve(__dirname, "..");
 
 const TWITTER_USER = process.env.TWITTER_USER || "FascinatingAnon";
 
+async function fetchAvatarBuffer() {
+	// Strategy 1: api.fxtwitter.com
+	try {
+		console.log(`[Twitter Avatar Sync] Trying api.fxtwitter.com for @${TWITTER_USER}...`);
+		const apiUrl = `https://api.fxtwitter.com/${TWITTER_USER}`;
+		const res = await fetch(apiUrl, {
+			headers: {
+				"User-Agent":
+					"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+			},
+		});
+		if (res.ok) {
+			const data = await res.json();
+			const rawUrl = data.user?.avatar_url;
+			if (rawUrl) {
+				const highResUrl = rawUrl.replace("_normal", "_400x400");
+				console.log(`[Twitter Avatar Sync] Downloading from: ${highResUrl}`);
+				const imgRes = await fetch(highResUrl, {
+					headers: { "User-Agent": "Mozilla/5.0" },
+				});
+				if (imgRes.ok) {
+					return Buffer.from(await imgRes.arrayBuffer());
+				}
+			}
+		}
+	} catch (err) {
+		console.log(`[Twitter Avatar Sync] fxtwitter failed: ${err.message}`);
+	}
+
+	// Strategy 2: unavatar.io/x/:user
+	const fallbacks = [
+		`https://unavatar.io/x/${TWITTER_USER}`,
+		`https://unavatar.io/twitter/${TWITTER_USER}`,
+	];
+
+	for (const url of fallbacks) {
+		try {
+			console.log(`[Twitter Avatar Sync] Trying fallback provider: ${url}`);
+			const res = await fetch(url, {
+				headers: {
+					"User-Agent":
+						"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+				},
+				redirect: "follow",
+			});
+			if (res.ok) {
+				const buf = Buffer.from(await res.arrayBuffer());
+				if (buf.length > 500) {
+					return buf;
+				}
+			}
+		} catch (err) {
+			console.log(`[Twitter Avatar Sync] Fallback ${url} failed: ${err.message}`);
+		}
+	}
+
+	throw new Error(`Failed to fetch avatar for @${TWITTER_USER} from all available sources.`);
+}
+
 async function run() {
-	console.log(`[Twitter Avatar Sync] Fetching profile for @${TWITTER_USER}...`);
-	const apiUrl = `https://api.fxtwitter.com/${TWITTER_USER}`;
-	const res = await fetch(apiUrl, {
-		headers: {
-			"User-Agent":
-				"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-		},
-	});
-
-	if (!res.ok) {
-		throw new Error(`Failed to fetch user data: HTTP ${res.status}`);
-	}
-
-	const data = await res.json();
-	const rawUrl = data.user?.avatar_url;
-	if (!rawUrl) {
-		throw new Error("No avatar_url found in API response");
-	}
-
-	const highResUrl = rawUrl.replace("_normal", "_400x400");
-	console.log(`[Twitter Avatar Sync] Downloading avatar from: ${highResUrl}`);
-	const imgRes = await fetch(highResUrl, {
-		headers: { "User-Agent": "Mozilla/5.0" },
-	});
-
-	if (!imgRes.ok) {
-		throw new Error(`Failed to download avatar image: HTTP ${imgRes.status}`);
-	}
-
-	const buffer = Buffer.from(await imgRes.arrayBuffer());
+	const buffer = await fetchAvatarBuffer();
 
 	const avatarWebpPath = path.join(projectRoot, "src/assets/images/avatar.webp");
 	const homeIconPath = path.join(projectRoot, "public/assets/home/home.webp");
