@@ -102,7 +102,7 @@ export default defineConfig({
 		: [],
 
 	site: siteConfig.siteURL,
-	base: process.env.ASTRO_BASE !== undefined ? process.env.ASTRO_BASE : "/Akari.md/",
+	base: process.env.ASTRO_BASE !== undefined ? process.env.ASTRO_BASE : new URL(siteConfig.siteURL).pathname,
 	trailingSlash: "always",
 	compressHTML: true,
 

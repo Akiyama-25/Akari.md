@@ -4,11 +4,11 @@ import type { SiteConfig } from "../types/config";
 const SITE_LANG = "zh_CN"; // 语言代码，例如：'en', 'zh_CN', 'ja' 等。
 
 export const siteConfig: SiteConfig = {
-	title: "Akari",
-	subtitle: "探索代码、音律与夜色",
-	siteURL: "https://akiyama-25.github.io/Akari.md/", // 请替换为你的站点URL，以斜杠结尾
+	title: "AKARI.md",
+	subtitle: "Ciallo～(∠・ω< )⌒★",
+	siteURL: "https://anon-akari.top/", // 请替换为你的站点URL，以斜杠结尾
 	siteStartDate: "2026-11-12", // 站点开始运行日期，用于站点统计组件计算运行天数
-	timeZone: "Asia/Tokyo", // 文章日期使用的 IANA 时区，可改为 Asia/Tokyo、Europe/Berlin 等
+	timeZone: "Asia/Beijing", // 文章日期使用的 IANA 时区，可改为 Asia/Tokyo、Europe/Berlin 等
 
 	lang: SITE_LANG,
 
@@ -19,7 +19,7 @@ export const siteConfig: SiteConfig = {
 
 	// 特色页面开关配置（关闭未使用的页面有助于提升 SEO，关闭后请记得在 navbarConfig 中移除对应链接）
 	featurePages: {
-		anime: false, // 番剧页面开关
+		anime: true, // 番剧页面开关
 		diary: true, // 日记页面开关
 		friends: false, // 友链页面开关
 		projects: true, // 项目页面开关
@@ -54,12 +54,12 @@ export const siteConfig: SiteConfig = {
 	},
 
 	bangumi: {
-		userId: "your-bangumi-id", // 在此处设置你的Bangumi用户ID，可以设置为 "sai" 测试
+		userId: "1269659", // 在此处设置你的Bangumi用户ID，可以设置为 "sai" 测试
 		fetchOnDev: false, // 是否在开发环境下获取 Bangumi 数据（默认 false），获取前先执行 pnpm build 构建 json 文件
 	},
 
 	bilibili: {
-		vmid: "your-bilibili-vmid", // 在此处设置你的Bilibili用户ID (uid)，例如 "1129280784"
+		vmid: "1858179207", // 在此处设置你的Bilibili用户ID (uid)，例如 "1129280784"
 		fetchOnDev: false, // 是否在开发环境下获取 Bilibili 数据（默认 false）
 		coverMirror: "", // 封面图片镜像源（可选，如果需要使用镜像源，例如 "https://images.weserv.nl/?url="）
 		useWebp: true, // 是否使用WebP格式（默认 true）
@@ -72,7 +72,7 @@ export const siteConfig: SiteConfig = {
 	},
 
 	anime: {
-		mode: "local", // 番剧页面模式："bangumi" 使用Bangumi API，"local" 使用本地配置，"bilibili" 使用Bilibili API
+		mode: "bangumi", // 番剧页面模式："bangumi" 使用Bangumi API，"local" 使用本地配置，"bilibili" 使用Bilibili API
 	},
 
 	// 日记页面 Memos API 地址，留空则使用静态数据
@@ -166,11 +166,8 @@ export const siteConfig: SiteConfig = {
 			switchable: true,
 
 			subtitle: [
-				"特別なことはないけど、君がいると十分です",
-				"今でもあなたは私の光",
-				"君ってさ、知らないうちに私の毎日になってたよ",
-				"君と話すと、なんか毎日がちょっと楽しくなるんだ",
-				"今日はなんでもない日。でも、ちょっとだけいい日",
+				"Unsinkable Memory",
+				"人生はどうにも妥協で出来てる",
 			],
 			typewriter: {
 				enable: true, // 启用副标题打字机效果

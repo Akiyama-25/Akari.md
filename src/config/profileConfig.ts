@@ -4,7 +4,8 @@ import type { ProfileConfig } from "../types/config";
 export const profileConfig: ProfileConfig = {
 	avatar: "assets/images/avatar.webp", // 相对于 /src 目录。如果以 '/' 开头，则相对于 /public 目录
 	name: "Akari",
-	bio: "探索代码、音律与夜色。随心记录生活灵感与开发点滴。",
+	bio: `簡単なことも解らないわ あたしって何だっけ
+—フォニイ`,
 	typewriter: {
 		enable: true, // 启用个人简介打字机效果
 		speed: 80, // 打字速度（毫秒）
@@ -16,14 +17,9 @@ export const profileConfig: ProfileConfig = {
 			url: "https://github.com/Akiyama-25",
 		},
 		{
-			name: "Telegram",
-			icon: "fa7-brands:telegram",
-			url: "https://t.me/Akiayama25",
-		},
-		{
 			name: "Email",
 			icon: "material-symbols:mail-outline",
-			url: "mailto:cb88yyds@gmail.com",
+			url: "mailto:hana@anon-akari.top",
 		},
 	],
 };

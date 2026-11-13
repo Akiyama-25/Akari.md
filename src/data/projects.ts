@@ -24,7 +24,7 @@ export const projectsData: Project[] = [
 		id: "ame-player",
 		title: "Ame-Player",
 		description:
-			"沉浸式本地与在线音乐播放器，追求高保真音频输出与极致纯粹的视听体验。",
+			"Android本地播放器，兼网易云第三方客户端，支持USB独占",
 		image: "",
 		category: "mobile",
 		techStack: ["Kotlin", "Android", "Audio"],
