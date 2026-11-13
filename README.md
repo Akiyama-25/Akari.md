@@ -43,8 +43,7 @@
 
 ### 📬 联系与社交
 * **GitHub**: [@Akiyama-25](https://github.com/Akiyama-25)
-* **Telegram**: [@Akiayama25](https://t.me/Akiayama25)
-* **Email**: [cb88yyds@gmail.com](mailto:cb88yyds@gmail.com)
+* **Email**: [hana@anon-akari.top](mailto:hana@anon-akari.top)
 
 ---
 
