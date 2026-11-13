@@ -9,19 +9,22 @@
   <script src="/admin/vendor/marked.min.js"></script>
   <style>
     :root {
-      --primary: #16a34a;
-      --primary-hover: #15803d;
-      --primary-light: #dcfce7;
-      --primary-dark: #14532d;
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
+      --primary: #10b981;
+      --primary-hover: #059669;
+      --primary-light: rgba(16, 185, 129, 0.12);
+      --primary-border: rgba(16, 185, 129, 0.25);
+      --primary-glow: rgba(16, 185, 129, 0.2);
+      --bg-overlay: rgba(246, 250, 248, 0.90);
+      --card-bg: rgba(255, 255, 255, 0.88);
+      --card-border: rgba(16, 185, 129, 0.15);
       --border: #e2e8f0;
       --text: #0f172a;
       --text-muted: #64748b;
-      --radius: 12px;
+      --radius-sm: 8px;
+      --radius: 16px;
+      --radius-lg: 20px;
       --danger: #ef4444;
       --danger-hover: #dc2626;
-      --warning: #f59e0b;
     }
 
     * {
@@ -32,53 +35,88 @@
     }
 
     body {
-      background-color: var(--bg);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
       line-height: 1.5;
       font-size: 14px;
       min-height: 100vh;
+      background-color: #f1f5f3;
+      position: relative;
     }
 
-    /* App Layout */
+    /* Mizuki Wallpaper Background with Frosted Glass */
+    .site-bg {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background-image: url('/assets/desktop-banner/1.webp');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    @media (max-width: 768px) {
+      .site-bg {
+        background-image: url('/assets/mobile-banner/1.webp');
+      }
+    }
+
+    .site-bg-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background: var(--bg-overlay);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+    }
+
     .app-container {
       display: flex;
       flex-direction: column;
       min-height: 100vh;
     }
 
-    /* Header */
-    .header {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(8px);
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+    /* Floating Navbar matching Mizuki */
+    .header-wrap {
       padding: 0.75rem 1rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .header {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 0.65rem 1.1rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      box-shadow: 0 4px 20px -2px rgba(16, 185, 129, 0.08);
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 0.6rem;
+      gap: 0.65rem;
     }
 
-    .brand-logo {
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, var(--primary), #4ade80);
-      color: white;
-      font-weight: 700;
-      font-size: 1.1rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25);
+    .brand-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid #ffffff;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+      flex-shrink: 0;
+    }
+
+    .brand-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .brand-title {
@@ -89,17 +127,18 @@
       gap: 0.4rem;
     }
 
-    .badge {
-      font-size: 0.65rem;
-      padding: 0.15rem 0.45rem;
+    .badge-pill {
+      font-size: 0.68rem;
+      padding: 0.15rem 0.5rem;
       background: var(--primary-light);
-      color: var(--primary-dark);
-      border-radius: 999px;
+      color: var(--primary-hover);
+      border-radius: 9999px;
       font-weight: 600;
+      border: 1px solid var(--primary-border);
     }
 
     .brand-subtitle {
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       color: var(--text-muted);
     }
 
@@ -109,12 +148,12 @@
       gap: 0.5rem;
     }
 
-    /* Main Grid */
+    /* Main Container */
     .main-wrap {
       max-width: 1200px;
       width: 100%;
       margin: 0 auto;
-      padding: 1rem;
+      padding: 0 1rem 2rem;
       flex: 1;
       display: flex;
       flex-direction: column;
@@ -124,78 +163,97 @@
     @media (min-width: 768px) {
       .main-wrap {
         flex-direction: row;
-        padding: 1.5rem;
         gap: 1.5rem;
       }
     }
 
-    /* Tabs Navigation */
+    /* Clean 4-Column Navigation Bar (NO cut-offs on mobile!) */
     .nav-tabs {
-      display: flex;
-      gap: 0.4rem;
-      overflow-x: auto;
-      padding-bottom: 0.3rem;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+      width: 100%;
     }
 
     @media (min-width: 768px) {
       .nav-tabs {
+        display: flex;
         flex-direction: column;
-        width: 180px;
+        width: 190px;
         flex-shrink: 0;
-        padding-bottom: 0;
       }
     }
 
     .tab-btn {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.65rem 0.9rem;
+      justify-content: center;
+      gap: 0.25rem;
+      padding: 0.65rem 0.4rem;
       border-radius: var(--radius);
-      border: 1px solid transparent;
-      background: transparent;
+      border: 1px solid var(--card-border);
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       color: var(--text-muted);
-      font-size: 0.85rem;
-      font-weight: 500;
+      font-size: 0.78rem;
+      font-weight: 600;
       cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.2s;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    }
+
+    @media (min-width: 768px) {
+      .tab-btn {
+        flex-direction: row;
+        justify-content: flex-start;
+        padding: 0.75rem 1rem;
+        font-size: 0.88rem;
+        gap: 0.6rem;
+      }
     }
 
     .tab-btn:hover {
-      background: #f1f5f9;
-      color: var(--text);
+      background: rgba(255, 255, 255, 0.95);
+      color: var(--primary-hover);
+      transform: translateY(-1px);
     }
 
     .tab-btn.active {
-      background: var(--primary);
+      background: linear-gradient(135deg, var(--primary), #34d399);
       color: #ffffff;
-      box-shadow: 0 2px 8px rgba(22, 163, 74, 0.25);
+      border-color: transparent;
+      box-shadow: 0 4px 14px var(--primary-glow);
     }
 
-    /* Tab Content Area */
+    /* Tab Content */
     .tab-content {
       flex: 1;
       min-width: 0;
     }
 
-    /* Cards */
+    /* Mizuki Card Base */
     .card {
       background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
       padding: 1.25rem;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
       margin-bottom: 1.25rem;
+      transition: all 0.2s;
     }
 
     .card-title {
-      font-size: 0.95rem;
+      font-size: 1rem;
       font-weight: 700;
-      margin-bottom: 0.25rem;
+      color: var(--text);
       display: flex;
       align-items: center;
-      gap: 0.4rem;
+      gap: 0.5rem;
+      margin-bottom: 0.25rem;
     }
 
     .card-subtitle {
@@ -204,80 +262,43 @@
       margin-bottom: 1rem;
     }
 
-    /* Forms & Inputs */
-    .form-group {
-      margin-bottom: 1rem;
-    }
-
-    .form-label {
-      display: block;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      margin-bottom: 0.35rem;
-    }
-
-    .form-input, .form-select, .form-textarea {
-      width: 100%;
-      padding: 0.6rem 0.8rem;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: #ffffff;
-      font-size: 0.85rem;
-      color: var(--text);
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-
-    .form-input:focus, .form-select:focus, .form-textarea:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
-    }
-
-    .form-textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-
-    .form-hint {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      margin-top: 0.25rem;
-    }
-
     /* Buttons */
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 0.35rem;
-      padding: 0.5rem 0.9rem;
-      font-size: 0.8rem;
+      gap: 0.4rem;
+      padding: 0.5rem 1rem;
+      font-size: 0.82rem;
       font-weight: 600;
-      border-radius: 8px;
+      border-radius: 9999px;
       border: 1px solid transparent;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       text-decoration: none;
+      white-space: nowrap;
     }
 
     .btn-primary {
-      background: var(--primary);
+      background: linear-gradient(135deg, var(--primary), #059669);
       color: white;
+      box-shadow: 0 2px 8px var(--primary-glow);
     }
 
     .btn-primary:hover {
-      background: var(--primary-hover);
+      box-shadow: 0 4px 12px var(--primary-glow);
+      transform: translateY(-1px);
     }
 
     .btn-secondary {
-      background: #f1f5f9;
+      background: rgba(255, 255, 255, 0.9);
       color: var(--text);
       border-color: var(--border);
     }
 
     .btn-secondary:hover {
-      background: #e2e8f0;
+      background: #f8fafc;
+      border-color: var(--primary);
     }
 
     .btn-danger {
@@ -291,16 +312,51 @@
     }
 
     .btn-sm {
-      padding: 0.3rem 0.6rem;
+      padding: 0.35rem 0.75rem;
       font-size: 0.75rem;
-      border-radius: 6px;
     }
 
-    /* Grid helpers */
+    /* Inputs */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 0.65rem 0.9rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.95);
+      font-size: 0.85rem;
+      color: var(--text);
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+      background: #ffffff;
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    /* Grids */
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 0.85rem;
+      gap: 1rem;
     }
 
     @media (min-width: 600px) {
@@ -312,7 +368,7 @@
     .grid-4 {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 0.75rem;
+      gap: 0.85rem;
     }
 
     @media (min-width: 768px) {
@@ -321,14 +377,15 @@
       }
     }
 
-    /* Banner Cards */
+    /* Banner Slots */
     .banner-slot-card {
-      border: 1px solid var(--border);
-      border-radius: 10px;
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
       overflow: hidden;
       background: #ffffff;
       display: flex;
       flex-direction: column;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
     }
 
     .banner-preview-box {
@@ -354,24 +411,25 @@
     }
 
     .banner-slot-info {
-      padding: 0.6rem;
+      padding: 0.65rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
       font-size: 0.75rem;
+      font-weight: 600;
     }
 
-    /* Post list */
-    .post-list {
-      list-style: none;
-    }
-
+    /* Post list item */
     .post-item {
-      padding: 0.85rem 0;
+      padding: 0.9rem 0;
       border-bottom: 1px solid var(--border);
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
+    }
+
+    .post-item:last-child {
+      border-bottom: none;
     }
 
     @media (min-width: 600px) {
@@ -383,8 +441,8 @@
     }
 
     .post-title {
-      font-weight: 600;
-      font-size: 0.9rem;
+      font-weight: 700;
+      font-size: 0.95rem;
       display: flex;
       align-items: center;
       gap: 0.4rem;
@@ -396,35 +454,37 @@
       display: flex;
       flex-wrap: wrap;
       gap: 0.6rem;
-      margin-top: 0.2rem;
+      margin-top: 0.25rem;
     }
 
     /* Modals */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.65);
-      backdrop-filter: blur(4px);
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       z-index: 1000;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 1rem;
+      padding: 0.75rem;
     }
 
     .modal-card {
       background: #ffffff;
-      border-radius: var(--radius);
+      border-radius: var(--radius-lg);
       width: 100%;
-      max-width: 500px;
-      max-height: 90vh;
+      max-width: 520px;
+      max-height: 92vh;
       overflow-y: auto;
       padding: 1.5rem;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 25px 35px -5px rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--card-border);
     }
 
     .modal-card-lg {
-      max-width: 900px;
+      max-width: 960px;
     }
 
     .modal-header {
@@ -438,23 +498,39 @@
 
     .modal-title {
       font-weight: 700;
-      font-size: 1.05rem;
+      font-size: 1.1rem;
     }
 
     .modal-close {
       background: none;
       border: none;
-      font-size: 1.25rem;
+      font-size: 1.35rem;
       cursor: pointer;
       color: var(--text-muted);
     }
 
-    /* Markdown Split Editor */
+    /* Markdown Editor with Inline Image Support */
+    .editor-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 0.5rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .editor-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      align-items: center;
+    }
+
     .editor-grid {
       display: grid;
       grid-template-columns: 1fr;
       gap: 1rem;
-      min-height: 350px;
+      min-height: 380px;
     }
 
     @media (min-width: 768px) {
@@ -465,93 +541,93 @@
 
     .editor-preview {
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 0.85rem;
+      border-radius: 12px;
+      padding: 1rem;
       background: #f8fafc;
       overflow-y: auto;
       max-height: 420px;
       font-size: 0.85rem;
     }
 
-    .editor-preview h1 { font-size: 1.3rem; margin: 0.5rem 0; }
-    .editor-preview h2 { font-size: 1.15rem; margin: 0.4rem 0; border-bottom: 1px solid var(--border); padding-bottom: 0.2rem; }
+    .editor-preview h1 { font-size: 1.4rem; margin: 0.5rem 0; font-weight: 700; }
+    .editor-preview h2 { font-size: 1.2rem; margin: 0.4rem 0; border-bottom: 1px solid var(--border); padding-bottom: 0.2rem; font-weight: 600; }
     .editor-preview p { margin: 0.4rem 0; line-height: 1.6; }
-    .editor-preview pre { background: #1e293b; color: #f8fafc; padding: 0.6rem; border-radius: 6px; overflow-x: auto; margin: 0.4rem 0; font-size: 0.8rem; }
-    .editor-preview code { background: rgba(22, 163, 74, 0.1); color: var(--primary); padding: 0.1rem 0.25rem; border-radius: 4px; font-size: 0.8rem; }
+    .editor-preview img { max-width: 100%; border-radius: 8px; margin: 0.5rem 0; }
+    .editor-preview pre { background: #1e293b; color: #f8fafc; padding: 0.6rem; border-radius: 8px; overflow-x: auto; margin: 0.4rem 0; font-size: 0.8rem; }
+    .editor-preview code { background: var(--primary-light); color: var(--primary); padding: 0.1rem 0.3rem; border-radius: 4px; font-size: 0.8rem; }
     .editor-preview blockquote { border-left: 3px solid var(--primary); padding-left: 0.6rem; color: var(--text-muted); margin: 0.4rem 0; }
-    .editor-preview img { max-width: 100%; border-radius: 6px; }
+
+    /* Drag & Drop Area */
+    .drop-active {
+      border-color: var(--primary) !important;
+      background: var(--primary-light) !important;
+    }
 
     /* Toast */
     .toast {
       position: fixed;
-      bottom: 1.25rem;
-      right: 1.25rem;
+      bottom: 1.5rem;
+      right: 1.5rem;
       z-index: 2000;
       background: #0f172a;
       color: #ffffff;
-      padding: 0.65rem 1.1rem;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      font-weight: 500;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15);
+      padding: 0.75rem 1.25rem;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      box-shadow: 0 10px 20px -3px rgba(0, 0, 0, 0.2);
       display: flex;
       align-items: center;
-      gap: 0.4rem;
+      gap: 0.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .toast-error {
       background: var(--danger);
     }
-
-    /* Warning Banner */
-    .alert-box {
-      background: #fffbeb;
-      border: 1px solid #fef3c7;
-      border-radius: var(--radius);
-      padding: 0.9rem 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.8rem;
-      margin-bottom: 1rem;
-      font-size: 0.8rem;
-      color: #92400e;
-    }
   </style>
 </head>
 <body>
+  <!-- Wallpaper Background -->
+  <div class="site-bg"></div>
+  <div class="site-bg-overlay"></div>
+
   <div id="app" class="app-container">
 
-    <!-- Header -->
-    <header class="header">
-      <div class="brand">
-        <div class="brand-logo">A</div>
-        <div>
-          <div class="brand-title">
-            Akari 管理后台
-            <span class="badge">v1.1</span>
+    <!-- Top Floating Navbar -->
+    <div class="header-wrap">
+      <header class="header">
+        <div class="brand">
+          <div class="brand-avatar">
+            <img src="/assets/home/home.webp" alt="Avatar">
           </div>
-          <div class="brand-subtitle">anon-akari.top · 博客内容与展示管理</div>
+          <div>
+            <div class="brand-title">
+              Akari 管理后台
+              <span class="badge-pill">v1.2</span>
+            </div>
+            <div class="brand-subtitle">anon-akari.top · 站点管理中心</div>
+          </div>
         </div>
-      </div>
 
-      <div class="header-actions">
-        <button v-if="isConnected" @click="showTokenModal = true" class="btn btn-secondary btn-sm">
-          ⚙️ 仓库配置
-        </button>
-        <button v-else @click="showTokenModal = true" class="btn btn-primary btn-sm">
-          🔑 连接 GitHub
-        </button>
-        <a href="/" target="_blank" class="btn btn-secondary btn-sm">
-          🌐 访问博客
-        </a>
-      </div>
-    </header>
+        <div class="header-actions">
+          <button v-if="isConnected" @click="showTokenModal = true" class="btn btn-secondary btn-sm">
+            ⚙️ 仓库配置
+          </button>
+          <button v-else @click="showTokenModal = true" class="btn btn-primary btn-sm">
+            🔑 连接 GitHub
+          </button>
+          <a href="/" target="_blank" class="btn btn-secondary btn-sm">
+            🌐 博客
+          </a>
+        </div>
+      </header>
+    </div>
 
     <!-- Main Content -->
     <div class="main-wrap">
 
-      <!-- Navigation Tabs -->
+      <!-- Navigation Tabs (4 Equal Columns on Mobile - No cut-offs!) -->
       <nav class="nav-tabs">
         <button
           v-for="tab in tabs"
@@ -559,28 +635,30 @@
           @click="currentTab = tab.id"
           :class="['tab-btn', currentTab === tab.id ? 'active' : '']"
         >
-          <span>{{ tab.icon }}</span>
+          <span style="font-size: 1.15rem;">{{ tab.icon }}</span>
           <span>{{ tab.name }}</span>
         </button>
       </nav>
 
-      <!-- Tab View -->
+      <!-- Main Tab Content -->
       <main class="tab-content">
 
-        <!-- Not Connected Alert -->
-        <div v-if="!isConnected" class="alert-box">
+        <!-- Not Connected Warning -->
+        <div v-if="!isConnected" class="card" style="border-left: 4px solid var(--primary); display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
           <div>
-            <strong>⚠️ 尚未配置 GitHub Token</strong>
-            <div style="font-size: 0.72rem; margin-top: 0.2rem;">配置 Personal Access Token 后，即可直接在手机端发文、换图与改链接。</div>
+            <strong style="color: var(--primary);">🔑 尚未连接 GitHub Token</strong>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">
+              只需填入拥有 repo 权限的个人访问令牌，即可直接发文、换壁纸与改链接。
+            </div>
           </div>
-          <button @click="showTokenModal = true" class="btn btn-primary btn-sm">立即配置</button>
+          <button @click="showTokenModal = true" class="btn btn-primary btn-sm">立即配置 Token</button>
         </div>
 
         <!-- TAB 1: 文章管理 -->
         <div v-if="currentTab === 'posts'">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
             <div>
-              <h2 style="font-size: 1.1rem; font-weight: 700;">文章撰写与管理</h2>
+              <h2 style="font-size: 1.15rem; font-weight: 700;">文章撰写与管理</h2>
               <div style="font-size: 0.75rem; color: var(--text-muted);">管理 src/content/posts 目录下的 Markdown 文章</div>
             </div>
             <div style="display: flex; gap: 0.4rem;">
@@ -598,43 +676,43 @@
               暂无文章或尚未拉取，点击右上角“新建文章”开始撰写！
             </div>
             <div v-if="loading.posts" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
-              正在连接 GitHub 仓库读取文章...
+              正在连接 GitHub 读取文章列表...
             </div>
-            <ul v-else class="post-list">
-              <li v-for="post in posts" :key="post.path" class="post-item">
+            <div v-else>
+              <div v-for="post in posts" :key="post.path" class="post-item">
                 <div>
                   <div class="post-title">
-                    <span v-if="post.meta?.pinned" class="badge" style="background:#fee2e2; color:#b91c1c;">置顶</span>
-                    <span v-if="post.meta?.draft" class="badge" style="background:#f1f5f9; color:#475569;">草稿</span>
+                    <span v-if="post.meta?.pinned" class="badge-pill" style="background:#fee2e2; color:#dc2626; border-color:#fecaca;">置顶</span>
+                    <span v-if="post.meta?.draft" class="badge-pill" style="background:#f1f5f9; color:#64748b; border-color:#e2e8f0;">草稿</span>
                     <span>{{ post.meta?.title || post.name }}</span>
                   </div>
                   <div class="post-meta">
                     <span>📅 {{ post.meta?.published || '未设定日期' }}</span>
                     <span v-if="post.meta?.category">📁 {{ post.meta.category }}</span>
                     <span v-if="post.meta?.tags?.length">🏷️ {{ post.meta.tags.join(', ') }}</span>
-                    <span style="opacity: 0.7;">({{ post.name }})</span>
+                    <span style="opacity: 0.6;">({{ post.name }})</span>
                   </div>
                 </div>
                 <div style="display: flex; gap: 0.4rem; align-self: flex-end;">
                   <button @click="openPostEditor(post)" class="btn btn-secondary btn-sm">✏️ 编辑</button>
                   <button @click="deletePost(post)" class="btn btn-danger btn-sm">🗑️ 删除</button>
                 </div>
-              </li>
-            </ul>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- TAB 2: 网页换图 -->
         <div v-if="currentTab === 'banners'">
           <div style="margin-bottom: 1rem;">
-            <h2 style="font-size: 1.1rem; font-weight: 700;">网页展示图与壁纸管理</h2>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">直接选择手机相册照片，浏览器自动无损压缩转为 WebP 上传！</div>
+            <h2 style="font-size: 1.15rem; font-weight: 700;">网页展示图与壁纸管理</h2>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">直接选择手机相册照片，浏览器自动无损转为高质量 WebP 并极速替换！</div>
           </div>
 
           <!-- Desktop Banners -->
           <div class="card">
             <div class="card-title">🖥️ 电脑端轮换壁纸 (Desktop Banners)</div>
-            <div class="card-subtitle">public/assets/desktop-banner/ (建议 16:9 横屏，如 1920x1080)</div>
+            <div class="card-subtitle">public/assets/desktop-banner/ (推荐 16:9 横屏，如 1920x1080)</div>
             <div class="grid-4">
               <div v-for="slot in [1, 2, 3, 4]" :key="'d-'+slot" class="banner-slot-card">
                 <div class="banner-preview-box aspect-desktop">
@@ -654,7 +732,7 @@
           <!-- Mobile Banners -->
           <div class="card">
             <div class="card-title">📱 手机端轮换壁纸 (Mobile Banners)</div>
-            <div class="card-subtitle">public/assets/mobile-banner/ (建议 9:16 竖屏，如 1080x1920)</div>
+            <div class="card-subtitle">public/assets/mobile-banner/ (推荐 9:16 竖屏，如 1080x1920)</div>
             <div class="grid-4">
               <div v-for="slot in [1, 2, 3, 4]" :key="'m-'+slot" class="banner-slot-card">
                 <div class="banner-preview-box aspect-mobile">
@@ -678,7 +756,7 @@
               <div class="card-title">👤 博主头像更换</div>
               <div class="card-subtitle">同步更新 avatar.webp 与 home.webp</div>
               <div style="display: flex; align-items: center; gap: 1rem;">
-                <div style="width: 64px; height: 64px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); flex-shrink: 0;">
+                <div style="width: 68px; height: 68px; border-radius: 16px; overflow: hidden; border: 2px solid #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.06); flex-shrink: 0;">
                   <img :src="'/assets/home/home.webp?t=' + imageCacheBust" style="width:100%; height:100%; object-fit:cover;" alt="Avatar">
                 </div>
                 <div>
@@ -686,23 +764,23 @@
                     📸 选择新头像
                     <input type="file" accept="image/*" style="display: none;" @change="uploadAvatar">
                   </label>
-                  <div class="form-hint">自动裁剪缩放为 400x400 正方形 WebP</div>
+                  <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.35rem;">自动缩放为 400x400 正方形 WebP</div>
                 </div>
               </div>
             </div>
 
-            <!-- Post Media Upload -->
+            <!-- Standalone Post Image Upload -->
             <div class="card">
-              <div class="card-title">📎 文章配图上传</div>
-              <div class="card-subtitle">存入 public/images/posts/ 并复制 Markdown</div>
+              <div class="card-title">📎 通用素材与配图上传</div>
+              <div class="card-subtitle">上传到 public/images/posts/ 并复制 Markdown 语法</div>
               <div>
-                <label class="btn btn-secondary btn-sm" style="cursor: pointer; width: 100%; justify-content: center; padding: 0.8rem 0;">
-                  📤 点击选择本地图片上传
+                <label class="btn btn-secondary btn-sm" style="cursor: pointer; width: 100%; justify-content: center; padding: 0.85rem 0;">
+                  📤 选择本地图片上传
                   <input type="file" accept="image/*" style="display: none;" @change="uploadPostImage">
                 </label>
-                <div v-if="lastUploadedImageMarkdown" style="margin-top: 0.5rem; background: var(--primary-light); color: var(--primary-dark); padding: 0.4rem 0.6rem; border-radius: 6px; font-size: 0.72rem; display: flex; justify-content: space-between; align-items: center;">
-                  <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ lastUploadedImageMarkdown }}</span>
-                  <button @click="copyText(lastUploadedImageMarkdown)" class="btn btn-primary btn-sm" style="padding: 0.15rem 0.4rem; font-size: 0.65rem;">复制</button>
+                <div v-if="lastUploadedImageMarkdown" style="margin-top: 0.5rem; background: var(--primary-light); color: var(--primary-hover); padding: 0.4rem 0.6rem; border-radius: 8px; font-size: 0.75rem; display: flex; justify-content: space-between; align-items: center;">
+                  <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: monospace;">{{ lastUploadedImageMarkdown }}</span>
+                  <button @click="copyText(lastUploadedImageMarkdown)" class="btn btn-primary btn-sm" style="padding: 0.15rem 0.4rem; font-size: 0.68rem;">复制</button>
                 </div>
               </div>
             </div>
@@ -713,7 +791,7 @@
         <div v-if="currentTab === 'links'">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
             <div>
-              <h2 style="font-size: 1.1rem; font-weight: 700;">导航栏与社交链接配置</h2>
+              <h2 style="font-size: 1.15rem; font-weight: 700;">导航栏与社交链接配置</h2>
               <div style="font-size: 0.75rem; color: var(--text-muted);">自定义顶部导航栏下拉链接及侧栏个人信息链接</div>
             </div>
             <button @click="saveLinksConfig" :disabled="saving.links" class="btn btn-primary btn-sm">
@@ -758,7 +836,7 @@
         <div v-if="currentTab === 'settings'">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
             <div>
-              <h2 style="font-size: 1.1rem; font-weight: 700;">音乐播放器与全局设置</h2>
+              <h2 style="font-size: 1.15rem; font-weight: 700;">音乐播放器与全局设置</h2>
               <div style="font-size: 0.75rem; color: var(--text-muted);">调整网易云音乐歌单、全站主题色相与博主信息</div>
             </div>
             <button @click="saveSiteConfig" :disabled="saving.site" class="btn btn-primary btn-sm">
@@ -799,7 +877,7 @@
             <div class="form-group">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
                 <label class="form-label" style="margin: 0;">主题默认色相 (Hue): <strong style="color: var(--primary);">{{ siteMeta.hue }}</strong></label>
-                <div :style="{ width: '24px', height: '24px', borderRadius: '6px', background: 'hsl(' + siteMeta.hue + ', 70%, 50%)', border: '1px solid rgba(0,0,0,0.1)' }"></div>
+                <div :style="{ width: '26px', height: '26px', borderRadius: '8px', background: 'hsl(' + siteMeta.hue + ', 70%, 50%)', border: '1px solid rgba(0,0,0,0.1)' }"></div>
               </div>
               <input type="range" min="0" max="360" v-model.number="siteMeta.hue" style="width: 100%;">
             </div>
@@ -825,37 +903,85 @@
       </main>
     </div>
 
-    <!-- Article Editor Modal -->
+    <!-- Article Editor Modal (Enhanced with Direct Image Upload) -->
     <div v-if="editingPost" class="modal-overlay">
       <div class="modal-card modal-card-lg">
         <div class="modal-header">
-          <div class="modal-title">{{ editingPost.isNew ? '✍️ 新建文章' : '✏️ 编辑文章' }}</div>
+          <div>
+            <div class="modal-title">{{ editingPost.isNew ? '✍️ 新建文章' : '✏️ 编辑文章' }}</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace;">src/content/posts/{{ editingPost.slug || '未命名' }}.md</div>
+          </div>
           <button @click="editingPost = null" class="modal-close">✕</button>
         </div>
 
+        <!-- Post Metadata Form -->
         <div class="grid-2" style="margin-bottom: 0.75rem;">
           <div class="form-group">
             <label class="form-label">文章标题 *</label>
             <input type="text" v-model="editingPost.meta.title" class="form-input" placeholder="文章标题">
           </div>
           <div class="form-group">
-            <label class="form-label">文件名 / Slug (英文或拼音) *</label>
-            <input type="text" v-model="editingPost.slug" :disabled="!editingPost.isNew" class="form-input" placeholder="post-slug">
+            <label class="form-label">文件名 / Slug (英文/拼音) *</label>
+            <input type="text" v-model="editingPost.slug" :disabled="!editingPost.isNew" class="form-input" placeholder="my-post-title">
           </div>
           <div class="form-group">
             <label class="form-label">分类 (Category)</label>
-            <input type="text" v-model="editingPost.meta.category" class="form-input" placeholder="生活">
+            <input type="text" v-model="editingPost.meta.category" class="form-input" placeholder="生活 / 随笔 / 技术">
           </div>
           <div class="form-group">
-            <label class="form-label">标签 (用逗号分隔)</label>
-            <input type="text" v-model="editingPost.rawTags" class="form-input" placeholder="随笔, 记录">
+            <label class="form-label">标签 (多个标签用逗号隔开)</label>
+            <input type="text" v-model="editingPost.rawTags" class="form-input" placeholder="随笔, 旅行, 日常">
           </div>
         </div>
 
+        <!-- Cover Image Uploader -->
+        <div class="form-group" style="background: rgba(16, 185, 129, 0.05); padding: 0.75rem; border-radius: 12px; border: 1px dashed var(--card-border);">
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <label class="form-label" style="margin: 0;">🖼️ 文章封面图 (Cover Image)</label>
+              <div style="font-size: 0.72rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 320px;">
+                {{ editingPost.meta.image || '暂无封面图' }}
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.4rem; align-items: center;">
+              <label class="btn btn-primary btn-sm" style="cursor: pointer;">
+                📷 上传封面图
+                <input type="file" accept="image/*" style="display: none;" @change="uploadArticleCover">
+              </label>
+              <button v-if="editingPost.meta.image" @click="editingPost.meta.image = ''" class="btn btn-secondary btn-sm">清除</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Markdown Editor with In-Content Image Upload Tool -->
         <div class="form-group">
-          <label class="form-label">Markdown 正文内容</label>
+          <div class="editor-toolbar">
+            <div class="editor-tools">
+              <!-- Direct Image Insert Button -->
+              <label class="btn btn-primary btn-sm" style="cursor: pointer; background: linear-gradient(135deg, #10b981, #0d9488);">
+                🖼️ 插入配图
+                <input type="file" accept="image/*" style="display: none;" @change="insertImageIntoArticle">
+              </label>
+              <button type="button" @click="insertText('## ')" class="btn btn-secondary btn-sm">H2</button>
+              <button type="button" @click="insertText('### ')" class="btn btn-secondary btn-sm">H3</button>
+              <button type="button" @click="insertText('**粗体**')" class="btn btn-secondary btn-sm">B</button>
+              <button type="button" @click="insertText('`代码`')" class="btn btn-secondary btn-sm">Code</button>
+              <button type="button" @click="insertText('> 引用内容\n')" class="btn btn-secondary btn-sm">Quote</button>
+            </div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">支持直接在编辑器内粘贴截图 (Ctrl+V)</div>
+          </div>
+
           <div class="editor-grid">
-            <textarea v-model="editingPost.body" class="form-textarea" style="height: 100%; min-height: 320px; font-family: monospace;" placeholder="在此编写 Markdown 正文..."></textarea>
+            <textarea
+              ref="postTextarea"
+              v-model="editingPost.body"
+              @paste="handlePasteImage"
+              @drop="handleDropImage"
+              class="form-textarea"
+              style="height: 100%; min-height: 340px; font-family: monospace; line-height: 1.6;"
+              placeholder="在此编写 Markdown 正文...
+提示：点击上方【🖼️ 插入配图】可直接从手机/电脑选图自动插入！也可以直接在此处按 Ctrl+V 粘贴截图！"
+            ></textarea>
             <div class="editor-preview" v-html="renderedMarkdown"></div>
           </div>
         </div>
@@ -863,7 +989,7 @@
         <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
           <button @click="editingPost = null" class="btn btn-secondary">取消</button>
           <button @click="saveArticle" :disabled="saving.post" class="btn btn-primary">
-            {{ saving.post ? '正在推送...' : '🚀 发布并同步' }}
+            {{ saving.post ? '正在发布...' : '🚀 发布并部署' }}
           </button>
         </div>
       </div>
@@ -877,14 +1003,14 @@
           <button @click="showTokenModal = false" class="modal-close">✕</button>
         </div>
 
-        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem;">
+        <div style="font-size: 0.76rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.6;">
           请输入 GitHub 个人访问令牌（PAT），以便后台在浏览器端直接为您提交修改至 GitHub 仓库。
         </div>
 
         <div class="form-group">
           <label class="form-label">GitHub Token (PAT) *</label>
           <input type="password" v-model="tempConfig.token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="form-input" style="font-family: monospace;">
-          <div class="form-hint">需勾选 repo 权限（仅保存在本设备浏览器）</div>
+          <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.25rem;">需勾选 repo 权限（仅保存在本设备浏览器 LocalStorage）</div>
         </div>
 
         <div class="grid-2">
@@ -903,7 +1029,7 @@
           <input type="text" v-model="tempConfig.branch" class="form-input">
         </div>
 
-        <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.25rem;">
           <button v-if="isConnected" @click="disconnectRepo" class="btn btn-danger">断开清除</button>
           <button @click="saveTokenConfig" class="btn btn-primary">测试并连接</button>
         </div>
@@ -924,10 +1050,10 @@
     createApp({
       setup() {
         const tabs = [
-          { id: 'posts', name: '文章管理', icon: '✍️' },
-          { id: 'banners', name: '网页换图', icon: '🖼️' },
-          { id: 'links', name: '链接导航', icon: '🔗' },
-          { id: 'settings', name: '站点音乐', icon: '⚙️' },
+          { id: 'posts', name: '文章', icon: '✍️' },
+          { id: 'banners', name: '换图', icon: '🖼️' },
+          { id: 'links', name: '导航', icon: '🔗' },
+          { id: 'settings', name: '设置', icon: '⚙️' },
         ];
         const currentTab = ref('posts');
 
@@ -948,6 +1074,7 @@
 
         const posts = ref([]);
         const editingPost = ref(null);
+        const postTextarea = ref(null);
 
         const navLinks = ref([
           { name: 'GitHub', url: 'https://github.com/Akiyama-25', icon: 'fa7-brands:github' },
@@ -1131,6 +1258,7 @@
                 published: today,
                 category: '生活',
                 description: '',
+                image: '',
                 pinned: false,
                 draft: false
               },
@@ -1145,67 +1273,17 @@
           return marked.parse(editingPost.value.body || '');
         });
 
-        const saveArticle = async () => {
-          if (!editingPost.value.meta.title || !editingPost.value.slug) {
-            showToast('请填写标题和文件名', 'error');
-            return;
-          }
-          saving.post = true;
-          try {
-            const tags = editingPost.value.rawTags
-              ? editingPost.value.rawTags.split(/[,，]/).map(t => t.trim()).filter(Boolean)
-              : [];
-            
-            const frontmatter = [
-              '---',
-              `title: "${editingPost.value.meta.title}"`,
-              `published: ${editingPost.value.meta.published || new Date().toISOString().split('T')[0]}`,
-              `description: "${editingPost.value.meta.description || ''}"`,
-              `tags: [${tags.map(t => `"${t}"`).join(', ')}]`,
-              `category: "${editingPost.value.meta.category || '生活'}"`,
-              `draft: ${!!editingPost.value.meta.draft}`,
-              `pinned: ${!!editingPost.value.meta.pinned}`,
-              '---',
-              '',
-              editingPost.value.body
-            ].join('\n');
-
-            const filePath = `src/content/posts/${editingPost.value.slug}.md`;
-            let sha = editingPost.value.sha;
-            if (editingPost.value.isNew) {
-              try {
-                const existing = await getFile(filePath);
-                sha = existing.sha;
-              } catch (_e) {}
-            }
-
-            await putFile(filePath, frontmatter, `feat(post): update ${editingPost.value.meta.title}`, sha);
-            showToast('文章已发布！GitHub Actions 正在自动化构建上线～');
-            editingPost.value = null;
-            await fetchPosts();
-          } catch (err) {
-            showToast('保存文章失败: ' + err.message, 'error');
-          } finally {
-            saving.post = false;
-          }
-        };
-
-        const deletePost = async (post) => {
-          if (!confirm(`确定要删除文章《${post.meta?.title || post.name}》吗？`)) return;
-          try {
-            await githubFetch(`/contents/${post.path}`, {
-              method: 'DELETE',
-              body: JSON.stringify({
-                message: `feat(post): delete ${post.name}`,
-                sha: post.sha,
-                branch: repoConfig.branch
-              })
-            });
-            showToast('文章已删除！');
-            await fetchPosts();
-          } catch (err) {
-            showToast('删除失败: ' + err.message, 'error');
-          }
+        const insertText = (snippet) => {
+          if (!postTextarea.value) return;
+          const ta = postTextarea.value;
+          const start = ta.selectionStart;
+          const end = ta.selectionEnd;
+          const text = editingPost.value.body;
+          editingPost.value.body = text.substring(0, start) + snippet + text.substring(end);
+          setTimeout(() => {
+            ta.focus();
+            ta.setSelectionRange(start + snippet.length, start + snippet.length);
+          }, 0);
         };
 
         const convertToWebpBase64 = (file, maxWidth = 1920, quality = 0.88) => {
@@ -1235,6 +1313,149 @@
             reader.onerror = reject;
             reader.readAsDataURL(file);
           });
+        };
+
+        // Direct In-Editor Image Upload
+        const uploadFileAndGetPath = async (file, prefix = 'img') => {
+          const timestamp = Date.now();
+          const fileName = `${prefix}_${timestamp}.webp`;
+          const targetPath = `public/images/posts/${fileName}`;
+          const base64 = await convertToWebpBase64(file, 1600, 0.88);
+          await putFile(targetPath, base64, `feat(media): upload ${fileName}`, null, true);
+          return `/images/posts/${fileName}`;
+        };
+
+        const insertImageIntoArticle = async (event) => {
+          const file = event.target.files?.[0];
+          if (!file) return;
+          showToast('正在上传配图...', 'info');
+          try {
+            const imgUrl = await uploadFileAndGetPath(file, 'img');
+            insertText(`\n![配图](${imgUrl})\n`);
+            showToast('配图上传成功并已插入正文！');
+          } catch (err) {
+            showToast('配图上传失败: ' + err.message, 'error');
+          } finally {
+            event.target.value = '';
+          }
+        };
+
+        const uploadArticleCover = async (event) => {
+          const file = event.target.files?.[0];
+          if (!file) return;
+          showToast('正在上传封面图...', 'info');
+          try {
+            const imgUrl = await uploadFileAndGetPath(file, 'cover');
+            editingPost.value.meta.image = imgUrl;
+            showToast('封面图上传成功！');
+          } catch (err) {
+            showToast('封面图上传失败: ' + err.message, 'error');
+          } finally {
+            event.target.value = '';
+          }
+        };
+
+        const handlePasteImage = async (event) => {
+          const items = (event.clipboardData || event.originalEvent.clipboardData).items;
+          for (const item of items) {
+            if (item.type.indexOf('image') !== -1) {
+              const file = item.getAsFile();
+              if (file) {
+                event.preventDefault();
+                showToast('检测到粘贴图片，正在自动上传...', 'info');
+                try {
+                  const imgUrl = await uploadFileAndGetPath(file, 'paste');
+                  insertText(`\n![截图](${imgUrl})\n`);
+                  showToast('粘贴图片上传成功并已插入正文！');
+                } catch (err) {
+                  showToast('粘贴图片上传失败: ' + err.message, 'error');
+                }
+                break;
+              }
+            }
+          }
+        };
+
+        const handleDropImage = async (event) => {
+          event.preventDefault();
+          const files = event.dataTransfer?.files;
+          if (files && files.length > 0 && files[0].type.startsWith('image/')) {
+            showToast('检测到拖入图片，正在上传...', 'info');
+            try {
+              const imgUrl = await uploadFileAndGetPath(files[0], 'drop');
+              insertText(`\n![图片](${imgUrl})\n`);
+              showToast('拖入图片上传成功并已插入！');
+            } catch (err) {
+              showToast('拖放图片失败: ' + err.message, 'error');
+            }
+          }
+        };
+
+        const saveArticle = async () => {
+          if (!editingPost.value.meta.title || !editingPost.value.slug) {
+            showToast('请填写标题和文件名', 'error');
+            return;
+          }
+          saving.post = true;
+          try {
+            const tags = editingPost.value.rawTags
+              ? editingPost.value.rawTags.split(/[,，]/).map(t => t.trim()).filter(Boolean)
+              : [];
+            
+            const lines = [
+              '---',
+              `title: "${editingPost.value.meta.title}"`,
+              `published: ${editingPost.value.meta.published || new Date().toISOString().split('T')[0]}`,
+              `description: "${editingPost.value.meta.description || ''}"`,
+              `tags: [${tags.map(t => `"${t}"`).join(', ')}]`,
+              `category: "${editingPost.value.meta.category || '生活'}"`,
+            ];
+            if (editingPost.value.meta.image) {
+              lines.push(`image: "${editingPost.value.meta.image}"`);
+            }
+            lines.push(`draft: ${!!editingPost.value.meta.draft}`);
+            lines.push(`pinned: ${!!editingPost.value.meta.pinned}`);
+            lines.push('---');
+            lines.push('');
+            lines.push(editingPost.value.body);
+
+            const frontmatter = lines.join('\n');
+            const filePath = `src/content/posts/${editingPost.value.slug}.md`;
+            let sha = editingPost.value.sha;
+            if (editingPost.value.isNew) {
+              try {
+                const existing = await getFile(filePath);
+                sha = existing.sha;
+              } catch (_e) {}
+            }
+
+            await putFile(filePath, frontmatter, `feat(post): update ${editingPost.value.meta.title}`, sha);
+            showToast('文章已成功发布！Cloudflare 正在自动化构建～');
+            editingPost.value = null;
+            await fetchPosts();
+          } catch (err) {
+            showToast('保存文章失败: ' + err.message, 'error');
+          } finally {
+            saving.post = false;
+          }
+        };
+
+        const deletePost = async (post) => {
+          if (!confirm(`确定要删除文章《${post.meta?.title || post.name}》吗？`)) return;
+          try {
+            await githubFetch(`/contents/${post.path}`, {
+              method: 'DELETE',
+              body: JSON.stringify({
+                message: `feat(post): delete ${post.name}`,
+                sha: post.sha,
+                branch: repoConfig.branch
+              })
+            });
+            showToast('文章已删除！');
+            await fetchPosts();
+          } catch (err) {
+            showToast('删除失败: ' + err.message, 'error');
+          }
         };
 
         const uploadBanner = async (event, type, slot) => {
@@ -1290,13 +1511,8 @@
           if (!file) return;
           showToast('正在上传配图...', 'info');
           try {
-            const timestamp = Date.now();
-            const fileName = `img_${timestamp}.webp`;
-            const targetPath = `public/images/posts/${fileName}`;
-            const base64 = await convertToWebpBase64(file, 1600, 0.88);
-            
-            await putFile(targetPath, base64, `feat(media): upload post image ${fileName}`, null, true);
-            const markdownTag = `![配图](/images/posts/${fileName})`;
+            const imgUrl = await uploadFileAndGetPath(file, 'img');
+            const markdownTag = `![配图](${imgUrl})`;
             lastUploadedImageMarkdown.value = markdownTag;
             copyText(markdownTag);
             showToast('配图上传成功并已自动复制 Markdown 语法！');
@@ -1397,6 +1613,7 @@
           toast,
           posts,
           editingPost,
+          postTextarea,
           renderedMarkdown,
           imageCacheBust,
           navLinks,
@@ -1410,11 +1627,16 @@
           disconnectRepo,
           fetchPosts,
           openPostEditor,
+          insertText,
           saveArticle,
           deletePost,
           uploadBanner,
           uploadAvatar,
           uploadPostImage,
+          uploadArticleCover,
+          insertImageIntoArticle,
+          handlePasteImage,
+          handleDropImage,
           addNavLink,
           removeNavLink,
           addProfileLink,
