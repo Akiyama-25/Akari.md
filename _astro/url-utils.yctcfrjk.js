@@ -1,1 +1,0 @@
-import"./translation.CpKQ9PG8.js";import"./config.g8dVgb7d.js";import"./date-utils.CeA-etkE.js";function i(r,e){return r.replace(/^\/|\/$/g,"").toLowerCase()===e.replace(/^\/|\/$/g,"").toLowerCase()}function t(...r){return r.join("/").replace(/\/+/g,"/")}function p(r){return t("","/",r)}export{p as n,i as t};
