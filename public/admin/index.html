@@ -2,231 +2,649 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Akari 博客管理后台 · Admin Dashboard</title>
   <link rel="icon" href="/favicon.png">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            primary: {
-              50: '#f0fdf4',
-              100: '#dcfce7',
-              200: '#bbf7d0',
-              300: '#86efac',
-              400: '#4ade80',
-              500: '#22c55e',
-              600: '#16a34a',
-              700: '#15803d',
-              800: '#166534',
-              900: '#14532d',
-            }
-          }
-        }
+  <script src="/admin/vendor/vue.global.prod.js"></script>
+  <script src="/admin/vendor/marked.min.js"></script>
+  <style>
+    :root {
+      --primary: #16a34a;
+      --primary-hover: #15803d;
+      --primary-light: #dcfce7;
+      --primary-dark: #14532d;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --radius: 12px;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --warning: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      line-height: 1.5;
+      font-size: 14px;
+      min-height: 100vh;
+    }
+
+    /* App Layout */
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .brand-logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--primary), #4ade80);
+      color: white;
+      font-weight: 700;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25);
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .badge {
+      font-size: 0.65rem;
+      padding: 0.15rem 0.45rem;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    .brand-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Main Grid */
+    .main-wrap {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    @media (min-width: 768px) {
+      .main-wrap {
+        flex-direction: row;
+        padding: 1.5rem;
+        gap: 1.5rem;
       }
     }
-  </script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
-    body {
-      font-family: 'Noto Sans SC', sans-serif;
+
+    /* Tabs Navigation */
+    .nav-tabs {
+      display: flex;
+      gap: 0.4rem;
+      overflow-x: auto;
+      padding-bottom: 0.3rem;
     }
-    code, pre {
-      font-family: 'JetBrains Mono', monospace;
+
+    @media (min-width: 768px) {
+      .nav-tabs {
+        flex-direction: column;
+        width: 180px;
+        flex-shrink: 0;
+        padding-bottom: 0;
+      }
     }
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
+
+    .tab-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.65rem 0.9rem;
+      border-radius: var(--radius);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
     }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: rgba(156, 163, 175, 0.4);
-      border-radius: 4px;
+
+    .tab-btn:hover {
+      background: #f1f5f9;
+      color: var(--text);
     }
-    .markdown-preview h1 { font-size: 1.6rem; font-weight: 700; margin: 1rem 0 0.5rem; }
-    .markdown-preview h2 { font-size: 1.35rem; font-weight: 600; margin: 0.9rem 0 0.4rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2rem; }
-    .markdown-preview h3 { font-size: 1.15rem; font-weight: 600; margin: 0.8rem 0 0.3rem; }
-    .markdown-preview p { margin: 0.5rem 0; line-height: 1.6; }
-    .markdown-preview blockquote { border-left: 4px solid #22c55e; padding-left: 0.8rem; color: #4b5563; margin: 0.6rem 0; }
-    .markdown-preview pre { background: #1f2937; color: #f3f4f6; padding: 0.8rem; border-radius: 0.5rem; overflow-x: auto; margin: 0.6rem 0; }
-    .markdown-preview code { background: rgba(34, 197, 94, 0.1); color: #16a34a; padding: 0.1rem 0.3rem; border-radius: 0.25rem; }
-    .markdown-preview ul { list-style-type: disc; padding-left: 1.2rem; margin: 0.5rem 0; }
-    .markdown-preview ol { list-style-type: decimal; padding-left: 1.2rem; margin: 0.5rem 0; }
-    .markdown-preview img { max-width: 100%; border-radius: 0.5rem; margin: 0.6rem 0; }
-    .markdown-preview a { color: #16a34a; text-decoration: underline; }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(22, 163, 74, 0.25);
+    }
+
+    /* Tab Content Area */
+    .tab-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      margin-bottom: 1.25rem;
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .card-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    /* Forms & Inputs */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 0.6rem 0.8rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+      font-size: 0.85rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-hint {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      padding: 0.5rem 0.9rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background: #f1f5f9;
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: #e2e8f0;
+    }
+
+    .btn-danger {
+      background: #fef2f2;
+      color: var(--danger);
+      border-color: #fecaca;
+    }
+
+    .btn-danger:hover {
+      background: #fee2e2;
+    }
+
+    .btn-sm {
+      padding: 0.3rem 0.6rem;
+      font-size: 0.75rem;
+      border-radius: 6px;
+    }
+
+    /* Grid helpers */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.85rem;
+    }
+
+    @media (min-width: 600px) {
+      .grid-2 {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+
+    @media (min-width: 768px) {
+      .grid-4 {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    /* Banner Cards */
+    .banner-slot-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .banner-preview-box {
+      width: 100%;
+      background: #e2e8f0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .aspect-desktop {
+      aspect-ratio: 16 / 9;
+    }
+
+    .aspect-mobile {
+      aspect-ratio: 9 / 16;
+    }
+
+    .banner-preview-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .banner-slot-info {
+      padding: 0.6rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+    }
+
+    /* Post list */
+    .post-list {
+      list-style: none;
+    }
+
+    .post-item {
+      padding: 0.85rem 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    @media (min-width: 600px) {
+      .post-item {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+
+    .post-title {
+      font-weight: 600;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .post-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-top: 0.2rem;
+    }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-card {
+      background: #ffffff;
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 1.5rem;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-card-lg {
+      max-width: 900px;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-title {
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.25rem;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+
+    /* Markdown Split Editor */
+    .editor-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      min-height: 350px;
+    }
+
+    @media (min-width: 768px) {
+      .editor-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .editor-preview {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.85rem;
+      background: #f8fafc;
+      overflow-y: auto;
+      max-height: 420px;
+      font-size: 0.85rem;
+    }
+
+    .editor-preview h1 { font-size: 1.3rem; margin: 0.5rem 0; }
+    .editor-preview h2 { font-size: 1.15rem; margin: 0.4rem 0; border-bottom: 1px solid var(--border); padding-bottom: 0.2rem; }
+    .editor-preview p { margin: 0.4rem 0; line-height: 1.6; }
+    .editor-preview pre { background: #1e293b; color: #f8fafc; padding: 0.6rem; border-radius: 6px; overflow-x: auto; margin: 0.4rem 0; font-size: 0.8rem; }
+    .editor-preview code { background: rgba(22, 163, 74, 0.1); color: var(--primary); padding: 0.1rem 0.25rem; border-radius: 4px; font-size: 0.8rem; }
+    .editor-preview blockquote { border-left: 3px solid var(--primary); padding-left: 0.6rem; color: var(--text-muted); margin: 0.4rem 0; }
+    .editor-preview img { max-width: 100%; border-radius: 6px; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      z-index: 2000;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 0.65rem 1.1rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .toast-error {
+      background: var(--danger);
+    }
+
+    /* Warning Banner */
+    .alert-box {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-radius: var(--radius);
+      padding: 0.9rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+      margin-bottom: 1rem;
+      font-size: 0.8rem;
+      color: #92400e;
+    }
   </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen">
-  <div id="app" class="flex flex-col min-h-screen">
+<body>
+  <div id="app" class="app-container">
 
-    <!-- Top Navigation Bar -->
-    <header class="bg-white/90 dark:bg-slate-800/90 backdrop-blur sticky top-0 z-30 border-b border-slate-200 dark:border-slate-700 px-4 py-3 flex items-center justify-between shadow-sm">
-      <div class="flex items-center space-x-3">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary-600 to-primary-400 flex items-center justify-center text-white shadow-md font-bold text-lg">
-          A
-        </div>
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <div class="brand-logo">A</div>
         <div>
-          <h1 class="text-base font-bold flex items-center gap-2">
+          <div class="brand-title">
             Akari 管理后台
-            <span class="text-xs font-normal px-2 py-0.5 rounded-full bg-primary-100 dark:bg-primary-950 text-primary-700 dark:text-primary-300">v1.0</span>
-          </h1>
-          <p class="text-xs text-slate-500 dark:text-slate-400">anon-akari.top · 站点内容与图片管理</p>
+            <span class="badge">v1.1</span>
+          </div>
+          <div class="brand-subtitle">anon-akari.top · 博客内容与展示管理</div>
         </div>
       </div>
 
-      <div class="flex items-center space-x-2">
-        <template v-if="isConnected">
-          <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-700 dark:text-emerald-300">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>已连接: {{ repoConfig.owner }}/{{ repoConfig.repo }}</span>
-          </div>
-          <button @click="showTokenModal = true" class="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs flex items-center gap-1">
-            ⚙️ 设置
-          </button>
-        </template>
-        <template v-else>
-          <button @click="showTokenModal = true" class="px-3 py-1.5 rounded-lg bg-primary-600 hover:bg-primary-500 text-white text-xs font-medium shadow-sm transition">
-            🔑 连接 GitHub 仓库
-          </button>
-        </template>
-
-        <a href="/" target="_blank" class="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs flex items-center gap-1">
+      <div class="header-actions">
+        <button v-if="isConnected" @click="showTokenModal = true" class="btn btn-secondary btn-sm">
+          ⚙️ 仓库配置
+        </button>
+        <button v-else @click="showTokenModal = true" class="btn btn-primary btn-sm">
+          🔑 连接 GitHub
+        </button>
+        <a href="/" target="_blank" class="btn btn-secondary btn-sm">
           🌐 访问博客
         </a>
       </div>
     </header>
 
-    <!-- Main Content Area -->
-    <div class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-6">
+    <!-- Main Content -->
+    <div class="main-wrap">
 
-      <!-- Sidebar Tabs -->
-      <nav class="md:col-span-3 lg:col-span-2 flex md:flex-col gap-1.5 overflow-x-auto pb-2 md:pb-0">
+      <!-- Navigation Tabs -->
+      <nav class="nav-tabs">
         <button
           v-for="tab in tabs"
           :key="tab.id"
           @click="currentTab = tab.id"
-          :class="[
-            'flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-left whitespace-nowrap',
-            currentTab === tab.id
-              ? 'bg-primary-600 text-white shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
-          ]"
+          :class="['tab-btn', currentTab === tab.id ? 'active' : '']"
         >
-          <span class="text-base">{{ tab.icon }}</span>
+          <span>{{ tab.icon }}</span>
           <span>{{ tab.name }}</span>
         </button>
       </nav>
 
-      <!-- Tab Content Area -->
-      <main class="md:col-span-9 lg:col-span-10">
+      <!-- Tab View -->
+      <main class="tab-content">
 
-        <!-- Not Connected Warning Card -->
-        <div v-if="!isConnected" class="p-6 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-amber-800 dark:text-amber-200 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div class="flex items-start gap-3">
-            <span class="text-2xl">⚠️</span>
-            <div>
-              <h3 class="font-bold text-sm">尚未配置 GitHub 访问令牌（PAT）</h3>
-              <p class="text-xs text-amber-700 dark:text-amber-300 mt-1">
-                后台需要 GitHub Personal Access Token 才能直接读取与更新仓库文章、图片与配置。Token 保存在浏览器本地，绝不上报第三方。
-              </p>
-            </div>
+        <!-- Not Connected Alert -->
+        <div v-if="!isConnected" class="alert-box">
+          <div>
+            <strong>⚠️ 尚未配置 GitHub Token</strong>
+            <div style="font-size: 0.72rem; margin-top: 0.2rem;">配置 Personal Access Token 后，即可直接在手机端发文、换图与改链接。</div>
           </div>
-          <button @click="showTokenModal = true" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold whitespace-nowrap shadow-sm">
-            立即配置 Token
-          </button>
+          <button @click="showTokenModal = true" class="btn btn-primary btn-sm">立即配置</button>
         </div>
 
-        <!-- TAB 1: 文章管理 (Posts) -->
-        <div v-if="currentTab === 'posts'" class="space-y-6">
-          <div class="flex flex-wrap items-center justify-between gap-3">
+        <!-- TAB 1: 文章管理 -->
+        <div v-if="currentTab === 'posts'">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
             <div>
-              <h2 class="text-lg font-bold">文章撰写与管理</h2>
-              <p class="text-xs text-slate-500 dark:text-slate-400">管理 src/content/posts 目录下的 Markdown 文章</p>
+              <h2 style="font-size: 1.1rem; font-weight: 700;">文章撰写与管理</h2>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">管理 src/content/posts 目录下的 Markdown 文章</div>
             </div>
-            <div class="flex items-center gap-2">
-              <button @click="fetchPosts" :disabled="loading.posts" class="px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1">
-                🔄 {{ loading.posts ? '加载中...' : '刷新文章' }}
+            <div style="display: flex; gap: 0.4rem;">
+              <button @click="fetchPosts" :disabled="loading.posts" class="btn btn-secondary btn-sm">
+                🔄 {{ loading.posts ? '加载中...' : '刷新' }}
               </button>
-              <button @click="openPostEditor(null)" class="px-4 py-1.5 text-xs font-medium rounded-lg bg-primary-600 hover:bg-primary-500 text-white shadow-sm transition flex items-center gap-1">
+              <button @click="openPostEditor(null)" class="btn btn-primary btn-sm">
                 ✍️ 新建文章
               </button>
             </div>
           </div>
 
-          <!-- Post List -->
-          <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
-            <div v-if="posts.length === 0 && !loading.posts" class="p-8 text-center text-slate-400 text-sm">
+          <div class="card">
+            <div v-if="posts.length === 0 && !loading.posts" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
               暂无文章或尚未拉取，点击右上角“新建文章”开始撰写！
             </div>
-            <div v-if="loading.posts" class="p-8 text-center text-slate-400 text-sm">
-              正在从 GitHub 仓库读取文章列表...
+            <div v-if="loading.posts" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
+              正在连接 GitHub 仓库读取文章...
             </div>
-            <ul v-else class="divide-y divide-slate-100 dark:divide-slate-700/60">
-              <li v-for="post in posts" :key="post.path" class="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div class="space-y-1">
-                  <div class="flex items-center gap-2">
-                    <span v-if="post.meta?.pinned" class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300">置顶</span>
-                    <span v-if="post.meta?.draft" class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">草稿</span>
-                    <h3 class="text-sm font-semibold hover:text-primary-600 transition">{{ post.meta?.title || post.name }}</h3>
+            <ul v-else class="post-list">
+              <li v-for="post in posts" :key="post.path" class="post-item">
+                <div>
+                  <div class="post-title">
+                    <span v-if="post.meta?.pinned" class="badge" style="background:#fee2e2; color:#b91c1c;">置顶</span>
+                    <span v-if="post.meta?.draft" class="badge" style="background:#f1f5f9; color:#475569;">草稿</span>
+                    <span>{{ post.meta?.title || post.name }}</span>
                   </div>
-                  <div class="flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                  <div class="post-meta">
                     <span>📅 {{ post.meta?.published || '未设定日期' }}</span>
                     <span v-if="post.meta?.category">📁 {{ post.meta.category }}</span>
                     <span v-if="post.meta?.tags?.length">🏷️ {{ post.meta.tags.join(', ') }}</span>
-                    <span class="font-mono text-[11px] opacity-70">({{ post.name }})</span>
+                    <span style="opacity: 0.7;">({{ post.name }})</span>
                   </div>
                 </div>
-                <div class="flex items-center gap-2 self-end sm:self-auto">
-                  <button @click="openPostEditor(post)" class="px-3 py-1 rounded-lg text-xs border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200">
-                    ✏️ 编辑
-                  </button>
-                  <button @click="deletePost(post)" class="px-3 py-1 rounded-lg text-xs border border-red-200 dark:border-red-900/60 hover:bg-red-50 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400">
-                    🗑️ 删除
-                  </button>
+                <div style="display: flex; gap: 0.4rem; align-self: flex-end;">
+                  <button @click="openPostEditor(post)" class="btn btn-secondary btn-sm">✏️ 编辑</button>
+                  <button @click="deletePost(post)" class="btn btn-danger btn-sm">🗑️ 删除</button>
                 </div>
               </li>
             </ul>
           </div>
         </div>
 
-        <!-- TAB 2: 换图与壁纸管理 (Images & Banners) -->
-        <div v-if="currentTab === 'banners'" class="space-y-8">
-          <div>
-            <h2 class="text-lg font-bold">网页展示图与壁纸管理</h2>
-            <p class="text-xs text-slate-500 dark:text-slate-400">支持直接上传手机相册或电脑本地图片，浏览器自动无损转换为高性能 WebP 格式并上传同步！</p>
+        <!-- TAB 2: 网页换图 -->
+        <div v-if="currentTab === 'banners'">
+          <div style="margin-bottom: 1rem;">
+            <h2 style="font-size: 1.1rem; font-weight: 700;">网页展示图与壁纸管理</h2>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">直接选择手机相册照片，浏览器自动无损压缩转为 WebP 上传！</div>
           </div>
 
           <!-- Desktop Banners -->
-          <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="text-sm font-bold flex items-center gap-1.5">
-                  🖥️ 电脑端轮换壁纸 (Desktop Banners)
-                </h3>
-                <p class="text-xs text-slate-400">位于 public/assets/desktop-banner/，建议 16:9 横屏图片（如 1920x1080）</p>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div v-for="slot in [1, 2, 3, 4]" :key="'desktop-'+slot" class="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-slate-50 dark:bg-slate-900 flex flex-col">
-                <div class="aspect-video relative bg-slate-200 dark:bg-slate-800 flex items-center justify-center overflow-hidden group">
-                  <img :src="'/assets/desktop-banner/' + slot + '.webp?t=' + imageCacheBust" :alt="'Desktop ' + slot" class="w-full h-full object-cover">
-                  <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
-                    <label class="px-3 py-1.5 rounded-lg bg-white/90 text-slate-800 text-xs font-medium cursor-pointer hover:bg-white shadow">
-                      更换
-                      <input type="file" accept="image/*" class="hidden" @change="uploadBanner($event, 'desktop', slot)">
-                    </label>
-                  </div>
+          <div class="card">
+            <div class="card-title">🖥️ 电脑端轮换壁纸 (Desktop Banners)</div>
+            <div class="card-subtitle">public/assets/desktop-banner/ (建议 16:9 横屏，如 1920x1080)</div>
+            <div class="grid-4">
+              <div v-for="slot in [1, 2, 3, 4]" :key="'d-'+slot" class="banner-slot-card">
+                <div class="banner-preview-box aspect-desktop">
+                  <img :src="'/assets/desktop-banner/' + slot + '.webp?t=' + imageCacheBust" class="banner-preview-img" alt="Desktop banner">
                 </div>
-                <div class="p-3 flex items-center justify-between text-xs">
-                  <span class="font-semibold text-slate-600 dark:text-slate-300">壁纸 #{{ slot }} ({{ slot }}.webp)</span>
-                  <label class="text-primary-600 dark:text-primary-400 cursor-pointer font-medium hover:underline">
-                    上传替换
-                    <input type="file" accept="image/*" class="hidden" @change="uploadBanner($event, 'desktop', slot)">
+                <div class="banner-slot-info">
+                  <span>壁纸 #{{ slot }}</span>
+                  <label class="btn btn-secondary btn-sm" style="cursor: pointer;">
+                    更换
+                    <input type="file" accept="image/*" style="display: none;" @change="uploadBanner($event, 'desktop', slot)">
                   </label>
                 </div>
               </div>
@@ -234,267 +652,172 @@
           </div>
 
           <!-- Mobile Banners -->
-          <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
-            <div>
-              <h3 class="text-sm font-bold flex items-center gap-1.5">
-                📱 手机端轮换壁纸 (Mobile Banners)
-              </h3>
-              <p class="text-xs text-slate-400">位于 public/assets/mobile-banner/，建议 9:16 竖屏图片（如 1080x1920）</p>
-            </div>
-
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div v-for="slot in [1, 2, 3, 4]" :key="'mobile-'+slot" class="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-slate-50 dark:bg-slate-900 flex flex-col">
-                <div class="aspect-[9/16] relative bg-slate-200 dark:bg-slate-800 flex items-center justify-center overflow-hidden group">
-                  <img :src="'/assets/mobile-banner/' + slot + '.webp?t=' + imageCacheBust" :alt="'Mobile ' + slot" class="w-full h-full object-cover">
-                  <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
-                    <label class="px-3 py-1.5 rounded-lg bg-white/90 text-slate-800 text-xs font-medium cursor-pointer hover:bg-white shadow">
-                      更换
-                      <input type="file" accept="image/*" class="hidden" @change="uploadBanner($event, 'mobile', slot)">
-                    </label>
-                  </div>
+          <div class="card">
+            <div class="card-title">📱 手机端轮换壁纸 (Mobile Banners)</div>
+            <div class="card-subtitle">public/assets/mobile-banner/ (建议 9:16 竖屏，如 1080x1920)</div>
+            <div class="grid-4">
+              <div v-for="slot in [1, 2, 3, 4]" :key="'m-'+slot" class="banner-slot-card">
+                <div class="banner-preview-box aspect-mobile">
+                  <img :src="'/assets/mobile-banner/' + slot + '.webp?t=' + imageCacheBust" class="banner-preview-img" alt="Mobile banner">
                 </div>
-                <div class="p-3 flex items-center justify-between text-xs">
-                  <span class="font-semibold text-slate-600 dark:text-slate-300">竖屏 #{{ slot }}</span>
-                  <label class="text-primary-600 dark:text-primary-400 cursor-pointer font-medium hover:underline">
-                    上传
-                    <input type="file" accept="image/*" class="hidden" @change="uploadBanner($event, 'mobile', slot)">
+                <div class="banner-slot-info">
+                  <span>竖屏 #{{ slot }}</span>
+                  <label class="btn btn-secondary btn-sm" style="cursor: pointer;">
+                    更换
+                    <input type="file" accept="image/*" style="display: none;" @change="uploadBanner($event, 'mobile', slot)">
                   </label>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Avatar & Generic Upload -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Avatar Replacement -->
-            <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
-              <div>
-                <h3 class="text-sm font-bold flex items-center gap-1.5">
-                  👤 头像更换 (Site Avatar)
-                </h3>
-                <p class="text-xs text-slate-400">自动同步至 src/assets/images/avatar.webp 与 public/assets/home/home.webp</p>
-              </div>
-
-              <div class="flex items-center gap-4">
-                <div class="w-20 h-20 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 flex-shrink-0">
-                  <img :src="'/assets/home/home.webp?t=' + imageCacheBust" alt="Avatar" class="w-full h-full object-cover">
+          <!-- Avatar & Post Image -->
+          <div class="grid-2">
+            <!-- Avatar -->
+            <div class="card">
+              <div class="card-title">👤 博主头像更换</div>
+              <div class="card-subtitle">同步更新 avatar.webp 与 home.webp</div>
+              <div style="display: flex; align-items: center; gap: 1rem;">
+                <div style="width: 64px; height: 64px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); flex-shrink: 0;">
+                  <img :src="'/assets/home/home.webp?t=' + imageCacheBust" style="width:100%; height:100%; object-fit:cover;" alt="Avatar">
                 </div>
-                <div class="space-y-2">
-                  <label class="inline-flex px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-xs font-medium cursor-pointer shadow-sm transition">
-                    📸 上传新头像
-                    <input type="file" accept="image/*" class="hidden" @change="uploadAvatar">
+                <div>
+                  <label class="btn btn-primary btn-sm" style="cursor: pointer;">
+                    📸 选择新头像
+                    <input type="file" accept="image/*" style="display: none;" @change="uploadAvatar">
                   </label>
-                  <p class="text-[11px] text-slate-400 leading-relaxed">
-                    注：每日 Action 也会定时拉取 X 头像。如果在此处手动上传，会自动更新当前博客主头像。
-                  </p>
+                  <div class="form-hint">自动裁剪缩放为 400x400 正方形 WebP</div>
                 </div>
               </div>
             </div>
 
-            <!-- Generic Post Image Uploader -->
-            <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
+            <!-- Post Media Upload -->
+            <div class="card">
+              <div class="card-title">📎 文章配图上传</div>
+              <div class="card-subtitle">存入 public/images/posts/ 并复制 Markdown</div>
               <div>
-                <h3 class="text-sm font-bold flex items-center gap-1.5">
-                  📎 文章配图随手传 (Quick Media Uploader)
-                </h3>
-                <p class="text-xs text-slate-400">上传图片至 public/images/posts/，并自动生成并复制 Markdown 引用格式！</p>
-              </div>
-
-              <div class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-4 text-center hover:border-primary-500 transition">
-                <label class="cursor-pointer block space-y-2">
-                  <div class="text-2xl">📤</div>
-                  <div class="text-xs text-slate-600 dark:text-slate-300 font-medium">点击选择或拖拽图片上传</div>
-                  <div class="text-[11px] text-slate-400">支持 JPG, PNG, WEBP 等格式</div>
-                  <input type="file" accept="image/*" class="hidden" @change="uploadPostImage">
+                <label class="btn btn-secondary btn-sm" style="cursor: pointer; width: 100%; justify-content: center; padding: 0.8rem 0;">
+                  📤 点击选择本地图片上传
+                  <input type="file" accept="image/*" style="display: none;" @change="uploadPostImage">
                 </label>
-              </div>
-              <div v-if="lastUploadedImageMarkdown" class="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-200 flex items-center justify-between gap-2">
-                <span class="truncate font-mono">{{ lastUploadedImageMarkdown }}</span>
-                <button @click="copyText(lastUploadedImageMarkdown)" class="px-2 py-0.5 rounded bg-emerald-600 text-white font-medium text-[11px] whitespace-nowrap">
-                  复制链接
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- TAB 3: 链接自定义 (Links & Navigation) -->
-        <div v-if="currentTab === 'links'" class="space-y-6">
-          <div class="flex items-center justify-between">
-            <div>
-              <h2 class="text-lg font-bold">导航栏与社交链接配置</h2>
-              <p class="text-xs text-slate-500 dark:text-slate-400">自定义顶部导航栏下拉链接及侧栏个人信息链接</p>
-            </div>
-            <button @click="saveLinksConfig" :disabled="saving.links" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-500 text-white shadow-sm transition">
-              💾 {{ saving.links ? '正在保存提交...' : '保存链接配置' }}
-            </button>
-          </div>
-
-          <!-- Top Navigation Links -->
-          <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="text-sm font-bold flex items-center gap-1.5">
-                  🧭 顶部导航栏下拉链接 (navBarConfig.ts)
-                </h3>
-                <p class="text-xs text-slate-400">位于导航栏“链接”下拉菜单中的外部与自定义项目</p>
-              </div>
-              <button @click="addNavLink" class="px-3 py-1 rounded-lg text-xs bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 font-medium">
-                ➕ 添加新链接
-              </button>
-            </div>
-
-            <div class="space-y-3">
-              <div v-for="(link, idx) in navLinks" :key="'navlink-'+idx" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-700/80 grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-                <div class="sm:col-span-3">
-                  <label class="text-[11px] text-slate-400 block mb-1">链接名称</label>
-                  <input type="text" v-model="link.name" class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:border-primary-500">
-                </div>
-                <div class="sm:col-span-5">
-                  <label class="text-[11px] text-slate-400 block mb-1">链接 URL</label>
-                  <input type="text" v-model="link.url" class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:border-primary-500">
-                </div>
-                <div class="sm:col-span-3">
-                  <label class="text-[11px] text-slate-400 block mb-1">Icon 图标名</label>
-                  <input type="text" v-model="link.icon" placeholder="fa7-brands:github" class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:border-primary-500">
-                </div>
-                <div class="sm:col-span-1 flex justify-end">
-                  <button @click="removeNavLink(idx)" class="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg text-sm">
-                    🗑️
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Profile Social Links -->
-          <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="text-sm font-bold flex items-center gap-1.5">
-                  👥 侧栏个人社交链接 (profileConfig.ts)
-                </h3>
-                <p class="text-xs text-slate-400">展示在个人名片正下方的社交图标外链</p>
-              </div>
-              <button @click="addProfileLink" class="px-3 py-1 rounded-lg text-xs bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 font-medium">
-                ➕ 添加社交项
-              </button>
-            </div>
-
-            <div class="space-y-3">
-              <div v-for="(link, idx) in profileLinks" :key="'proflink-'+idx" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-700/80 grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-                <div class="sm:col-span-3">
-                  <label class="text-[11px] text-slate-400 block mb-1">名称</label>
-                  <input type="text" v-model="link.name" class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:border-primary-500">
-                </div>
-                <div class="sm:col-span-5">
-                  <label class="text-[11px] text-slate-400 block mb-1">URL / mailto</label>
-                  <input type="text" v-model="link.url" class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:border-primary-500">
-                </div>
-                <div class="sm:col-span-3">
-                  <label class="text-[11px] text-slate-400 block mb-1">Icon 图标名</label>
-                  <input type="text" v-model="link.icon" class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:border-primary-500">
-                </div>
-                <div class="sm:col-span-1 flex justify-end">
-                  <button @click="removeProfileLink(idx)" class="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg text-sm">
-                    🗑️
-                  </button>
+                <div v-if="lastUploadedImageMarkdown" style="margin-top: 0.5rem; background: var(--primary-light); color: var(--primary-dark); padding: 0.4rem 0.6rem; border-radius: 6px; font-size: 0.72rem; display: flex; justify-content: space-between; align-items: center;">
+                  <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ lastUploadedImageMarkdown }}</span>
+                  <button @click="copyText(lastUploadedImageMarkdown)" class="btn btn-primary btn-sm" style="padding: 0.15rem 0.4rem; font-size: 0.65rem;">复制</button>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- TAB 4: 音乐与全局配置 (Music & Settings) -->
-        <div v-if="currentTab === 'settings'" class="space-y-6">
-          <div class="flex items-center justify-between">
+        <!-- TAB 3: 链接导航 -->
+        <div v-if="currentTab === 'links'">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
             <div>
-              <h2 class="text-lg font-bold">音乐播放器与站点配置</h2>
-              <p class="text-xs text-slate-500 dark:text-slate-400">调整网易云音乐歌单、全站主题色与个性签名</p>
+              <h2 style="font-size: 1.1rem; font-weight: 700;">导航栏与社交链接配置</h2>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">自定义顶部导航栏下拉链接及侧栏个人信息链接</div>
             </div>
-            <button @click="saveSiteConfig" :disabled="saving.site" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-500 text-white shadow-sm transition">
-              💾 {{ saving.site ? '正在保存提交...' : '保存站点配置' }}
+            <button @click="saveLinksConfig" :disabled="saving.links" class="btn btn-primary btn-sm">
+              💾 {{ saving.links ? '保存中...' : '保存链接配置' }}
             </button>
           </div>
 
-          <!-- Music Player Config -->
-          <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
-            <div>
-              <h3 class="text-sm font-bold flex items-center gap-1.5">
-                🎵 网易云音乐播放器 (musicConfig.ts)
-              </h3>
-              <p class="text-xs text-slate-400">配置全站底栏与悬浮播放器的歌单与解析源</p>
+          <!-- Top Nav Links -->
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <div class="card-title" style="margin: 0;">🧭 顶部导航栏下拉链接</div>
+              <button @click="addNavLink" class="btn btn-secondary btn-sm">➕ 添加项目</button>
             </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label class="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1.5">歌单 ID (Playlist ID)</label>
-                <input type="text" v-model="musicConfig.id" placeholder="18590654316" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:border-primary-500 font-mono">
-                <span class="text-[11px] text-slate-400 mt-1 block">在网易云音乐复制歌单分享链接中的 id= 参数即可</span>
+            <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+              <div v-for="(link, idx) in navLinks" :key="'nl-'+idx" style="display: flex; gap: 0.5rem; align-items: center;">
+                <input type="text" v-model="link.name" placeholder="名称" style="width: 25%;" class="form-input">
+                <input type="text" v-model="link.url" placeholder="URL 网址" style="flex: 1;" class="form-input">
+                <input type="text" v-model="link.icon" placeholder="Icon 名" style="width: 25%;" class="form-input">
+                <button @click="removeNavLink(idx)" class="btn btn-danger btn-sm">✕</button>
               </div>
+            </div>
+          </div>
 
-              <div>
-                <label class="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1.5">音乐服务器 (Server)</label>
-                <select v-model="musicConfig.server" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:border-primary-500">
+          <!-- Profile Links -->
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <div class="card-title" style="margin: 0;">👥 侧栏名片社交链接</div>
+              <button @click="addProfileLink" class="btn btn-secondary btn-sm">➕ 添加项目</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+              <div v-for="(link, idx) in profileLinks" :key="'pl-'+idx" style="display: flex; gap: 0.5rem; align-items: center;">
+                <input type="text" v-model="link.name" placeholder="名称" style="width: 25%;" class="form-input">
+                <input type="text" v-model="link.url" placeholder="URL / mailto" style="flex: 1;" class="form-input">
+                <input type="text" v-model="link.icon" placeholder="Icon 名" style="width: 25%;" class="form-input">
+                <button @click="removeProfileLink(idx)" class="btn btn-danger btn-sm">✕</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: 站点与音乐 -->
+        <div v-if="currentTab === 'settings'">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+            <div>
+              <h2 style="font-size: 1.1rem; font-weight: 700;">音乐播放器与全局设置</h2>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">调整网易云音乐歌单、全站主题色相与博主信息</div>
+            </div>
+            <button @click="saveSiteConfig" :disabled="saving.site" class="btn btn-primary btn-sm">
+              💾 {{ saving.site ? '保存中...' : '保存设置' }}
+            </button>
+          </div>
+
+          <!-- Music Player -->
+          <div class="card">
+            <div class="card-title">🎵 网易云音乐播放器配置</div>
+            <div class="card-subtitle">src/config/musicConfig.ts</div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">歌单 ID (Playlist ID)</label>
+                <input type="text" v-model="musicConfig.id" class="form-input" placeholder="18590654316">
+              </div>
+              <div class="form-group">
+                <label class="form-label">音乐平台 (Server)</label>
+                <select v-model="musicConfig.server" class="form-select">
                   <option value="netease">网易云音乐 (netease)</option>
-                  <option value="tencent">QQ音乐 (tencent)</option>
+                  <option value="tencent">QQ 音乐 (tencent)</option>
                   <option value="kugou">酷狗音乐 (kugou)</option>
                 </select>
               </div>
-
-              <div class="sm:col-span-2">
-                <label class="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1.5">Meting API 解析接口</label>
-                <input type="text" v-model="musicConfig.meting_api" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:border-primary-500 font-mono">
-                <span class="text-[11px] text-slate-400 mt-1 block">推荐: https://api.injahow.cn/meting/?server=:server&type=:type&id=:id&auth=:auth&r=:r</span>
-              </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Meting API 解析地址</label>
+              <input type="text" v-model="musicConfig.meting_api" class="form-input">
             </div>
           </div>
 
-          <!-- Site Appearance & Profile -->
-          <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-5">
-            <div>
-              <h3 class="text-sm font-bold flex items-center gap-1.5">
-                🎨 站点外观与个性签名
-              </h3>
-              <p class="text-xs text-slate-400">调整主题默认色相及博主名片信息</p>
+          <!-- Appearance & Bio -->
+          <div class="card">
+            <div class="card-title">🎨 全站外观与个性签名</div>
+            <div class="card-subtitle">实时调整站点色彩与展示资料</div>
+
+            <!-- Hue Slider -->
+            <div class="form-group">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                <label class="form-label" style="margin: 0;">主题默认色相 (Hue): <strong style="color: var(--primary);">{{ siteMeta.hue }}</strong></label>
+                <div :style="{ width: '24px', height: '24px', borderRadius: '6px', background: 'hsl(' + siteMeta.hue + ', 70%, 50%)', border: '1px solid rgba(0,0,0,0.1)' }"></div>
+              </div>
+              <input type="range" min="0" max="360" v-model.number="siteMeta.hue" style="width: 100%;">
             </div>
 
-            <!-- Theme Hue Slider -->
-            <div class="space-y-2">
-              <div class="flex items-center justify-between text-xs">
-                <span class="font-medium">主题默认色相 (Theme Hue): <strong class="text-primary-600 font-mono">{{ siteMeta.hue }}</strong></span>
-                <div class="flex items-center gap-2">
-                  <span class="text-[11px] text-slate-400">实时色板预览:</span>
-                  <div class="w-6 h-6 rounded-lg shadow-sm border border-black/10" :style="{ backgroundColor: 'hsl(' + siteMeta.hue + ', 70%, 50%)' }"></div>
-                </div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">博主昵称 (Name)</label>
+                <input type="text" v-model="siteMeta.name" class="form-input">
               </div>
-              <input type="range" min="0" max="360" v-model.number="siteMeta.hue" class="w-full h-2 bg-gradient-to-r from-red-500 via-green-500 via-blue-500 to-red-500 rounded-lg appearance-none cursor-pointer">
-              <div class="flex justify-between text-[10px] text-slate-400 font-mono">
-                <span>0 (红)</span>
-                <span>60 (黄)</span>
-                <span>130 (浅绿·当前)</span>
-                <span>200 (青)</span>
-                <span>250 (蓝)</span>
-                <span>345 (粉)</span>
-                <span>360 (红)</span>
+              <div class="form-group">
+                <label class="form-label">站点标题 (Title)</label>
+                <input type="text" v-model="siteMeta.title" class="form-input">
               </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-              <div>
-                <label class="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1">博主昵称 (Profile Name)</label>
-                <input type="text" v-model="siteMeta.name" placeholder="Akari" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:border-primary-500">
-              </div>
-
-              <div>
-                <label class="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1">站点标题 (Site Title)</label>
-                <input type="text" v-model="siteMeta.title" placeholder="Akari" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:border-primary-500">
-              </div>
-
-              <div class="sm:col-span-2">
-                <label class="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1">个人简介 / 个性签名 (Bio)</label>
-                <textarea v-model="siteMeta.bio" rows="3" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:border-primary-500 font-sans"></textarea>
-              </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">个人简介 / 个性签名 (Bio)</label>
+              <textarea v-model="siteMeta.bio" class="form-textarea" rows="3"></textarea>
             </div>
           </div>
         </div>
@@ -503,153 +826,92 @@
     </div>
 
     <!-- Article Editor Modal -->
-    <div v-if="editingPost" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-      <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-5xl max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-        
-        <!-- Modal Header -->
-        <div class="px-5 py-3.5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
-          <div class="flex items-center gap-2">
-            <span class="text-base font-bold">{{ editingPost.isNew ? '✍️ 新建文章' : '✏️ 编辑文章' }}</span>
-            <span class="text-xs text-slate-400 font-mono">({{ editingPost.slug || '未命名' }}.md)</span>
+    <div v-if="editingPost" class="modal-overlay">
+      <div class="modal-card modal-card-lg">
+        <div class="modal-header">
+          <div class="modal-title">{{ editingPost.isNew ? '✍️ 新建文章' : '✏️ 编辑文章' }}</div>
+          <button @click="editingPost = null" class="modal-close">✕</button>
+        </div>
+
+        <div class="grid-2" style="margin-bottom: 0.75rem;">
+          <div class="form-group">
+            <label class="form-label">文章标题 *</label>
+            <input type="text" v-model="editingPost.meta.title" class="form-input" placeholder="文章标题">
           </div>
-          <div class="flex items-center gap-2">
-            <button @click="saveArticle" :disabled="saving.post" class="px-4 py-1.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-xs font-semibold shadow-sm transition">
-              {{ saving.post ? '正在发布推送...' : '🚀 发布文章' }}
-            </button>
-            <button @click="editingPost = null" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg">
-              ✕
-            </button>
+          <div class="form-group">
+            <label class="form-label">文件名 / Slug (英文或拼音) *</label>
+            <input type="text" v-model="editingPost.slug" :disabled="!editingPost.isNew" class="form-input" placeholder="post-slug">
+          </div>
+          <div class="form-group">
+            <label class="form-label">分类 (Category)</label>
+            <input type="text" v-model="editingPost.meta.category" class="form-input" placeholder="生活">
+          </div>
+          <div class="form-group">
+            <label class="form-label">标签 (用逗号分隔)</label>
+            <input type="text" v-model="editingPost.rawTags" class="form-input" placeholder="随笔, 记录">
           </div>
         </div>
 
-        <!-- Modal Body -->
-        <div class="p-5 flex-1 overflow-y-auto custom-scrollbar space-y-4">
-          <!-- Metadata Fields -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div class="sm:col-span-2">
-              <label class="text-[11px] font-medium text-slate-500 block mb-1">文章标题 (Title) *</label>
-              <input type="text" v-model="editingPost.meta.title" placeholder="文章标题" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:border-primary-500">
-            </div>
-
-            <div>
-              <label class="text-[11px] font-medium text-slate-500 block mb-1">文件名 / Slug (英文/拼音) *</label>
-              <input type="text" v-model="editingPost.slug" :disabled="!editingPost.isNew" placeholder="my-first-post" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:border-primary-500 font-mono">
-            </div>
-
-            <div>
-              <label class="text-[11px] font-medium text-slate-500 block mb-1">发布日期 (Published)</label>
-              <input type="date" v-model="editingPost.meta.published" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:border-primary-500">
-            </div>
-
-            <div>
-              <label class="text-[11px] font-medium text-slate-500 block mb-1">文章分类 (Category)</label>
-              <input type="text" v-model="editingPost.meta.category" placeholder="生活 / 随笔 / 技术" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:border-primary-500">
-            </div>
-
-            <div>
-              <label class="text-[11px] font-medium text-slate-500 block mb-1">文章标签 (Tags，用逗号分隔)</label>
-              <input type="text" v-model="editingPost.rawTags" placeholder="随笔, 日记, 旅行" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:border-primary-500">
-            </div>
-
-            <div class="sm:col-span-2">
-              <label class="text-[11px] font-medium text-slate-500 block mb-1">文章摘要 (Description)</label>
-              <input type="text" v-model="editingPost.meta.description" placeholder="一两句话简述..." class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:border-primary-500">
-            </div>
-
-            <div class="flex items-center gap-4 sm:pt-4">
-              <label class="flex items-center gap-1.5 text-xs cursor-pointer">
-                <input type="checkbox" v-model="editingPost.meta.pinned" class="rounded text-primary-600 focus:ring-primary-500">
-                <span>📌 置顶</span>
-              </label>
-              <label class="flex items-center gap-1.5 text-xs cursor-pointer">
-                <input type="checkbox" v-model="editingPost.meta.draft" class="rounded text-primary-600 focus:ring-primary-500">
-                <span>🔒 草稿</span>
-              </label>
-            </div>
-          </div>
-
-          <!-- Markdown Content Editor + Preview -->
-          <div class="space-y-1.5 pt-2">
-            <div class="flex items-center justify-between">
-              <label class="text-[11px] font-medium text-slate-500">Markdown 正文</label>
-              <div class="flex items-center gap-1 text-[11px] text-slate-400">
-                <button type="button" @click="insertText('## ')" class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 hover:text-primary-600">H2</button>
-                <button type="button" @click="insertText('**粗体**')" class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 hover:text-primary-600">B</button>
-                <button type="button" @click="insertText('`代码`')" class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 hover:text-primary-600">Code</button>
-                <button type="button" @click="insertText('> 引用内容\n')" class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 hover:text-primary-600">Quote</button>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 h-96">
-              <textarea
-                ref="postTextarea"
-                v-model="editingPost.body"
-                placeholder="在此使用 Markdown 编写正文..."
-                class="w-full h-full text-xs p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:border-primary-500 font-mono leading-relaxed resize-none custom-scrollbar"
-              ></textarea>
-              <div
-                class="w-full h-full p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/40 overflow-y-auto custom-scrollbar markdown-preview text-xs"
-                v-html="renderedMarkdown"
-              ></div>
-            </div>
+        <div class="form-group">
+          <label class="form-label">Markdown 正文内容</label>
+          <div class="editor-grid">
+            <textarea v-model="editingPost.body" class="form-textarea" style="height: 100%; min-height: 320px; font-family: monospace;" placeholder="在此编写 Markdown 正文..."></textarea>
+            <div class="editor-preview" v-html="renderedMarkdown"></div>
           </div>
         </div>
 
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+          <button @click="editingPost = null" class="btn btn-secondary">取消</button>
+          <button @click="saveArticle" :disabled="saving.post" class="btn btn-primary">
+            {{ saving.post ? '正在推送...' : '🚀 发布并同步' }}
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- GitHub Token Modal -->
-    <div v-if="showTokenModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 space-y-4">
-        <div class="flex items-center justify-between">
-          <h3 class="font-bold text-base flex items-center gap-2">
-            🔑 仓库连接配置
-          </h3>
-          <button @click="showTokenModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">✕</button>
+    <!-- Token Settings Modal -->
+    <div v-if="showTokenModal" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">🔑 仓库连接配置</div>
+          <button @click="showTokenModal = false" class="modal-close">✕</button>
         </div>
 
-        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-          请输入您的 GitHub 个人访问令牌（PAT），以便后台在浏览器端直接为您提交修改至 GitHub 仓库。
-        </p>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem;">
+          请输入 GitHub 个人访问令牌（PAT），以便后台在浏览器端直接为您提交修改至 GitHub 仓库。
+        </div>
 
-        <div class="space-y-3">
-          <div>
-            <label class="text-[11px] font-medium text-slate-500 block mb-1">GitHub Token (PAT) *</label>
-            <input type="password" v-model="tempConfig.token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:border-primary-500 font-mono">
-            <span class="text-[10px] text-slate-400 mt-1 block">需要勾选 repo 权限</span>
+        <div class="form-group">
+          <label class="form-label">GitHub Token (PAT) *</label>
+          <input type="password" v-model="tempConfig.token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="form-input" style="font-family: monospace;">
+          <div class="form-hint">需勾选 repo 权限（仅保存在本设备浏览器）</div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">仓库所有者 (Owner)</label>
+            <input type="text" v-model="tempConfig.owner" class="form-input">
           </div>
-
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="text-[11px] font-medium text-slate-500 block mb-1">仓库所有者 (Owner)</label>
-              <input type="text" v-model="tempConfig.owner" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:border-primary-500 font-mono">
-            </div>
-            <div>
-              <label class="text-[11px] font-medium text-slate-500 block mb-1">仓库名称 (Repo)</label>
-              <input type="text" v-model="tempConfig.repo" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:border-primary-500 font-mono">
-            </div>
-          </div>
-
-          <div>
-            <label class="text-[11px] font-medium text-slate-500 block mb-1">主分支名 (Branch)</label>
-            <input type="text" v-model="tempConfig.branch" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:border-primary-500 font-mono">
+          <div class="form-group">
+            <label class="form-label">仓库名称 (Repo)</label>
+            <input type="text" v-model="tempConfig.repo" class="form-input">
           </div>
         </div>
 
-        <div class="flex items-center justify-end gap-2 pt-2">
-          <button v-if="isConnected" @click="disconnectRepo" class="px-3 py-1.5 rounded-xl border border-red-200 dark:border-red-900 text-red-600 text-xs font-medium hover:bg-red-50">
-            断开清除
-          </button>
-          <button @click="saveTokenConfig" class="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-xs font-semibold shadow-sm">
-            测试并连接
-          </button>
+        <div class="form-group">
+          <label class="form-label">主分支名 (Branch)</label>
+          <input type="text" v-model="tempConfig.branch" class="form-input">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+          <button v-if="isConnected" @click="disconnectRepo" class="btn btn-danger">断开清除</button>
+          <button @click="saveTokenConfig" class="btn btn-primary">测试并连接</button>
         </div>
       </div>
     </div>
 
     <!-- Toast Notification -->
-    <div v-if="toast.show" class="fixed bottom-5 right-5 z-50 flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-medium shadow-lg transition transform duration-200"
-         :class="toast.type === 'error' ? 'bg-red-600 text-white' : 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'">
+    <div v-if="toast.show" :class="['toast', toast.type === 'error' ? 'toast-error' : '']">
       <span>{{ toast.type === 'error' ? '❌' : '✅' }}</span>
       <span>{{ toast.message }}</span>
     </div>
@@ -669,7 +931,6 @@
         ];
         const currentTab = ref('posts');
 
-        // Config state
         const repoConfig = reactive({
           token: localStorage.getItem('akari_admin_token') || '',
           owner: localStorage.getItem('akari_admin_owner') || 'Akiyama-25',
@@ -685,12 +946,9 @@
         const toast = reactive({ show: false, message: '', type: 'info' });
         const imageCacheBust = ref(Date.now());
 
-        // Posts
         const posts = ref([]);
         const editingPost = ref(null);
-        const postTextarea = ref(null);
 
-        // Links
         const navLinks = ref([
           { name: 'GitHub', url: 'https://github.com/Akiyama-25', icon: 'fa7-brands:github' },
           { name: 'Bilibili', url: 'https://space.bilibili.com/1858179207', icon: 'fa7-brands:bilibili' },
@@ -701,7 +959,6 @@
           { name: 'Email', url: 'mailto:hana@anon-akari.top', icon: 'material-symbols:mail-outline' }
         ]);
 
-        // Settings
         const musicConfig = reactive({
           id: '18590654316',
           server: 'netease',
@@ -728,7 +985,6 @@
           showToast('已复制到剪贴板！');
         };
 
-        // GitHub API Helper
         const githubFetch = async (endpoint, options = {}) => {
           if (!repoConfig.token) throw new Error('请先配置 GitHub Token');
           const url = `https://api.github.com/repos/${repoConfig.owner}/${repoConfig.repo}${endpoint}`;
@@ -748,14 +1004,12 @@
           return res.json();
         };
 
-        // Fetch File from GitHub
         const getFile = async (path) => {
           const data = await githubFetch(`/contents/${path}?ref=${repoConfig.branch}`);
           const content = decodeURIComponent(escape(atob(data.content.replace(/\s/g, ''))));
           return { sha: data.sha, content };
         };
 
-        // Put/Commit File to GitHub
         const putFile = async (path, contentUtf8OrBase64, message, sha = null, isBase64 = false) => {
           const base64Content = isBase64
             ? contentUtf8OrBase64
@@ -772,10 +1026,8 @@
           });
         };
 
-        // Token connection handler
         const saveTokenConfig = async () => {
           try {
-            // Verify token
             const userRes = await fetch('https://api.github.com/user', {
               headers: { 'Authorization': `Bearer ${tempConfig.token}` }
             });
@@ -806,7 +1058,6 @@
           showToast('已断开连接');
         };
 
-        // Fetch Posts
         const fetchPosts = async () => {
           if (!repoConfig.token) return;
           loading.posts = true;
@@ -837,7 +1088,6 @@
           }
         };
 
-        // Parse YAML Frontmatter
         const parseFrontmatter = (raw) => {
           const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
           if (!match) return { meta: { title: '未命名' }, body: raw };
@@ -891,22 +1141,9 @@
         };
 
         const renderedMarkdown = computed(() => {
-          if (!editingPost.value) return '';
+          if (!editingPost.value || !window.marked) return '';
           return marked.parse(editingPost.value.body || '');
         });
-
-        const insertText = (snippet) => {
-          if (!postTextarea.value) return;
-          const ta = postTextarea.value;
-          const start = ta.selectionStart;
-          const end = ta.selectionEnd;
-          const text = editingPost.value.body;
-          editingPost.value.body = text.substring(0, start) + snippet + text.substring(end);
-          setTimeout(() => {
-            ta.focus();
-            ta.setSelectionRange(start + snippet.length, start + snippet.length);
-          }, 0);
-        };
 
         const saveArticle = async () => {
           if (!editingPost.value.meta.title || !editingPost.value.slug) {
@@ -971,7 +1208,6 @@
           }
         };
 
-        // Image Conversion via HTML5 Canvas
         const convertToWebpBase64 = (file, maxWidth = 1920, quality = 0.88) => {
           return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -1020,7 +1256,7 @@
             } catch (_e) {}
 
             await putFile(targetPath, base64, `feat(banner): update ${type} banner #${slot}`, sha, true);
-            showToast(`壁纸 #${slot} 更换成功！Cloudflare 正在自动同步～`);
+            showToast(`壁纸 #${slot} 更换成功！`);
             imageCacheBust.value = Date.now();
           } catch (err) {
             showToast('上传壁纸失败: ' + err.message, 'error');
@@ -1034,12 +1270,10 @@
           try {
             const base64 = await convertToWebpBase64(file, 400, 0.9);
             
-            // 1. avatar.webp
             let sha1 = null;
             try { sha1 = (await getFile('src/assets/images/avatar.webp')).sha; } catch (_e) {}
             await putFile('src/assets/images/avatar.webp', base64, 'feat(avatar): update avatar.webp', sha1, true);
 
-            // 2. home.webp
             let sha2 = null;
             try { sha2 = (await getFile('public/assets/home/home.webp')).sha; } catch (_e) {}
             await putFile('public/assets/home/home.webp', base64, 'feat(avatar): update home.webp', sha2, true);
@@ -1054,7 +1288,7 @@
         const uploadPostImage = async (event) => {
           const file = event.target.files?.[0];
           if (!file) return;
-          showToast('正在处理配图上传...', 'info');
+          showToast('正在上传配图...', 'info');
           try {
             const timestamp = Date.now();
             const fileName = `img_${timestamp}.webp`;
@@ -1071,7 +1305,6 @@
           }
         };
 
-        // Links management
         const addNavLink = () => {
           navLinks.value.push({ name: '新链接', url: 'https://', icon: 'material-symbols:link' });
         };
@@ -1088,17 +1321,14 @@
         const saveLinksConfig = async () => {
           saving.links = true;
           try {
-            // Update navBarConfig.ts
             const navFile = await getFile('src/config/navBarConfig.ts');
             let navContent = navFile.content;
             
-            // Format children array
             const childrenCode = navLinks.value.map(l => `\t\t\t\t{\n\t\t\t\t\tname: "${l.name}",\n\t\t\t\t\turl: "${l.url}",\n\t\t\t\t\texternal: true,\n\t\t\t\t\ticon: "${l.icon}",\n\t\t\t\t}`).join(',\n');
             const newChildrenBlock = `children: [\n${childrenCode},\n\t\t\t]`;
             navContent = navContent.replace(/children:\s*\[[\s\S]*?\]/, newChildrenBlock);
             await putFile('src/config/navBarConfig.ts', navContent, 'feat(nav): update custom navigation links', navFile.sha);
 
-            // Update profileConfig.ts
             const profFile = await getFile('src/config/profileConfig.ts');
             let profContent = profFile.content;
             const profLinksCode = profileLinks.value.map(l => `\t\t{\n\t\t\tname: "${l.name}",\n\t\t\ticon: "${l.icon}",\n\t\t\turl: "${l.url}",\n\t\t}`).join(',\n');
@@ -1114,11 +1344,9 @@
           }
         };
 
-        // Site & Music Config
         const saveSiteConfig = async () => {
           saving.site = true;
           try {
-            // 1. musicConfig.ts
             const musicFile = await getFile('src/config/musicConfig.ts');
             let musicText = musicFile.content;
             musicText = musicText.replace(/id:\s*["'][^"']*["']/, `id: "${musicConfig.id}"`);
@@ -1126,14 +1354,12 @@
             musicText = musicText.replace(/meting_api:\s*["'][^"']*["']/, `meting_api: "${musicConfig.meting_api}"`);
             await putFile('src/config/musicConfig.ts', musicText, `feat(music): set playlist to ${musicConfig.id}`, musicFile.sha);
 
-            // 2. siteConfig.ts
             const siteFile = await getFile('src/config/siteConfig.ts');
             let siteText = siteFile.content;
             siteText = siteText.replace(/hue:\s*\d+/, `hue: ${siteMeta.hue}`);
             siteText = siteText.replace(/title:\s*["'][^"']*["']/, `title: "${siteMeta.title}"`);
             await putFile('src/config/siteConfig.ts', siteText, `feat(site): update hue to ${siteMeta.hue} and title`, siteFile.sha);
 
-            // 3. profileConfig.ts (bio & name)
             const profFile = await getFile('src/config/profileConfig.ts');
             let profText = profFile.content;
             profText = profText.replace(/name:\s*["'][^"']*["']/, `name: "${siteMeta.name}"`);
@@ -1171,7 +1397,6 @@
           toast,
           posts,
           editingPost,
-          postTextarea,
           renderedMarkdown,
           imageCacheBust,
           navLinks,
@@ -1185,7 +1410,6 @@
           disconnectRepo,
           fetchPosts,
           openPostEditor,
-          insertText,
           saveArticle,
           deletePost,
           uploadBanner,
