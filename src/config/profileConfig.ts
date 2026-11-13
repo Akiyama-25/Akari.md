@@ -21,5 +21,10 @@ export const profileConfig: ProfileConfig = {
 			icon: "material-symbols:mail-outline",
 			url: "mailto:hana@anon-akari.top",
 		},
+		{
+			name: "X",
+			icon: "fa7-brands:x-twitter",
+			url: "https://x.com/FascinatingAnon",
+		},
 	],
 };
