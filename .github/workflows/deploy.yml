@@ -34,6 +34,11 @@ jobs:
           
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
+
+      - name: Sync Twitter avatar
+        run: node scripts/sync-twitter-avatar.mjs || true
+        env:
+          TWITTER_USER: FascinatingAnon
       
       - name: Build site
         run: pnpm run build

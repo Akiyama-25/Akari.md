@@ -1,0 +1,52 @@
+name: Sync Twitter Avatar
+
+on:
+  schedule:
+    # 每天北京时间 00:00 (UTC 16:00) 自动同步
+    - cron: '0 16 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-avatar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Run avatar sync script
+        run: node scripts/sync-twitter-avatar.mjs
+        env:
+          TWITTER_USER: FascinatingAnon
+
+      - name: Commit and push if avatar changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if [[ -n $(git status --porcelain src/assets/images/ public/assets/home/ public/favicon*) ]]; then
+            git add src/assets/images/avatar.webp public/assets/home/home.webp public/favicon.png public/favicon/icon.png
+            git commit -m "chore(avatar): sync latest Twitter avatar from @FascinatingAnon [skip ci]"
+            git push origin main
+            git push origin main:master --force || true
+            echo "Avatar updated and pushed successfully."
+          else
+            echo "No avatar changes detected."
+          fi
