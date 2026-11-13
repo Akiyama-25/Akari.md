@@ -430,6 +430,35 @@
       gap: 0.35rem;
     }
 
+    .banner-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      padding: 0.2rem 0.45rem;
+      border-radius: 6px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+      z-index: 2;
+    }
+    .badge-new { background: #10b981; }
+    .badge-modified { background: #f59e0b; }
+
+    .unsaved-bar {
+      background: rgba(254, 243, 199, 0.95);
+      border: 1px solid #fde68a;
+      border-radius: 14px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.08);
+    }
+
     /* Post list item */
     .post-item {
       padding: 0.9rem 0;
@@ -647,7 +676,7 @@
           <div>
             <div class="brand-title">
               Akari 管理后台
-              <span class="badge-pill">v1.4</span>
+              <span class="badge-pill" title="v2.0: 前端草稿编辑与本地原子同步">v2.0</span>
             </div>
             <div class="brand-subtitle">anon-akari.top · 站点管理中心</div>
           </div>
@@ -747,37 +776,74 @@
 
         <!-- TAB 2: 网页换图与素材删除管理 -->
         <div v-if="currentTab === 'banners'">
-          <div style="margin-bottom: 1rem;">
-            <h2 style="font-size: 1.15rem; font-weight: 700;">网页展示图与素材管理</h2>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">全功能图片管理：支持壁纸自由新增、更换与删除，以及已上传素材库清理！</div>
+          <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <h2 style="font-size: 1.15rem; font-weight: 700;">网页展示图与素材管理</h2>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">全功能图片管理：支持前端草稿自由新增、更换与删除，确认后一键同步保存！</div>
+            </div>
+            <div v-if="hasUnsavedBannerChanges" style="display: flex; gap: 0.4rem;">
+              <button @click="resetWorkingBanners" :disabled="saving.banners" class="btn btn-secondary btn-sm">
+                ↩️ 放弃修改
+              </button>
+              <button @click="saveAllBannerChanges" :disabled="saving.banners" class="btn btn-primary btn-sm">
+                {{ saving.banners ? '正在同步提交...' : '💾 确认保存全部壁纸' }}
+              </button>
+            </div>
           </div>
 
-          <!-- Desktop Banners with Delete & Add -->
+          <!-- Unsaved Banner Changes Alert Bar -->
+          <div v-if="hasUnsavedBannerChanges" class="unsaved-bar">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+              <span style="font-size: 1.25rem;">⚠️</span>
+              <div>
+                <div style="font-weight: 700; color: #b45309; font-size: 0.85rem;">壁纸列表有未保存的本地修改</div>
+                <div style="font-size: 0.72rem; color: #92400e; margin-top: 0.1rem;">
+                  当前就绪：{{ pendingStatsText }}。编辑已在本地暂存，请点击确认保存发起同步并触发构建！
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <button @click="resetWorkingBanners" :disabled="saving.banners" class="btn btn-secondary btn-sm">
+                ↩️ 放弃修改
+              </button>
+              <button @click="saveAllBannerChanges" :disabled="saving.banners" class="btn btn-primary btn-sm">
+                {{ saving.banners ? '正在同步提交...' : '💾 确认保存全部壁纸' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Desktop Banners with Local Draft Editing -->
           <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; flex-wrap: wrap; gap: 0.5rem;">
               <div>
                 <div class="card-title" style="margin: 0;">🖥️ 电脑端轮换壁纸 (Desktop Banners)</div>
-                <div class="card-subtitle" style="margin: 0;">建议 16:9 横屏，可更换或彻底删除任意壁纸</div>
+                <div class="card-subtitle" style="margin: 0;">建议 16:9 横屏。在前端自由新增、更换、排序或删除，确认后统一保存</div>
               </div>
-              <label class="btn btn-primary btn-sm" style="cursor: pointer;">
-                ➕ 添加新电脑壁纸
-                <input type="file" accept="image/*" style="display: none;" @change="addNewBanner($event, 'desktop')">
-              </label>
+              <div style="display: flex; gap: 0.4rem;">
+                <label class="btn btn-primary btn-sm" style="cursor: pointer;">
+                  ➕ 添加新电脑壁纸
+                  <input type="file" accept="image/*" style="display: none;" @change="addNewBanner($event, 'desktop')">
+                </label>
+              </div>
             </div>
 
             <div class="grid-4" style="margin-top: 1rem;">
-              <div v-for="(path, idx) in desktopBanners" :key="'desk-'+idx" class="banner-slot-card">
+              <div v-for="(item, idx) in workingDesktopBanners" :key="item.id" class="banner-slot-card">
                 <div class="banner-preview-box aspect-desktop">
-                  <img :src="getBannerSrc(path)" @error="onBannerImgError($event, path)" class="banner-preview-img" alt="Desktop banner">
+                  <span v-if="item.isNew" class="banner-badge badge-new">🆕 待保存</span>
+                  <span v-else-if="item.isModified" class="banner-badge badge-modified">✏️ 已更换</span>
+                  <img :src="getBannerSrc(item)" @error="onBannerImgError($event, item)" class="banner-preview-img" alt="Desktop banner">
                 </div>
                 <div class="banner-slot-info">
-                  <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 70px;">#{{ idx + 1 }}</span>
+                  <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60px;">#{{ idx + 1 }}</span>
                   <div class="banner-actions">
-                    <label class="btn btn-secondary btn-sm" style="cursor: pointer; padding: 0.2rem 0.5rem; font-size: 0.72rem;">
+                    <button v-if="idx > 0" @click="moveBanner('desktop', idx, -1)" class="btn btn-secondary btn-sm" title="左移" style="padding: 0.2rem 0.35rem; font-size: 0.7rem;">⬅️</button>
+                    <button v-if="idx < workingDesktopBanners.length - 1" @click="moveBanner('desktop', idx, 1)" class="btn btn-secondary btn-sm" title="右移" style="padding: 0.2rem 0.35rem; font-size: 0.7rem;">➡️</button>
+                    <label class="btn btn-secondary btn-sm" style="cursor: pointer; padding: 0.2rem 0.45rem; font-size: 0.72rem;">
                       更换
                       <input type="file" accept="image/*" style="display: none;" @change="replaceBanner($event, 'desktop', idx)">
                     </label>
-                    <button @click="deleteBanner('desktop', idx)" class="btn btn-danger btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;">
+                    <button @click="deleteBanner('desktop', idx)" class="btn btn-danger btn-sm" style="padding: 0.2rem 0.45rem; font-size: 0.72rem;">
                       🗑️
                     </button>
                   </div>
@@ -786,37 +852,58 @@
             </div>
           </div>
 
-          <!-- Mobile Banners with Delete & Add -->
+          <!-- Mobile Banners with Local Draft Editing -->
           <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; flex-wrap: wrap; gap: 0.5rem;">
               <div>
                 <div class="card-title" style="margin: 0;">📱 手机端轮换壁纸 (Mobile Banners)</div>
-                <div class="card-subtitle" style="margin: 0;">建议 9:16 竖屏，可更换或彻底删除任意壁纸</div>
+                <div class="card-subtitle" style="margin: 0;">建议 9:16 竖屏。在前端自由新增、更换、排序或删除，确认后统一保存</div>
               </div>
-              <label class="btn btn-primary btn-sm" style="cursor: pointer;">
-                ➕ 添加新手机壁纸
-                <input type="file" accept="image/*" style="display: none;" @change="addNewBanner($event, 'mobile')">
-              </label>
+              <div style="display: flex; gap: 0.4rem;">
+                <label class="btn btn-primary btn-sm" style="cursor: pointer;">
+                  ➕ 添加新手机壁纸
+                  <input type="file" accept="image/*" style="display: none;" @change="addNewBanner($event, 'mobile')">
+                </label>
+              </div>
             </div>
 
             <div class="grid-4" style="margin-top: 1rem;">
-              <div v-for="(path, idx) in mobileBanners" :key="'mob-'+idx" class="banner-slot-card">
+              <div v-for="(item, idx) in workingMobileBanners" :key="item.id" class="banner-slot-card">
                 <div class="banner-preview-box aspect-mobile">
-                  <img :src="getBannerSrc(path)" @error="onBannerImgError($event, path)" class="banner-preview-img" alt="Mobile banner">
+                  <span v-if="item.isNew" class="banner-badge badge-new">🆕 待保存</span>
+                  <span v-else-if="item.isModified" class="banner-badge badge-modified">✏️ 已更换</span>
+                  <img :src="getBannerSrc(item)" @error="onBannerImgError($event, item)" class="banner-preview-img" alt="Mobile banner">
                 </div>
                 <div class="banner-slot-info">
-                  <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 70px;">#{{ idx + 1 }}</span>
+                  <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60px;">#{{ idx + 1 }}</span>
                   <div class="banner-actions">
-                    <label class="btn btn-secondary btn-sm" style="cursor: pointer; padding: 0.2rem 0.5rem; font-size: 0.72rem;">
+                    <button v-if="idx > 0" @click="moveBanner('mobile', idx, -1)" class="btn btn-secondary btn-sm" title="左移" style="padding: 0.2rem 0.35rem; font-size: 0.7rem;">⬅️</button>
+                    <button v-if="idx < workingMobileBanners.length - 1" @click="moveBanner('mobile', idx, 1)" class="btn btn-secondary btn-sm" title="右移" style="padding: 0.2rem 0.35rem; font-size: 0.7rem;">➡️</button>
+                    <label class="btn btn-secondary btn-sm" style="cursor: pointer; padding: 0.2rem 0.45rem; font-size: 0.72rem;">
                       更换
                       <input type="file" accept="image/*" style="display: none;" @change="replaceBanner($event, 'mobile', idx)">
                     </label>
-                    <button @click="deleteBanner('mobile', idx)" class="btn btn-danger btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;">
+                    <button @click="deleteBanner('mobile', idx)" class="btn btn-danger btn-sm" style="padding: 0.2rem 0.45rem; font-size: 0.72rem;">
                       🗑️
                     </button>
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <!-- Bottom Floating Save Bar for convenience -->
+          <div v-if="hasUnsavedBannerChanges" class="card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; border-color: #f59e0b; background: rgba(254, 243, 199, 0.4);">
+            <div style="font-size: 0.8rem; font-weight: 600; color: #b45309;">
+              所有编辑已在前端完成（{{ pendingStatsText }}），确认保存后将从本地统一推送到仓库：
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+              <button @click="resetWorkingBanners" :disabled="saving.banners" class="btn btn-secondary">
+                ↩️ 放弃修改
+              </button>
+              <button @click="saveAllBannerChanges" :disabled="saving.banners" class="btn btn-primary">
+                {{ saving.banners ? '正在同步提交中...' : '💾 确认保存全部壁纸修改' }}
+              </button>
             </div>
           </div>
 
@@ -1163,7 +1250,7 @@
         const isConnected = computed(() => !!repoConfig.token);
 
         const loading = reactive({ posts: false, media: false });
-        const saving = reactive({ post: false, links: false, site: false });
+        const saving = reactive({ post: false, links: false, site: false, banners: false });
         const toast = reactive({ show: false, message: '', type: 'info' });
         const imageCacheBust = ref(Date.now());
 
@@ -1171,7 +1258,7 @@
         const editingPost = ref(null);
         const postTextarea = ref(null);
 
-        // Dynamic Banners List
+        // Dynamic Banners Baseline
         const desktopBanners = ref([
           '/assets/desktop-banner/1.webp',
           '/assets/desktop-banner/2.webp',
@@ -1184,6 +1271,11 @@
           '/assets/mobile-banner/3.webp',
           '/assets/mobile-banner/4.webp',
         ]);
+
+        // Local Editable Draft for Banners (Frontend-First)
+        const workingDesktopBanners = ref([]);
+        const workingMobileBanners = ref([]);
+        const pendingDeletions = ref([]);
         const mediaFiles = ref([]);
 
         const navLinks = ref([
@@ -1224,14 +1316,26 @@
 
         const localPreviews = reactive({});
 
-        const getBannerSrc = (path) => {
-          if (localPreviews[path]) return localPreviews[path];
-          const sep = path.includes('?') ? '&' : '?';
-          return `${path}${sep}t=${imageCacheBust.value}`;
+        const getBannerSrc = (item) => {
+          if (!item) return '';
+          if (typeof item === 'object') {
+            if (item.previewUrl && item.previewUrl.startsWith('data:')) {
+              return item.previewUrl;
+            }
+            const p = item.path || '';
+            const sep = p.includes('?') ? '&' : '?';
+            return `${p}${sep}t=${imageCacheBust.value}`;
+          }
+          if (localPreviews[item]) return localPreviews[item];
+          const sep = item.includes('?') ? '&' : '?';
+          return `${item}${sep}t=${imageCacheBust.value}`;
         };
 
-        const onBannerImgError = (event, path) => {
-          const clean = path.replace(/^\//, '');
+        const onBannerImgError = (event, item) => {
+          if (!item) return;
+          const p = typeof item === 'object' ? item.path : item;
+          if (!p || p.startsWith('data:')) return;
+          const clean = p.replace(/^\//, '');
           const rawUrl = `https://raw.githubusercontent.com/${repoConfig.owner}/${repoConfig.repo}/${repoConfig.branch}/public/${clean}`;
           if (event.target.src !== rawUrl) {
             event.target.src = rawUrl;
@@ -1266,10 +1370,31 @@
           return res.json();
         };
 
-        const getFile = async (path) => {
+        const getFileSha = async (path) => {
+          try {
+            const data = await githubFetch(`/contents/${path}?ref=${repoConfig.branch}`);
+            return data.sha || null;
+          } catch (_e) {
+            return null;
+          }
+        };
+
+        const getFile = async (path, isBinary = false) => {
           const data = await githubFetch(`/contents/${path}?ref=${repoConfig.branch}`);
-          const content = decodeURIComponent(escape(atob(data.content.replace(/\s/g, ''))));
-          return { sha: data.sha, content };
+          let content = '';
+          if (!isBinary && data.content) {
+            try {
+              const raw = atob(data.content.replace(/\s/g, ''));
+              const bytes = new Uint8Array(raw.length);
+              for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+              content = new TextDecoder('utf-8').decode(bytes);
+            } catch (_e) {
+              content = decodeURIComponent(escape(atob(data.content.replace(/\s/g, ''))));
+            }
+          } else {
+            content = data.content ? data.content.replace(/\s/g, '') : '';
+          }
+          return { sha: data.sha, content, size: data.size, name: data.name };
         };
 
         const putFile = async (path, contentUtf8OrBase64, message, sha = null, isBase64 = false, retries = 2) => {
@@ -1277,6 +1402,10 @@
             ? contentUtf8OrBase64
             : btoa(unescape(encodeURIComponent(contentUtf8OrBase64)));
           let currentSha = sha;
+          if (!currentSha) {
+            // Check if file already exists in repository to prevent 422/409 errors
+            currentSha = await getFileSha(path);
+          }
           for (let attempt = 0; attempt <= retries; attempt++) {
             try {
               const body = {
@@ -1290,15 +1419,12 @@
                 body: JSON.stringify(body)
               });
             } catch (err) {
-              const isConflict = err.status === 409 || (err.message && err.message.includes('does not match'));
+              const isConflict = err.status === 409 || err.status === 422 || (err.message && (err.message.includes('does not match') || err.message.includes('sha')));
               if (isConflict && attempt < retries) {
-                console.warn(`409 conflict on ${path}, retrying attempt ${attempt + 1}...`);
-                await new Promise(r => setTimeout(r, 600 * (attempt + 1)));
-                try {
-                  const fresh = await getFile(path);
-                  currentSha = fresh.sha;
-                  continue;
-                } catch (_e) {}
+                console.warn(`Conflict on ${path}, retrying attempt ${attempt + 1}...`);
+                await new Promise(r => setTimeout(r, 800 * (attempt + 1)));
+                currentSha = await getFileSha(path);
+                continue;
               }
               throw err;
             }
@@ -1312,10 +1438,10 @@
               const updatedContent = transformFn(file.content);
               return await putFile(path, updatedContent, message, file.sha, false, 0);
             } catch (err) {
-              const isConflict = err.status === 409 || (err.message && err.message.includes('does not match'));
+              const isConflict = err.status === 409 || err.status === 422 || (err.message && err.message.includes('does not match'));
               if (isConflict && attempt < 2) {
                 console.warn(`Safe update conflict on ${path}, retrying attempt ${attempt + 1}...`, err);
-                await new Promise(r => setTimeout(r, 800 * (attempt + 1)));
+                await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
                 continue;
               }
               throw err;
@@ -1326,12 +1452,10 @@
         const deleteFile = async (path, sha = null, message = 'delete file') => {
           let currentSha = sha;
           if (!currentSha) {
-            try {
-              const f = await getFile(path);
-              currentSha = f.sha;
-            } catch (_e) {
-              return; // File does not exist, treat as deleted
-            }
+            currentSha = await getFileSha(path);
+          }
+          if (!currentSha) {
+            return; // File does not exist, treat as deleted
           }
           return githubFetch(`/contents/${path}`, {
             method: 'DELETE',
@@ -1405,6 +1529,53 @@
           }
         };
 
+        // Reset or initialize working draft from current baseline
+        const resetWorkingBanners = () => {
+          workingDesktopBanners.value = desktopBanners.value.map((p, idx) => ({
+            id: 'd_' + idx + '_' + Math.random().toString(36).substring(2, 6),
+            path: p,
+            previewUrl: p,
+            fileBase64: null,
+            isNew: false,
+            isModified: false,
+            originalPath: p
+          }));
+          workingMobileBanners.value = mobileBanners.value.map((p, idx) => ({
+            id: 'm_' + idx + '_' + Math.random().toString(36).substring(2, 6),
+            path: p,
+            previewUrl: p,
+            fileBase64: null,
+            isNew: false,
+            isModified: false,
+            originalPath: p
+          }));
+          pendingDeletions.value = [];
+        };
+
+        const hasUnsavedBannerChanges = computed(() => {
+          if (pendingDeletions.value.length > 0) return true;
+          if (workingDesktopBanners.value.length !== desktopBanners.value.length) return true;
+          if (workingMobileBanners.value.length !== mobileBanners.value.length) return true;
+          const deskChanged = workingDesktopBanners.value.some((b, i) => b.isNew || b.isModified || b.path !== desktopBanners.value[i]);
+          const mobChanged = workingMobileBanners.value.some((b, i) => b.isNew || b.isModified || b.path !== mobileBanners.value[i]);
+          return deskChanged || mobChanged;
+        });
+
+        const pendingStatsText = computed(() => {
+          let adds = 0;
+          let mods = 0;
+          let dels = pendingDeletions.value.length;
+          [...workingDesktopBanners.value, ...workingMobileBanners.value].forEach(b => {
+            if (b.isNew) adds++;
+            else if (b.isModified) mods++;
+          });
+          const parts = [];
+          if (adds > 0) parts.push(`新增 ${adds} 张`);
+          if (mods > 0) parts.push(`更换 ${mods} 张`);
+          if (dels > 0) parts.push(`移除 ${dels} 张`);
+          return parts.length > 0 ? parts.join('，') : '顺序已调整';
+        });
+
         // Fetch Banners from backgroundWallpaper.ts
         const fetchBannersConfig = async () => {
           if (!repoConfig.token) return;
@@ -1424,6 +1595,7 @@
                 mobileBanners.value = list.map(s => s.replace(/["']/g, ''));
               }
             }
+            resetWorkingBanners();
           } catch (err) {
             console.warn('获取壁纸配置失败:', err);
           }
@@ -1443,8 +1615,93 @@
           }
         };
 
+        // Add New Banner (Local-First: Draft Mode)
+        const addNewBanner = async (event, type) => {
+          const file = event.target.files?.[0];
+          if (!file) return;
+          const isDesk = type === 'desktop';
+          showToast(`正在本地转换${isDesk ? '电脑' : '手机'}壁纸...`, 'info');
+          try {
+            const maxWidth = isDesk ? 1920 : 1080;
+            const base64 = await convertToWebpBase64(file, maxWidth, 0.88);
+            const timestamp = Date.now();
+            const relPath = `/assets/${type}-banner/banner_${timestamp}.webp`;
+            const newItem = {
+              id: `${type}_new_${timestamp}`,
+              path: relPath,
+              previewUrl: `data:image/webp;base64,${base64}`,
+              fileBase64: base64,
+              isNew: true,
+              isModified: false,
+              originalPath: null
+            };
+            if (isDesk) {
+              workingDesktopBanners.value.push(newItem);
+            } else {
+              workingMobileBanners.value.push(newItem);
+            }
+            showToast(`新${isDesk ? '电脑' : '手机'}壁纸已添加到编辑列表（待保存）！`);
+          } catch (err) {
+            showToast('转换图片失败: ' + err.message, 'error');
+          } finally {
+            event.target.value = '';
+          }
+        };
+
+        // Replace Banner (Local-First: Draft Mode)
+        const replaceBanner = async (event, type, index) => {
+          const file = event.target.files?.[0];
+          if (!file) return;
+          const isDesk = type === 'desktop';
+          showToast(`正在本地转换${isDesk ? '电脑' : '手机'}壁纸...`, 'info');
+          try {
+            const maxWidth = isDesk ? 1920 : 1080;
+            const base64 = await convertToWebpBase64(file, maxWidth, 0.88);
+            const targetList = isDesk ? workingDesktopBanners.value : workingMobileBanners.value;
+            const currentItem = targetList[index];
+            if (currentItem) {
+              currentItem.previewUrl = `data:image/webp;base64,${base64}`;
+              currentItem.fileBase64 = base64;
+              if (!currentItem.isNew) {
+                currentItem.isModified = true;
+              }
+              showToast(`壁纸 #${index + 1} 已更换（待保存）！`);
+            }
+          } catch (err) {
+            showToast('更换壁纸失败: ' + err.message, 'error');
+          } finally {
+            event.target.value = '';
+          }
+        };
+
+        // Delete Banner (Local-First: Draft Mode)
+        const deleteBanner = (type, index) => {
+          const isDesk = type === 'desktop';
+          const targetList = isDesk ? workingDesktopBanners.value : workingMobileBanners.value;
+          if (targetList.length <= 1) {
+            showToast('至少保留一张壁纸，无法全部删除哦！', 'error');
+            return;
+          }
+          const item = targetList[index];
+          if (item && item.originalPath) {
+            pendingDeletions.value.push(item.originalPath);
+          }
+          targetList.splice(index, 1);
+          showToast(`壁纸 #${index + 1} 已从列表移除（待保存）！`);
+        };
+
+        // Move Banner Order (Local-First)
+        const moveBanner = (type, index, delta) => {
+          const isDesk = type === 'desktop';
+          const targetList = isDesk ? workingDesktopBanners.value : workingMobileBanners.value;
+          const newIdx = index + delta;
+          if (newIdx < 0 || newIdx >= targetList.length) return;
+          const item = targetList.splice(index, 1)[0];
+          targetList.splice(newIdx, 0, item);
+        };
+
         // Sync Banner Arrays to Configuration Files
-        const syncBannersToRepo = async (newListDesktop, newListMobile, message) => {
+        const syncBannersToRepo = async (newListDesktop, newListMobile, message = 'feat(banner): update banner configuration') => {
           const dStr = newListDesktop.map(s => `\t\t\t"${s}",`).join('\n');
           const mStr = newListMobile.map(s => `\t\t\t"${s}",`).join('\n');
           const dStrSc = newListDesktop.map(s => `\t\t\t\t"${s}",`).join('\n');
@@ -1457,6 +1714,9 @@
             return res;
           }, message);
 
+          // Short breath to prevent git tree lock
+          await new Promise(r => setTimeout(r, 600));
+
           // 2. siteConfig.ts
           await updateFileSafe('src/config/siteConfig.ts', (content) => {
             let res = content.replace(/desktop:\s*\[[\s\S]*?\]/, `desktop: [\n${dStrSc}\n\t\t\t]`);
@@ -1465,119 +1725,83 @@
           }, message);
         };
 
-        // Replace Banner
-        const replaceBanner = async (event, type, index) => {
-          const file = event.target.files?.[0];
-          if (!file) return;
-          const isDesk = type === 'desktop';
-          showToast(`正在转换并替换${isDesk ? '电脑' : '手机'}壁纸 #${index + 1}...`, 'info');
-          try {
-            const maxWidth = isDesk ? 1920 : 1080;
-            const base64 = await convertToWebpBase64(file, maxWidth, 0.9);
-            const targetPath = (isDesk ? desktopBanners.value[index] : mobileBanners.value[index]).replace(/^\//, '');
-            const filePath = `public/${targetPath}`;
-            
-            // Save local instant preview
-            localPreviews[`/${targetPath}`] = `data:image/webp;base64,${base64}`;
-
-            let sha = null;
-            try {
-              const existing = await getFile(filePath);
-              sha = existing.sha;
-            } catch (_e) {}
-
-            await putFile(filePath, base64, `feat(banner): replace ${type} banner #${index + 1}`, sha, true);
-            showToast(`壁纸 #${index + 1} 已成功更换！`);
-            imageCacheBust.value = Date.now();
-          } catch (err) {
-            showToast('更换壁纸失败: ' + err.message, 'error');
-          } finally {
-            event.target.value = '';
-          }
-        };
-
-        // Delete Banner
-        const deleteBanner = async (type, index) => {
-          const isDesk = type === 'desktop';
-          const list = isDesk ? [...desktopBanners.value] : [...mobileBanners.value];
-          if (list.length <= 1) {
-            showToast('至少保留一张壁纸，无法全部删除哦！', 'error');
+        // Save All Banner Changes (Batch Commit from Client)
+        const saveAllBannerChanges = async () => {
+          if (!hasUnsavedBannerChanges.value) {
+            showToast('当前没有未保存的壁纸修改', 'info');
             return;
           }
-          if (!confirm(`确定要彻底删除该张${isDesk ? '电脑' : '手机'}壁纸（#${index + 1}）吗？`)) return;
-
-          showToast('正在从仓库删除壁纸并更新配置...', 'info');
+          saving.banners = true;
+          showToast('开始保存壁纸：正在上传新增/更换的图片...', 'info');
           try {
-            const removedPath = list[index];
-            const cleanPath = `public/${removedPath.replace(/^\//, '')}`;
-            
-            // 1. Try deleting physical file from git repo
-            try {
-              const fileData = await getFile(cleanPath);
-              await deleteFile(cleanPath, fileData.sha, `feat(banner): delete ${cleanPath}`);
-            } catch (_e) {
-              console.warn('壁纸物理文件不存在或已被删除，继续更新配置', _e);
+            // 1. Upload new or modified desktop banners
+            for (let i = 0; i < workingDesktopBanners.value.length; i++) {
+              const item = workingDesktopBanners.value[i];
+              if (item.fileBase64 && (item.isNew || item.isModified)) {
+                const cleanPath = `public${item.path.replace(/^\/?/, '/')}`;
+                const sha = item.isModified ? await getFileSha(cleanPath) : null;
+                showToast(`正在上传电脑壁纸 #${i + 1}...`, 'info');
+                await putFile(cleanPath, item.fileBase64, `feat(banner): upload desktop banner #${i + 1}`, sha, true);
+                item.fileBase64 = null;
+                item.isNew = false;
+                item.isModified = false;
+                await new Promise(r => setTimeout(r, 600));
+              }
             }
 
-            // 2. Prepare new arrays
-            const updatedDesk = isDesk ? list.filter((_, i) => i !== index) : [...desktopBanners.value];
-            const updatedMob = !isDesk ? list.filter((_, i) => i !== index) : [...mobileBanners.value];
-
-            // 3. Synchronize configuration files safely with conflict retries
-            await syncBannersToRepo(updatedDesk, updatedMob, `feat(banner): remove ${type} banner #${index + 1}`);
-
-            // 4. Update local state
-            if (isDesk) {
-              desktopBanners.value = updatedDesk;
-            } else {
-              mobileBanners.value = updatedMob;
+            // 2. Upload new or modified mobile banners
+            for (let i = 0; i < workingMobileBanners.value.length; i++) {
+              const item = workingMobileBanners.value[i];
+              if (item.fileBase64 && (item.isNew || item.isModified)) {
+                const cleanPath = `public${item.path.replace(/^\/?/, '/')}`;
+                const sha = item.isModified ? await getFileSha(cleanPath) : null;
+                showToast(`正在上传手机壁纸 #${i + 1}...`, 'info');
+                await putFile(cleanPath, item.fileBase64, `feat(banner): upload mobile banner #${i + 1}`, sha, true);
+                item.fileBase64 = null;
+                item.isNew = false;
+                item.isModified = false;
+                await new Promise(r => setTimeout(r, 600));
+              }
             }
 
-            delete localPreviews[removedPath];
-            showToast(`壁纸 #${index + 1} 已彻底删除！`);
+            // 3. Delete removed files if applicable
+            const activePaths = new Set([
+              ...workingDesktopBanners.value.map(b => b.path),
+              ...workingMobileBanners.value.map(b => b.path)
+            ]);
+            for (const delPath of pendingDeletions.value) {
+              if (!activePaths.has(delPath)) {
+                const cleanPath = `public${delPath.replace(/^\/?/, '/')}`;
+                try {
+                  const sha = await getFileSha(cleanPath);
+                  if (sha) {
+                    await deleteFile(cleanPath, sha, `feat(banner): delete removed banner ${delPath}`);
+                    await new Promise(r => setTimeout(r, 500));
+                  }
+                } catch (e) {
+                  console.warn('删除物理文件跳过或已被清理:', cleanPath, e);
+                }
+              }
+            }
+            pendingDeletions.value = [];
+
+            // 4. Update configuration files
+            showToast('正在更新全站壁纸配置文件...', 'info');
+            const finalDesk = workingDesktopBanners.value.map(b => b.path);
+            const finalMob = workingMobileBanners.value.map(b => b.path);
+            await syncBannersToRepo(finalDesk, finalMob, 'feat(banner): update wallpaper configuration');
+
+            // 5. Update local state & baseline
+            desktopBanners.value = [...finalDesk];
+            mobileBanners.value = [...finalMob];
+            resetWorkingBanners();
             imageCacheBust.value = Date.now();
+
+            showToast('🎉 全部壁纸已成功保存生效！Cloudflare 正在自动化构建～', 'success');
           } catch (err) {
-            showToast('删除壁纸失败: ' + err.message, 'error');
-            await fetchBannersConfig();
-          }
-        };
-
-        // Add New Banner
-        const addNewBanner = async (event, type) => {
-          const file = event.target.files?.[0];
-          if (!file) return;
-          const isDesk = type === 'desktop';
-          showToast(`正在转换并添加新${isDesk ? '电脑' : '手机'}壁纸...`, 'info');
-          try {
-            const maxWidth = isDesk ? 1920 : 1080;
-            const base64 = await convertToWebpBase64(file, maxWidth, 0.9);
-            const timestamp = Date.now();
-            const relPath = `assets/${type}-banner/banner_${timestamp}.webp`;
-            const fullPath = `public/${relPath}`;
-
-            // Save local instant preview so it shows immediately without 404
-            localPreviews[`/${relPath}`] = `data:image/webp;base64,${base64}`;
-
-            await putFile(fullPath, base64, `feat(banner): add new ${type} banner`, null, true);
-
-            const updatedDesk = isDesk ? [...desktopBanners.value, `/${relPath}`] : [...desktopBanners.value];
-            const updatedMob = !isDesk ? [...mobileBanners.value, `/${relPath}`] : [...mobileBanners.value];
-
-            await syncBannersToRepo(updatedDesk, updatedMob, `feat(banner): register new ${type} banner in config`);
-
-            if (isDesk) {
-              desktopBanners.value = updatedDesk;
-            } else {
-              mobileBanners.value = updatedMob;
-            }
-
-            showToast('新壁纸添加成功！');
-            imageCacheBust.value = Date.now();
-          } catch (err) {
-            showToast('添加新壁纸失败: ' + err.message, 'error');
-            await fetchBannersConfig();
+            showToast('保存壁纸失败: ' + err.message, 'error');
           } finally {
-            event.target.value = '';
+            saving.banners = false;
           }
         };
 
@@ -1839,18 +2063,18 @@
           try {
             const base64 = await convertToWebpBase64(file, 400, 0.9);
             
-            let sha1 = null;
-            try { sha1 = (await getFile('src/assets/images/avatar.webp')).sha; } catch (_e) {}
+            const sha1 = await getFileSha('src/assets/images/avatar.webp');
             await putFile('src/assets/images/avatar.webp', base64, 'feat(avatar): update avatar.webp', sha1, true);
 
-            let sha2 = null;
-            try { sha2 = (await getFile('public/assets/home/home.webp')).sha; } catch (_e) {}
+            const sha2 = await getFileSha('public/assets/home/home.webp');
             await putFile('public/assets/home/home.webp', base64, 'feat(avatar): update home.webp', sha2, true);
 
-            showToast('头像已成功更新！');
+            showToast('头像已成功更新并推送到仓库！');
             imageCacheBust.value = Date.now();
           } catch (err) {
             showToast('更新头像失败: ' + err.message, 'error');
+          } finally {
+            event.target.value = '';
           }
         };
 
@@ -1968,6 +2192,13 @@
           imageCacheBust,
           desktopBanners,
           mobileBanners,
+          workingDesktopBanners,
+          workingMobileBanners,
+          hasUnsavedBannerChanges,
+          pendingStatsText,
+          resetWorkingBanners,
+          saveAllBannerChanges,
+          moveBanner,
           mediaFiles,
           navLinks,
           profileLinks,
