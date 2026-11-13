@@ -5,18 +5,6 @@
   <link href="https://anon-akari.top/" rel="alternate" type="text/html"/>
   <link href="https://anon-akari.top/atom.xml" rel="self" type="application/atom+xml"/>
   <id>https://anon-akari.top/</id>
-  <updated>2026-11-13T00:00:00.000Z</updated>
-  <entry>
-    <title>Hello World</title>
-    <link href="https://anon-akari.top/posts/hello-world/" rel="alternate" type="text/html"/>
-    <id>https://anon-akari.top/posts/hello-world/</id>
-    <published>2026-11-13T00:00:00.000Z</published>
-    <updated>2026-11-13T00:00:00.000Z</updated>
-    <summary>探索代码、音律与夜色。随心记录生活灵感与开发点滴。</summary>
-    <content type="html"><![CDATA[<p>Ciallo～(∠・ω&lt; )⌒★</p>
-<p>这里是 <strong>Akari</strong> 的个人主页与技术小站。</p>
-<p>新站初建，随心记录生活灵感与开源项目开发点滴。</p>]]></content>
-    <author><name>Akari</name></author>
-    <category term="生活"/>
-  </entry>
+  <updated>1970-01-01T00:00:00.000Z</updated>
+
 </feed>
