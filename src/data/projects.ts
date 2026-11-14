@@ -45,7 +45,7 @@ export const projectsData: Project[] = [
 	{
 		"id": "tsukimibox",
 		"title": "TsukimiBox",
-		"description": "全能微型调试与常用功能聚合箱，轻快简洁的 Android 工具利器。",
+		"description": "基于Nekobox修改的Android网络代理软件",
 		"image": "",
 		"category": "mobile",
 		"techStack": [
@@ -56,13 +56,7 @@ export const projectsData: Project[] = [
 		"status": "in-progress",
 		"sourceCode": "https://github.com/Akiyama-25/TsukimiBox",
 		"startDate": "2024-05-01",
-		"featured": true,
-		"tags": [
-			"Android",
-			"Toolbox",
-			"Utility"
-		],
-		"showImage": false
+		"featured": true
 	},
 	{
 		"id": "ncm-converter",
