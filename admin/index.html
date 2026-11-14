@@ -7,6 +7,7 @@
   <link rel="icon" href="/favicon.png">
   <script src="/admin/vendor/vue.global.prod.js"></script>
   <script src="/admin/vendor/marked.min.js"></script>
+  <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
   <style>
     :root {
       --primary: #10b981;
@@ -46,7 +47,6 @@
       position: relative;
     }
 
-    /* Mizuki Wallpaper Background with Frosted Glass */
     .site-bg {
       position: fixed;
       inset: 0;
@@ -78,7 +78,6 @@
       min-height: 100vh;
     }
 
-    /* Floating Navbar matching Mizuki */
     .header-wrap {
       padding: 0.75rem 1rem;
       max-width: 1200px;
@@ -99,58 +98,61 @@
       box-shadow: 0 4px 20px -2px rgba(16, 185, 129, 0.08);
     }
 
-    .brand {
+    .header-left {
       display: flex;
       align-items: center;
-      gap: 0.65rem;
+      gap: 0.75rem;
     }
 
-    .brand-avatar {
-      width: 38px;
-      height: 38px;
+    .avatar-wrap {
+      position: relative;
+      width: 42px;
+      height: 42px;
       border-radius: 12px;
       overflow: hidden;
-      border: 2px solid #ffffff;
-      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      border: 1.5px solid #ffffff;
       flex-shrink: 0;
+      background: #e2e8f0;
     }
 
-    .brand-avatar img {
+    .avatar-img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      display: block;
     }
 
     .brand-title {
+      font-size: 1.05rem;
       font-weight: 700;
-      font-size: 0.95rem;
       display: flex;
       align-items: center;
       gap: 0.4rem;
+      line-height: 1.2;
     }
 
-    .badge-pill {
-      font-size: 0.68rem;
-      padding: 0.15rem 0.5rem;
-      background: var(--primary-light);
-      color: var(--primary-hover);
-      border-radius: 9999px;
+    .version-pill {
+      font-size: 0.65rem;
       font-weight: 600;
+      color: var(--primary-hover);
+      background: var(--primary-light);
+      padding: 0.1rem 0.45rem;
+      border-radius: 9999px;
       border: 1px solid var(--primary-border);
     }
 
-    .brand-subtitle {
+    .brand-sub {
       font-size: 0.72rem;
       color: var(--text-muted);
     }
 
-    .header-actions {
+    .header-right {
       display: flex;
       align-items: center;
       gap: 0.5rem;
     }
 
-    /* Main Container */
     .main-wrap {
       max-width: 1200px;
       width: 100%;
@@ -169,10 +171,10 @@
       }
     }
 
-    /* Clean 4-Column Navigation Bar (NO cut-offs on mobile!) */
+    /* 6 Navigation Tabs (2 Rows of 3 on Mobile) */
     .nav-tabs {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 0.5rem;
       width: 100%;
     }
@@ -192,7 +194,7 @@
       align-items: center;
       justify-content: center;
       gap: 0.25rem;
-      padding: 0.65rem 0.4rem;
+      padding: 0.65rem 0.3rem;
       border-radius: var(--radius);
       border: 1px solid var(--card-border);
       background: rgba(255, 255, 255, 0.75);
@@ -204,6 +206,7 @@
       cursor: pointer;
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+      text-align: center;
     }
 
     @media (min-width: 768px) {
@@ -229,115 +232,114 @@
       box-shadow: 0 4px 14px var(--primary-glow);
     }
 
-    /* Tab Content */
     .tab-content {
       flex: 1;
       min-width: 0;
     }
 
-    /* Mizuki Card Base */
     .card {
       background: var(--card-bg);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--card-border);
-      border-radius: var(--radius-lg);
-      padding: 1.25rem;
-      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
-      margin-bottom: 1.25rem;
-      transition: all 0.2s;
+      border-radius: var(--radius);
+      padding: 1.15rem;
+      margin-bottom: 1.15rem;
+      box-shadow: 0 4px 20px -2px rgba(16, 185, 129, 0.05);
     }
 
     .card-title {
       font-size: 1rem;
       font-weight: 700;
-      color: var(--text);
+      margin-bottom: 0.35rem;
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      margin-bottom: 0.25rem;
+      color: var(--text);
     }
 
     .card-subtitle {
       font-size: 0.75rem;
       color: var(--text-muted);
-      margin-bottom: 1rem;
+      margin-bottom: 0.85rem;
     }
 
-    /* Buttons */
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 0.4rem;
-      padding: 0.5rem 1rem;
-      font-size: 0.82rem;
+      padding: 0.55rem 1rem;
+      border-radius: 12px;
       font-weight: 600;
-      border-radius: 9999px;
-      border: 1px solid transparent;
+      font-size: 0.82rem;
       cursor: pointer;
+      border: none;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       text-decoration: none;
-      white-space: nowrap;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-sm {
+      padding: 0.35rem 0.65rem;
+      font-size: 0.74rem;
+      border-radius: 9px;
     }
 
     .btn-primary {
       background: linear-gradient(135deg, var(--primary), #059669);
-      color: white;
-      box-shadow: 0 2px 8px var(--primary-glow);
+      color: #ffffff;
+      box-shadow: 0 3px 10px var(--primary-glow);
     }
 
     .btn-primary:hover {
-      box-shadow: 0 4px 12px var(--primary-glow);
-      transform: translateY(-1px);
+      box-shadow: 0 4px 14px var(--primary-glow);
+      filter: brightness(1.05);
     }
 
     .btn-secondary {
-      background: rgba(255, 255, 255, 0.9);
-      color: var(--text);
-      border-color: var(--border);
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid var(--border);
     }
 
     .btn-secondary:hover {
-      background: #f8fafc;
-      border-color: var(--primary);
+      background: #e2e8f0;
     }
 
     .btn-danger {
       background: var(--danger-light);
       color: var(--danger);
-      border-color: var(--danger-border);
+      border: 1px solid var(--danger-border);
     }
 
     .btn-danger:hover {
       background: #fee2e2;
+      color: var(--danger-hover);
     }
 
-    .btn-sm {
-      padding: 0.35rem 0.75rem;
-      font-size: 0.75rem;
-    }
-
-    /* Inputs */
     .form-group {
-      margin-bottom: 1rem;
+      margin-bottom: 0.9rem;
     }
 
     .form-label {
       display: block;
-      font-size: 0.76rem;
+      font-size: 0.78rem;
       font-weight: 600;
-      color: var(--text-muted);
-      margin-bottom: 0.35rem;
+      color: var(--text);
+      margin-bottom: 0.3rem;
     }
 
     .form-input, .form-select, .form-textarea {
       width: 100%;
-      padding: 0.65rem 0.9rem;
+      padding: 0.55rem 0.75rem;
+      border-radius: 10px;
       border: 1px solid var(--border);
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.95);
-      font-size: 0.85rem;
+      background: #ffffff;
+      font-size: 0.82rem;
       color: var(--text);
       outline: none;
       transition: all 0.2s;
@@ -346,207 +348,240 @@
     .form-input:focus, .form-select:focus, .form-textarea:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 3px var(--primary-light);
-      background: #ffffff;
     }
 
-    .form-textarea {
-      resize: vertical;
-      min-height: 100px;
+    .form-input::placeholder, .form-textarea::placeholder {
+      color: #94a3b8;
     }
 
-    /* Grids */
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 1rem;
+      gap: 0.75rem;
     }
 
-    @media (min-width: 600px) {
+    @media (min-width: 640px) {
       .grid-2 {
         grid-template-columns: 1fr 1fr;
       }
     }
 
-    .grid-4 {
+    .grid-3 {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.85rem;
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
     }
 
-    @media (min-width: 768px) {
-      .grid-4 {
-        grid-template-columns: repeat(4, 1fr);
+    @media (min-width: 640px) {
+      .grid-3 {
+        grid-template-columns: repeat(3, 1fr);
       }
     }
 
-    /* Banner Slots with Delete & Replace Actions */
-    .banner-slot-card {
-      border: 1px solid var(--card-border);
-      border-radius: 14px;
-      overflow: hidden;
+    /* Modern Switch Component */
+    .switch-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.65rem 0.75rem;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 0.5rem;
+      transition: background 0.2s;
+    }
+
+    .switch-row:hover {
+      background: rgba(255, 255, 255, 0.95);
+    }
+
+    .switch-label-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .switch-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .switch-desc {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #cbd5e1;
+      transition: 0.25s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.25s;
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    input:checked + .slider {
+      background-color: var(--primary);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    /* Icon selector chip & badge */
+    .icon-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.55rem;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      color: #334155;
+    }
+
+    .icon-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--primary-light);
+      color: var(--primary-hover);
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    /* Sub-tabs / Pills */
+    .sub-nav {
+      display: flex;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+      overflow-x: auto;
+      padding-bottom: 0.25rem;
+    }
+
+    .sub-pill {
+      padding: 0.4rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.78rem;
+      font-weight: 600;
       background: #ffffff;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .sub-pill.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px var(--primary-glow);
+    }
+
+    /* Banner cards & items */
+    .banner-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .banner-card {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid var(--border);
+      background: #ffffff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
       display: flex;
       flex-direction: column;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-      position: relative;
     }
 
-    .banner-preview-box {
+    .banner-card.status-new {
+      border-color: var(--primary);
+    }
+
+    .banner-card.status-mod {
+      border-color: #f59e0b;
+    }
+
+    .banner-thumb-wrap {
       width: 100%;
-      background: #e2e8f0;
+      height: 75px;
       position: relative;
+      background: #f1f5f9;
       overflow: hidden;
     }
 
-    .aspect-desktop {
-      aspect-ratio: 16 / 9;
-    }
-
-    .aspect-mobile {
-      aspect-ratio: 9 / 16;
-    }
-
-    .banner-preview-img {
+    .banner-thumb {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
     }
 
-    .banner-slot-info {
-      padding: 0.65rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.3rem;
-      font-size: 0.75rem;
-      font-weight: 600;
-      background: #ffffff;
-    }
-
     .banner-actions {
+      padding: 0.4rem;
       display: flex;
-      align-items: center;
-      gap: 0.35rem;
-    }
-
-    .banner-badge {
-      position: absolute;
-      top: 8px;
-      left: 8px;
-      padding: 0.2rem 0.45rem;
-      border-radius: 6px;
-      font-size: 0.65rem;
-      font-weight: 700;
-      color: #ffffff;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-      z-index: 2;
-    }
-    .badge-new { background: #10b981; }
-    .badge-modified { background: #f59e0b; }
-
-    .unsaved-bar {
-      background: rgba(254, 243, 199, 0.95);
-      border: 1px solid #fde68a;
-      border-radius: 14px;
-      padding: 0.75rem 1rem;
-      margin-bottom: 1rem;
-      display: flex;
-      align-items: center;
       justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.08);
-    }
-
-    /* Post list item */
-    .post-item {
-      padding: 0.9rem 0;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .post-item:last-child {
-      border-bottom: none;
-    }
-
-    @media (min-width: 600px) {
-      .post-item {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-      }
-    }
-
-    .post-title {
-      font-weight: 700;
-      font-size: 0.95rem;
-      display: flex;
       align-items: center;
-      gap: 0.4rem;
-    }
-
-    .post-meta {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.6rem;
-      margin-top: 0.25rem;
-    }
-
-    /* Media Library Item */
-    .media-card {
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
       background: #ffffff;
-      display: flex;
-      flex-direction: column;
-      transition: all 0.2s;
+      gap: 0.25rem;
     }
 
-    .media-card:hover {
-      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-      border-color: var(--primary);
+    .badge-pill {
+      font-size: 0.65rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      font-weight: 600;
+      border: 1px solid transparent;
+      display: inline-block;
     }
 
-    .media-thumb {
-      aspect-ratio: 16 / 10;
-      width: 100%;
-      background: #e2e8f0;
-      overflow: hidden;
-    }
-
-    .media-thumb img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .media-footer {
-      padding: 0.5rem 0.65rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.3rem;
-      font-size: 0.72rem;
-    }
-
-    /* Modals */
+    /* Modal */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.6);
+      z-index: 100;
+      background: rgba(15, 23, 42, 0.4);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      z-index: 1000;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 0.75rem;
+      padding: 1rem;
     }
 
     .modal-card {
@@ -554,61 +589,105 @@
       border-radius: var(--radius-lg);
       width: 100%;
       max-width: 520px;
-      max-height: 92vh;
+      max-height: 90vh;
       overflow-y: auto;
       padding: 1.5rem;
-      box-shadow: 0 25px 35px -5px rgba(0, 0, 0, 0.2);
-      border: 1px solid var(--card-border);
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.2);
     }
 
     .modal-card-lg {
-      max-width: 960px;
+      max-width: 820px;
     }
 
     .modal-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 1rem;
-      padding-bottom: 0.75rem;
+      margin-bottom: 1.15rem;
       border-bottom: 1px solid var(--border);
+      padding-bottom: 0.75rem;
     }
 
     .modal-title {
-      font-weight: 700;
       font-size: 1.1rem;
+      font-weight: 700;
     }
 
     .modal-close {
       background: none;
       border: none;
-      font-size: 1.35rem;
-      cursor: pointer;
+      font-size: 1.25rem;
       color: var(--text-muted);
+      cursor: pointer;
+      line-height: 1;
     }
 
-    /* Markdown Editor */
-    .editor-toolbar {
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0f172a;
+      color: #ffffff;
+      padding: 0.6rem 1.25rem;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25);
+      z-index: 200;
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-      margin-bottom: 0.5rem;
       align-items: center;
+      gap: 0.5rem;
+      animation: toast-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      max-width: 90vw;
+      text-align: center;
+    }
+
+    .toast-error {
+      background: #dc2626;
+    }
+
+    @keyframes toast-in {
+      from { opacity: 0; transform: translate(-50%, 15px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+
+    /* Post list item */
+    .post-item {
+      display: flex;
       justify-content: space-between;
-    }
-
-    .editor-tools {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.35rem;
       align-items: center;
+      padding: 0.75rem 0.5rem;
+      border-bottom: 1px solid var(--border);
+      gap: 0.5rem;
     }
 
+    .post-item:last-child {
+      border-bottom: none;
+    }
+
+    .post-title {
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .post-meta-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    /* Editor Grid */
     .editor-grid {
       display: grid;
       grid-template-columns: 1fr;
       gap: 1rem;
-      min-height: 380px;
+      height: 380px;
     }
 
     @media (min-width: 768px) {
@@ -619,75 +698,68 @@
 
     .editor-preview {
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1rem;
-      background: #f8fafc;
+      border-radius: 10px;
+      padding: 0.85rem;
+      background: #ffffff;
       overflow-y: auto;
-      max-height: 420px;
-      font-size: 0.85rem;
+      font-size: 0.84rem;
+      line-height: 1.6;
     }
 
-    .editor-preview h1 { font-size: 1.4rem; margin: 0.5rem 0; font-weight: 700; }
-    .editor-preview h2 { font-size: 1.2rem; margin: 0.4rem 0; border-bottom: 1px solid var(--border); padding-bottom: 0.2rem; font-weight: 600; }
-    .editor-preview p { margin: 0.4rem 0; line-height: 1.6; }
-    .editor-preview img { max-width: 100%; border-radius: 8px; margin: 0.5rem 0; }
-    .editor-preview pre { background: #1e293b; color: #f8fafc; padding: 0.6rem; border-radius: 8px; overflow-x: auto; margin: 0.4rem 0; font-size: 0.8rem; }
-    .editor-preview code { background: var(--primary-light); color: var(--primary); padding: 0.1rem 0.3rem; border-radius: 4px; font-size: 0.8rem; }
-    .editor-preview blockquote { border-left: 3px solid var(--primary); padding-left: 0.6rem; color: var(--text-muted); margin: 0.4rem 0; }
+    .editor-preview img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
 
-    /* Toast */
-    .toast {
-      position: fixed;
-      bottom: 1.5rem;
-      right: 1.5rem;
-      z-index: 2000;
-      background: #0f172a;
-      color: #ffffff;
-      padding: 0.75rem 1.25rem;
-      border-radius: 9999px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      box-shadow: 0 10px 20px -3px rgba(0, 0, 0, 0.2);
+    .editor-toolbar {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      justify-content: space-between;
+      margin-bottom: 0.4rem;
+      flex-wrap: wrap;
+      gap: 0.4rem;
     }
 
-    .toast-error {
-      background: var(--danger);
+    .editor-tools {
+      display: flex;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+    }
+
+    /* Helper description box */
+    .help-tip {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+      margin-top: 0.2rem;
     }
   </style>
 </head>
 <body>
-  <!-- Wallpaper Background -->
   <div class="site-bg"></div>
   <div class="site-bg-overlay"></div>
 
   <div id="app" class="app-container">
 
-    <!-- Top Floating Navbar -->
+    <!-- Header -->
     <div class="header-wrap">
       <header class="header">
-        <div class="brand">
-          <div class="brand-avatar">
-            <img src="/assets/home/home.webp" alt="Avatar">
+        <div class="header-left">
+          <div class="avatar-wrap" title="点击换图页面可快速更新博主头像">
+            <img :src="'/assets/home/home.webp?t=' + imageCacheBust" alt="Avatar" class="avatar-img" @error="onBannerImgError">
           </div>
           <div>
             <div class="brand-title">
-              Akari 管理后台
-              <span class="badge-pill" title="v2.1: 修复跨域预检与CORS请求头">v2.1</span>
+              <span>Akari 管理后台</span>
+              <span class="version-pill">v2.2</span>
             </div>
-            <div class="brand-subtitle">anon-akari.top · 站点管理中心</div>
+            <div class="brand-sub">anon-akari.top · 站点管理中心</div>
           </div>
         </div>
-
-        <div class="header-actions">
-          <button v-if="isConnected" @click="showTokenModal = true" class="btn btn-secondary btn-sm">
+        <div class="header-right">
+          <button @click="showTokenModal = true" class="btn btn-secondary btn-sm">
             ⚙️ 仓库配置
-          </button>
-          <button v-else @click="showTokenModal = true" class="btn btn-primary btn-sm">
-            🔑 连接 GitHub
           </button>
           <a href="/" target="_blank" class="btn btn-secondary btn-sm">
             🌐 博客
@@ -699,12 +771,12 @@
     <!-- Main Content -->
     <div class="main-wrap">
 
-      <!-- Navigation Tabs (4 Equal Columns on Mobile) -->
+      <!-- Navigation Tabs (6 Tabs, 2 Rows of 3 on Mobile) -->
       <nav class="nav-tabs">
         <button
           v-for="tab in tabs"
           :key="tab.id"
-          @click="currentTab = tab.id"
+          @click="switchTab(tab.id)"
           :class="['tab-btn', currentTab === tab.id ? 'active' : '']"
         >
           <span style="font-size: 1.15rem;">{{ tab.icon }}</span>
@@ -720,18 +792,18 @@
           <div>
             <strong style="color: var(--primary);">🔑 尚未连接 GitHub Token</strong>
             <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">
-              只需填入拥有 repo 权限的个人访问令牌，即可直接发文、换壁纸与改链接。
+              填入拥有 repo 权限的个人访问令牌，即可直接发文章、发日记、换壁纸与管理全站开关。
             </div>
           </div>
           <button @click="showTokenModal = true" class="btn btn-primary btn-sm">立即配置 Token</button>
         </div>
 
-        <!-- TAB 1: 文章管理 -->
+        <!-- ==================== TAB 1: 文章管理 ==================== -->
         <div v-if="currentTab === 'posts'">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
             <div>
               <h2 style="font-size: 1.15rem; font-weight: 700;">文章撰写与管理</h2>
-              <div style="font-size: 0.75rem; color: var(--text-muted);">管理 src/content/posts 目录下的 Markdown 文章</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">管理 Markdown 文章，支持插入动图与本地截图</div>
             </div>
             <div style="display: flex; gap: 0.4rem;">
               <button @click="fetchPosts" :disabled="loading.posts" class="btn btn-secondary btn-sm">
@@ -758,209 +830,53 @@
                     <span v-if="post.meta?.draft" class="badge-pill" style="background:#f1f5f9; color:#64748b; border-color:#e2e8f0;">草稿</span>
                     <span>{{ post.meta?.title || post.name }}</span>
                   </div>
-                  <div class="post-meta">
-                    <span>📅 {{ post.meta?.published || '未设定日期' }}</span>
-                    <span v-if="post.meta?.category">📁 {{ post.meta.category }}</span>
-                    <span v-if="post.meta?.tags?.length">🏷️ {{ post.meta.tags.join(', ') }}</span>
-                    <span style="opacity: 0.6;">({{ post.name }})</span>
+                  <div class="post-meta-sub">
+                    📅 {{ post.meta?.published || '未设定日期' }} · 🏷️ {{ Array.isArray(post.meta?.tags) ? post.meta.tags.join(', ') : '随笔' }} · 📁 {{ post.meta?.category || '未分类' }}
                   </div>
                 </div>
-                <div style="display: flex; gap: 0.4rem; align-self: flex-end;">
-                  <button @click="openPostEditor(post)" class="btn btn-secondary btn-sm">✏️ 编辑</button>
-                  <button @click="deletePost(post)" class="btn btn-danger btn-sm">🗑️ 删除</button>
+                <div style="display: flex; gap: 0.4rem;">
+                  <button @click="openPostEditor(post)" class="btn btn-secondary btn-sm">编辑</button>
+                  <button @click="deletePost(post)" class="btn btn-danger btn-sm">删除</button>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- TAB 2: 网页换图与素材删除管理 -->
-        <div v-if="currentTab === 'banners'">
-          <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem;">
-            <div>
-              <h2 style="font-size: 1.15rem; font-weight: 700;">网页展示图与素材管理</h2>
-              <div style="font-size: 0.75rem; color: var(--text-muted);">全功能图片管理：支持前端草稿自由新增、更换与删除，确认后一键同步保存！</div>
-            </div>
-            <div v-if="hasUnsavedBannerChanges" style="display: flex; gap: 0.4rem;">
-              <button @click="resetWorkingBanners" :disabled="saving.banners" class="btn btn-secondary btn-sm">
-                ↩️ 放弃修改
-              </button>
-              <button @click="saveAllBannerChanges" :disabled="saving.banners" class="btn btn-primary btn-sm">
-                {{ saving.banners ? '正在同步提交...' : '💾 确认保存全部壁纸' }}
-              </button>
-            </div>
-          </div>
-
-          <!-- Unsaved Banner Changes Alert Bar -->
-          <div v-if="hasUnsavedBannerChanges" class="unsaved-bar">
-            <div style="display: flex; align-items: center; gap: 0.6rem;">
-              <span style="font-size: 1.25rem;">⚠️</span>
-              <div>
-                <div style="font-weight: 700; color: #b45309; font-size: 0.85rem;">壁纸列表有未保存的本地修改</div>
-                <div style="font-size: 0.72rem; color: #92400e; margin-top: 0.1rem;">
-                  当前就绪：{{ pendingStatsText }}。编辑已在本地暂存，请点击确认保存发起同步并触发构建！
-                </div>
-              </div>
-            </div>
-            <div style="display: flex; gap: 0.5rem; align-items: center;">
-              <button @click="resetWorkingBanners" :disabled="saving.banners" class="btn btn-secondary btn-sm">
-                ↩️ 放弃修改
-              </button>
-              <button @click="saveAllBannerChanges" :disabled="saving.banners" class="btn btn-primary btn-sm">
-                {{ saving.banners ? '正在同步提交...' : '💾 确认保存全部壁纸' }}
-              </button>
-            </div>
-          </div>
-
-          <!-- Desktop Banners with Local Draft Editing -->
+          <!-- Media library card -->
           <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
               <div>
-                <div class="card-title" style="margin: 0;">🖥️ 电脑端轮换壁纸 (Desktop Banners)</div>
-                <div class="card-subtitle" style="margin: 0;">建议 16:9 横屏。在前端自由新增、更换、排序或删除，确认后统一保存</div>
+                <div class="card-title">📁 配图与动图素材库</div>
+                <div class="card-subtitle">public/images/posts/ 目录下素材，支持 GIF 动图与 WebP</div>
               </div>
               <div style="display: flex; gap: 0.4rem;">
                 <label class="btn btn-primary btn-sm" style="cursor: pointer;">
-                  ➕ 添加新电脑壁纸
-                  <input type="file" accept="image/*" style="display: none;" @change="addNewBanner($event, 'desktop')">
-                </label>
-              </div>
-            </div>
-
-            <div class="grid-4" style="margin-top: 1rem;">
-              <div v-for="(item, idx) in workingDesktopBanners" :key="item.id" class="banner-slot-card">
-                <div class="banner-preview-box aspect-desktop">
-                  <span v-if="item.isNew" class="banner-badge badge-new">🆕 待保存</span>
-                  <span v-else-if="item.isModified" class="banner-badge badge-modified">✏️ 已更换</span>
-                  <img :src="getBannerSrc(item)" @error="onBannerImgError($event, item)" class="banner-preview-img" alt="Desktop banner">
-                </div>
-                <div class="banner-slot-info">
-                  <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60px;">#{{ idx + 1 }}</span>
-                  <div class="banner-actions">
-                    <button v-if="idx > 0" @click="moveBanner('desktop', idx, -1)" class="btn btn-secondary btn-sm" title="左移" style="padding: 0.2rem 0.35rem; font-size: 0.7rem;">⬅️</button>
-                    <button v-if="idx < workingDesktopBanners.length - 1" @click="moveBanner('desktop', idx, 1)" class="btn btn-secondary btn-sm" title="右移" style="padding: 0.2rem 0.35rem; font-size: 0.7rem;">➡️</button>
-                    <label class="btn btn-secondary btn-sm" style="cursor: pointer; padding: 0.2rem 0.45rem; font-size: 0.72rem;">
-                      更换
-                      <input type="file" accept="image/*" style="display: none;" @change="replaceBanner($event, 'desktop', idx)">
-                    </label>
-                    <button @click="deleteBanner('desktop', idx)" class="btn btn-danger btn-sm" style="padding: 0.2rem 0.45rem; font-size: 0.72rem;">
-                      🗑️
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Mobile Banners with Local Draft Editing -->
-          <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; flex-wrap: wrap; gap: 0.5rem;">
-              <div>
-                <div class="card-title" style="margin: 0;">📱 手机端轮换壁纸 (Mobile Banners)</div>
-                <div class="card-subtitle" style="margin: 0;">建议 9:16 竖屏。在前端自由新增、更换、排序或删除，确认后统一保存</div>
-              </div>
-              <div style="display: flex; gap: 0.4rem;">
-                <label class="btn btn-primary btn-sm" style="cursor: pointer;">
-                  ➕ 添加新手机壁纸
-                  <input type="file" accept="image/*" style="display: none;" @change="addNewBanner($event, 'mobile')">
-                </label>
-              </div>
-            </div>
-
-            <div class="grid-4" style="margin-top: 1rem;">
-              <div v-for="(item, idx) in workingMobileBanners" :key="item.id" class="banner-slot-card">
-                <div class="banner-preview-box aspect-mobile">
-                  <span v-if="item.isNew" class="banner-badge badge-new">🆕 待保存</span>
-                  <span v-else-if="item.isModified" class="banner-badge badge-modified">✏️ 已更换</span>
-                  <img :src="getBannerSrc(item)" @error="onBannerImgError($event, item)" class="banner-preview-img" alt="Mobile banner">
-                </div>
-                <div class="banner-slot-info">
-                  <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60px;">#{{ idx + 1 }}</span>
-                  <div class="banner-actions">
-                    <button v-if="idx > 0" @click="moveBanner('mobile', idx, -1)" class="btn btn-secondary btn-sm" title="左移" style="padding: 0.2rem 0.35rem; font-size: 0.7rem;">⬅️</button>
-                    <button v-if="idx < workingMobileBanners.length - 1" @click="moveBanner('mobile', idx, 1)" class="btn btn-secondary btn-sm" title="右移" style="padding: 0.2rem 0.35rem; font-size: 0.7rem;">➡️</button>
-                    <label class="btn btn-secondary btn-sm" style="cursor: pointer; padding: 0.2rem 0.45rem; font-size: 0.72rem;">
-                      更换
-                      <input type="file" accept="image/*" style="display: none;" @change="replaceBanner($event, 'mobile', idx)">
-                    </label>
-                    <button @click="deleteBanner('mobile', idx)" class="btn btn-danger btn-sm" style="padding: 0.2rem 0.45rem; font-size: 0.72rem;">
-                      🗑️
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Bottom Floating Save Bar for convenience -->
-          <div v-if="hasUnsavedBannerChanges" class="card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; border-color: #f59e0b; background: rgba(254, 243, 199, 0.4);">
-            <div style="font-size: 0.8rem; font-weight: 600; color: #b45309;">
-              所有编辑已在前端完成（{{ pendingStatsText }}），确认保存后将从本地统一推送到仓库：
-            </div>
-            <div style="display: flex; gap: 0.5rem;">
-              <button @click="resetWorkingBanners" :disabled="saving.banners" class="btn btn-secondary">
-                ↩️ 放弃修改
-              </button>
-              <button @click="saveAllBannerChanges" :disabled="saving.banners" class="btn btn-primary">
-                {{ saving.banners ? '正在同步提交中...' : '💾 确认保存全部壁纸修改' }}
-              </button>
-            </div>
-          </div>
-
-          <!-- Avatar & Post Image Uploader -->
-          <div class="card">
-            <div class="card-title">👤 博主头像更换</div>
-            <div class="card-subtitle">同步更新 avatar.webp 与 home.webp</div>
-            <div style="display: flex; align-items: center; gap: 1rem;">
-              <div style="width: 68px; height: 68px; border-radius: 16px; overflow: hidden; border: 2px solid #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.06); flex-shrink: 0;">
-                <img :src="'/assets/home/home.webp?t=' + imageCacheBust" style="width:100%; height:100%; object-fit:cover;" alt="Avatar">
-              </div>
-              <div>
-                <label class="btn btn-primary btn-sm" style="cursor: pointer;">
-                  📸 选择新头像
-                  <input type="file" accept="image/*" style="display: none;" @change="uploadAvatar">
-                </label>
-                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.35rem;">自动缩放为 400x400 正方形 WebP</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Uploaded Media Library & Post Images Gallery with Delete Option -->
-          <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
-              <div>
-                <div class="card-title" style="margin: 0;">📁 文章配图与已上传素材库</div>
-                <div class="card-subtitle" style="margin: 0;">public/images/posts/ 下的所有图片，支持复制 Markdown 引用与彻底删除</div>
-              </div>
-              <div style="display: flex; gap: 0.4rem;">
-                <button @click="fetchMediaGallery" :disabled="loading.media" class="btn btn-secondary btn-sm">
-                  🔄 {{ loading.media ? '加载中...' : '刷新图库' }}
-                </button>
-                <label class="btn btn-primary btn-sm" style="cursor: pointer;">
-                  📤 上传新图片
+                  📤 上传素材
                   <input type="file" accept="image/*" style="display: none;" @change="uploadPostImage">
                 </label>
+                <button @click="fetchMediaGallery" :disabled="loading.media" class="btn btn-secondary btn-sm">
+                  🔄 刷新
+                </button>
               </div>
             </div>
 
-            <div v-if="mediaFiles.length === 0 && !loading.media" style="text-align: center; color: var(--text-muted); padding: 2rem 0; font-size: 0.8rem;">
-              图库暂无已上传的配图，点击右上角“上传新图片”，或在撰写文章时直接粘贴/拖入图片！
+            <div v-if="mediaFiles.length === 0 && !loading.media" style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 1.5rem 0;">
+              暂未发现已上传文章配图
             </div>
-            <div v-if="loading.media" style="text-align: center; color: var(--text-muted); padding: 2rem 0; font-size: 0.8rem;">
-              正在读取已上传图库...
-            </div>
-            <div v-else class="grid-4" style="margin-top: 1rem;">
-              <div v-for="media in mediaFiles" :key="media.path" class="media-card">
-                <div class="media-thumb">
-                  <img :src="media.download_url || ('/' + media.path.replace(/^public\//, ''))" :alt="media.name">
+            <div v-else class="banner-grid" style="grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));">
+              <div v-for="media in mediaFiles" :key="media.path" class="banner-card">
+                <div class="banner-thumb-wrap">
+                  <img :src="'/' + media.path.replace(/^public\//, '') + '?t=' + imageCacheBust" class="banner-thumb" loading="lazy" @error="onBannerImgError">
                 </div>
-                <div class="media-footer">
-                  <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 75px; font-family: monospace;">{{ media.name }}</span>
-                  <div style="display: flex; gap: 0.3rem;">
-                    <button @click="copyText('![配图](/' + media.path.replace(/^public\//, '') + ')')" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.4rem; font-size: 0.65rem;">
+                <div class="banner-actions">
+                  <span style="font-size: 0.65rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60px;">
+                    {{ media.name }}
+                  </span>
+                  <div style="display: flex; gap: 0.2rem;">
+                    <button @click="copyText('![配图](/' + media.path.replace(/^public\//, '') + ')')" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.4rem; font-size: 0.65rem;" title="复制 Markdown 语法">
                       📋
                     </button>
-                    <button @click="deleteMediaFile(media)" class="btn btn-danger btn-sm" style="padding: 0.15rem 0.4rem; font-size: 0.65rem;">
+                    <button @click="deleteMediaFile(media)" class="btn btn-danger btn-sm" style="padding: 0.15rem 0.4rem; font-size: 0.65rem;" title="删除素材">
                       🗑️
                     </button>
                   </div>
@@ -970,52 +886,468 @@
           </div>
         </div>
 
-        <!-- TAB 3: 链接导航 -->
+        <!-- ==================== TAB 2: 日记管理 (支持 GIF 动图) ==================== -->
+        <div v-if="currentTab === 'diary'">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+            <div>
+              <h2 style="font-size: 1.15rem; font-weight: 700;">日记与日常动态 (Moments)</h2>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">生活碎碎念与心情记录，支持发表与展示 GIF 动图</div>
+            </div>
+            <div style="display: flex; gap: 0.4rem;">
+              <button @click="fetchDiary" :disabled="loading.diary" class="btn btn-secondary btn-sm">
+                🔄 {{ loading.diary ? '加载中...' : '刷新' }}
+              </button>
+              <button @click="openDiaryEditor(null)" class="btn btn-primary btn-sm">
+                ✍️ 发表日记
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div v-if="diaryList.length === 0 && !loading.diary" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
+              暂无日记数据，点击右上角“发表日记”记录美好瞬间～
+            </div>
+            <div v-if="loading.diary" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
+              正在连接读取日记列表...
+            </div>
+            <div v-else>
+              <div v-for="item in diaryList" :key="item.id" class="post-item" style="align-items: flex-start; padding: 1rem 0.5rem;">
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-size: 0.88rem; font-weight: 600; color: var(--text); white-space: pre-line; margin-bottom: 0.4rem;">
+                    {{ item.content }}
+                  </div>
+                  <!-- Image / GIF thumbnails -->
+                  <div v-if="item.images && item.images.length > 0" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.4rem;">
+                    <div v-for="(img, idx) in item.images" :key="idx" style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); position: relative;">
+                      <img :src="img" style="width: 100%; height: 100%; object-fit: cover;" @error="onBannerImgError">
+                      <span v-if="img.toLowerCase().endsWith('.gif')" style="position: absolute; bottom: 2px; right: 2px; background: rgba(0,0,0,0.65); color: #fff; font-size: 0.55rem; padding: 1px 3px; border-radius: 4px;">GIF</span>
+                    </div>
+                  </div>
+                  <div class="post-meta-sub">
+                    📅 {{ formatDateTime(item.date) }} <span v-if="item.tags && item.tags.length">· 🏷️ {{ item.tags.join(', ') }}</span>
+                  </div>
+                </div>
+                <div style="display: flex; gap: 0.4rem; flex-shrink: 0;">
+                  <button @click="openDiaryEditor(item)" class="btn btn-secondary btn-sm">编辑</button>
+                  <button @click="deleteDiaryItem(item)" class="btn btn-danger btn-sm">删除</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 3: 壁纸换图 (v2.0 本地草稿模式) ==================== -->
+        <div v-if="currentTab === 'banners'">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+            <div>
+              <h2 style="font-size: 1.15rem; font-weight: 700;">壁纸管理与本地草稿</h2>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">自由添加、微调顺序、替换或删除，确认后一键同步</div>
+            </div>
+            <div style="display: flex; gap: 0.4rem;">
+              <button @click="fetchBannersConfig" class="btn btn-secondary btn-sm">🔄 重新拉取</button>
+            </div>
+          </div>
+
+          <!-- Unsaved Banner Notice -->
+          <div v-if="hasUnsavedBannerChanges" class="card" style="background: linear-gradient(135deg, rgba(254, 243, 199, 0.9), rgba(253, 230, 138, 0.7)); border: 1px solid #f59e0b; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <strong style="color: #b45309;">⚠️ 壁纸列表有未保存的本地修改</strong>
+              <div style="font-size: 0.75rem; color: #92400e; margin-top: 0.15rem;">
+                {{ pendingStatsText }}。点击右侧保存按钮即可批量生效。
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.4rem;">
+              <button @click="resetWorkingBanners" :disabled="saving.banners" class="btn btn-secondary btn-sm">↩️ 放弃修改</button>
+              <button @click="saveAllBannerChanges" :disabled="saving.banners" class="btn btn-primary btn-sm">
+                💾 {{ saving.banners ? '正在同步至 GitHub...' : '确认保存全部壁纸' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Desktop Wallpapers -->
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <div>
+                <div class="card-title">🖥️ 电脑端壁纸轮换库</div>
+                <div class="card-subtitle">共 {{ workingDesktopBanners.length }} 张横幅壁纸</div>
+              </div>
+              <label class="btn btn-primary btn-sm" style="cursor: pointer;">
+                ➕ 添加电脑壁纸
+                <input type="file" accept="image/*" style="display: none;" @change="addNewBanner($event, 'desktop')">
+              </label>
+            </div>
+
+            <div class="banner-grid">
+              <div
+                v-for="(banner, idx) in workingDesktopBanners"
+                :key="banner.key || banner.path"
+                :class="['banner-card', banner.isNew ? 'status-new' : '', banner.isModified ? 'status-mod' : '']"
+              >
+                <div class="banner-thumb-wrap">
+                  <img :src="getBannerSrc(banner)" class="banner-thumb" loading="lazy" @error="onBannerImgError">
+                  <span v-if="banner.isNew" class="badge-pill" style="position: absolute; top: 4px; left: 4px; background: #10b981; color: #fff;">🆕 待保存</span>
+                  <span v-else-if="banner.isModified" class="badge-pill" style="position: absolute; top: 4px; left: 4px; background: #f59e0b; color: #fff;">✏️ 已更换</span>
+                </div>
+                <div class="banner-actions">
+                  <div style="display: flex; gap: 0.15rem;">
+                    <button @click="moveBanner('desktop', idx, -1)" :disabled="idx === 0" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.35rem; font-size: 0.7rem;">⬅️</button>
+                    <button @click="moveBanner('desktop', idx, 1)" :disabled="idx === workingDesktopBanners.length - 1" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.35rem; font-size: 0.7rem;">➡️</button>
+                  </div>
+                  <div style="display: flex; gap: 0.2rem;">
+                    <label class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.4rem; font-size: 0.68rem; cursor: pointer;">
+                      🔄
+                      <input type="file" accept="image/*" style="display: none;" @change="replaceBanner($event, 'desktop', idx)">
+                    </label>
+                    <button @click="deleteBanner('desktop', idx)" class="btn btn-danger btn-sm" style="padding: 0.15rem 0.4rem; font-size: 0.68rem;">🗑️</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mobile Wallpapers -->
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <div>
+                <div class="card-title">📱 手机端竖屏壁纸库</div>
+                <div class="card-subtitle">共 {{ workingMobileBanners.length }} 张移动端壁纸</div>
+              </div>
+              <label class="btn btn-primary btn-sm" style="cursor: pointer;">
+                ➕ 添加手机壁纸
+                <input type="file" accept="image/*" style="display: none;" @change="addNewBanner($event, 'mobile')">
+              </label>
+            </div>
+
+            <div class="banner-grid">
+              <div
+                v-for="(banner, idx) in workingMobileBanners"
+                :key="banner.key || banner.path"
+                :class="['banner-card', banner.isNew ? 'status-new' : '', banner.isModified ? 'status-mod' : '']"
+              >
+                <div class="banner-thumb-wrap" style="height: 100px;">
+                  <img :src="getBannerSrc(banner)" class="banner-thumb" loading="lazy" @error="onBannerImgError">
+                  <span v-if="banner.isNew" class="badge-pill" style="position: absolute; top: 4px; left: 4px; background: #10b981; color: #fff;">🆕 待保存</span>
+                  <span v-else-if="banner.isModified" class="badge-pill" style="position: absolute; top: 4px; left: 4px; background: #f59e0b; color: #fff;">✏️ 已更换</span>
+                </div>
+                <div class="banner-actions">
+                  <div style="display: flex; gap: 0.15rem;">
+                    <button @click="moveBanner('mobile', idx, -1)" :disabled="idx === 0" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.35rem; font-size: 0.7rem;">⬅️</button>
+                    <button @click="moveBanner('mobile', idx, 1)" :disabled="idx === workingMobileBanners.length - 1" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.35rem; font-size: 0.7rem;">➡️</button>
+                  </div>
+                  <div style="display: flex; gap: 0.2rem;">
+                    <label class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.4rem; font-size: 0.68rem; cursor: pointer;">
+                      🔄
+                      <input type="file" accept="image/*" style="display: none;" @change="replaceBanner($event, 'mobile', idx)">
+                    </label>
+                    <button @click="deleteBanner('mobile', idx)" class="btn btn-danger btn-sm" style="padding: 0.15rem 0.4rem; font-size: 0.68rem;">🗑️</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Avatar Uploader -->
+          <div class="card">
+            <div class="card-title">👤 博主头像更新</div>
+            <div class="card-subtitle">自动将图片裁剪压缩并同步更新 avatar.webp 与 home.webp</div>
+            <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+              <img :src="'/assets/home/home.webp?t=' + imageCacheBust" style="width: 58px; height: 58px; border-radius: 14px; object-fit: cover; border: 2px solid var(--border);" @error="onBannerImgError">
+              <div>
+                <label class="btn btn-primary btn-sm" style="cursor: pointer;">
+                  📷 选择新头像并提交
+                  <input type="file" accept="image/*" style="display: none;" @change="uploadAvatar">
+                </label>
+                <div class="help-tip">建议上传正方形头像图片，将自动处理并直接同步至 GitHub 仓库</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 4: 导航与侧栏配置 (核心优化) ==================== -->
         <div v-if="currentTab === 'links'">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
             <div>
-              <h2 style="font-size: 1.15rem; font-weight: 700;">导航栏与社交链接配置</h2>
-              <div style="font-size: 0.75rem; color: var(--text-muted);">自定义顶部导航栏下拉链接及侧栏个人信息链接</div>
+              <h2 style="font-size: 1.15rem; font-weight: 700;">导航、侧栏与显示配置</h2>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">
+                管理顶部下拉菜单、侧栏名片社交账户、Bangumi 与侧边栏可隐藏项开关
+              </div>
             </div>
-            <button @click="saveLinksConfig" :disabled="saving.links" class="btn btn-primary btn-sm">
-              💾 {{ saving.links ? '保存中...' : '保存链接配置' }}
+            <button @click="saveAllNavAndSidebar" :disabled="saving.links" class="btn btn-primary btn-sm">
+              💾 {{ saving.links ? '正在保存...' : '保存全部配置' }}
             </button>
           </div>
 
-          <!-- Top Nav Links -->
+          <!-- Section 1: Top Navigation Dropdown Links -->
           <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-              <div class="card-title" style="margin: 0;">🧭 顶部导航栏下拉链接</div>
-              <button @click="addNavLink" class="btn btn-secondary btn-sm">➕ 添加项目</button>
+              <div>
+                <div class="card-title" style="margin: 0;">🧭 顶部导航栏下拉链接 (Links)</div>
+                <div class="card-subtitle" style="margin-bottom: 0;">点击顶栏【Links】下拉菜单所展示的外部链接</div>
+              </div>
+              <button @click="addNavLink" class="btn btn-secondary btn-sm">➕ 添加链接</button>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 0.6rem;">
-              <div v-for="(link, idx) in navLinks" :key="'nl-'+idx" style="display: flex; gap: 0.5rem; align-items: center;">
-                <input type="text" v-model="link.name" placeholder="名称" style="width: 25%;" class="form-input">
-                <input type="text" v-model="link.url" placeholder="URL 网址" style="flex: 1;" class="form-input">
-                <input type="text" v-model="link.icon" placeholder="Icon 名" style="width: 25%;" class="form-input">
-                <button @click="removeNavLink(idx)" class="btn btn-danger btn-sm">✕</button>
+
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+              <div v-for="(link, idx) in navLinks" :key="'nl-'+idx" style="background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 0.75rem;">
+                <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.4rem;">
+                  <span class="icon-badge">
+                    <span class="iconify" :data-icon="link.icon || 'material-symbols:link'"></span>
+                  </span>
+                  <input type="text" v-model="link.name" placeholder="链接名称 (如: X)" style="width: 32%; font-weight: 600;" class="form-input">
+                  <input type="text" v-model="link.url" placeholder="完整网址 (https://...)" style="flex: 1;" class="form-input">
+                  <button @click="removeNavLink(idx)" class="btn btn-danger btn-sm" title="移除此项">✕</button>
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                  <select v-model="link.icon" class="form-select" style="font-size: 0.78rem;">
+                    <option disabled value="">-- 选择预设图标 --</option>
+                    <option v-for="preset in iconPresets" :key="preset.id" :value="preset.id">
+                      {{ preset.name }} ({{ preset.id }})
+                    </option>
+                    <option value="custom">-- 自定义输入 --</option>
+                  </select>
+                  <input v-if="link.icon === 'custom' || !isPresetIcon(link.icon)" type="text" v-model="link.icon" placeholder="输入任意 Iconify 标识" class="form-input" style="font-size: 0.76rem;">
+                </div>
+                <div class="help-tip">
+                  说明：名称为导航下拉显示的文字；网址需包含完整协议前缀；图标可直接在下拉中选择常用平台。
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Profile Links -->
+          <!-- Section 2: Sidebar Profile Social Links -->
           <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-              <div class="card-title" style="margin: 0;">👥 侧栏名片社交链接</div>
-              <button @click="addProfileLink" class="btn btn-secondary btn-sm">➕ 添加项目</button>
+              <div>
+                <div class="card-title" style="margin: 0;">👥 侧栏名片社交链接 (Profile Links)</div>
+                <div class="card-subtitle" style="margin-bottom: 0;">显示在博主名片底部的社交平台图标按钮</div>
+              </div>
+              <div style="display: flex; gap: 0.4rem;">
+                <button @click="addQuickSocial('Bangumi')" class="btn btn-secondary btn-sm">+ Bangumi</button>
+                <button @click="addQuickSocial('X')" class="btn btn-secondary btn-sm">+ X</button>
+                <button @click="addProfileLink" class="btn btn-secondary btn-sm">➕ 添加项目</button>
+              </div>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 0.6rem;">
-              <div v-for="(link, idx) in profileLinks" :key="'pl-'+idx" style="display: flex; gap: 0.5rem; align-items: center;">
-                <input type="text" v-model="link.name" placeholder="名称" style="width: 25%;" class="form-input">
-                <input type="text" v-model="link.url" placeholder="URL / mailto" style="flex: 1;" class="form-input">
-                <input type="text" v-model="link.icon" placeholder="Icon 名" style="width: 25%;" class="form-input">
-                <button @click="removeProfileLink(idx)" class="btn btn-danger btn-sm">✕</button>
+
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+              <div v-for="(link, idx) in profileLinks" :key="'pl-'+idx" style="background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 0.75rem;">
+                <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.4rem;">
+                  <span class="icon-badge">
+                    <span class="iconify" :data-icon="link.icon || 'material-symbols:link'"></span>
+                  </span>
+                  <input type="text" v-model="link.name" placeholder="平台名称 (如: Bangumi)" style="width: 32%; font-weight: 600;" class="form-input">
+                  <input type="text" v-model="link.url" placeholder="个人主页 URL / mailto:" style="flex: 1;" class="form-input">
+                  <button @click="removeProfileLink(idx)" class="btn btn-danger btn-sm" title="移除此项">✕</button>
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                  <select v-model="link.icon" class="form-select" style="font-size: 0.78rem;">
+                    <option disabled value="">-- 选择预设图标 --</option>
+                    <option v-for="preset in iconPresets" :key="preset.id" :value="preset.id">
+                      {{ preset.name }} ({{ preset.id }})
+                    </option>
+                    <option value="custom">-- 自定义输入 --</option>
+                  </select>
+                  <input v-if="link.icon === 'custom' || !isPresetIcon(link.icon)" type="text" v-model="link.icon" placeholder="输入任意 Iconify 标识" class="form-input" style="font-size: 0.76rem;">
+                </div>
+                <div class="help-tip">
+                  说明：支持 Bangumi (simple-icons:bangumi)、GitHub、X、Bilibili、Telegram、Discord、Steam 等。
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Social Platform Account ID Binding -->
+          <div class="card">
+            <div class="card-title">🌐 平台账户绑定 (Bangumi / Bilibili)</div>
+            <div class="card-subtitle">配置全站 Bangumi 番剧数据同步及 Bilibili 用户 ID</div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">Bangumi 用户 ID (userId)</label>
+                <div style="display: flex; gap: 0.4rem;">
+                  <input type="text" v-model="socialAccounts.bangumiUserId" class="form-input" placeholder="例如: 1269659">
+                  <a :href="'https://bgm.tv/user/' + socialAccounts.bangumiUserId" target="_blank" class="btn btn-secondary btn-sm" style="flex-shrink: 0;">预览</a>
+                </div>
+                <div class="help-tip">设置后将用于番剧页自动拉取在追番组，并在个人名片中一键关联</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Bilibili 用户 UID (vmid)</label>
+                <div style="display: flex; gap: 0.4rem;">
+                  <input type="text" v-model="socialAccounts.bilibiliVmid" class="form-input" placeholder="例如: 1858179207">
+                  <a :href="'https://space.bilibili.com/' + socialAccounts.bilibiliVmid" target="_blank" class="btn btn-secondary btn-sm" style="flex-shrink: 0;">空间</a>
+                </div>
+                <div class="help-tip">B 站个人空间 UID，用于番剧进度同步与外链跳转</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 4: Feature Pages Hideable Switches -->
+          <div class="card">
+            <div class="card-title">🎛️ 特色页面与侧栏抽屉开关 (Feature Pages)</div>
+            <div class="card-subtitle">关闭不需要的页面将自动从顶部导航与手机抽屉中隐藏</div>
+
+            <div class="grid-2">
+              <div v-for="page in featurePageList" :key="page.key" class="switch-row">
+                <div class="switch-label-wrap">
+                  <span style="font-size: 1.15rem;">{{ page.icon }}</span>
+                  <div>
+                    <div class="switch-title">{{ page.name }}</div>
+                    <div class="switch-desc">{{ page.desc }}</div>
+                  </div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" v-model="featurePages[page.key]">
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 5: Sidebar Layout Widgets Switches -->
+          <div class="card">
+            <div class="card-title">🧩 侧边栏小组件显隐开关 (Sidebar Widgets)</div>
+            <div class="card-subtitle">控制桌面端侧边栏及抽屉中呈现的组件卡片</div>
+
+            <div class="grid-2">
+              <div v-for="widget in sidebarWidgetList" :key="widget.key" class="switch-row">
+                <div class="switch-label-wrap">
+                  <span style="font-size: 1.15rem;">{{ widget.icon }}</span>
+                  <div>
+                    <div class="switch-title">{{ widget.name }}</div>
+                    <div class="switch-desc">{{ widget.desc }}</div>
+                  </div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" v-model="sidebarWidgets[widget.key]">
+                  <span class="slider"></span>
+                </label>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- TAB 4: 站点与音乐 -->
+        <!-- ==================== TAB 5: 更多项目 (管理侧栏“其他”中的 3 项) ==================== -->
+        <div v-if="currentTab === 'others'">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+            <div>
+              <h2 style="font-size: 1.15rem; font-weight: 700;">“其他”专栏数据管理</h2>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">管理项目展示、技能专长与时间线历程</div>
+            </div>
+            <button @click="saveCurrentOtherCategory" :disabled="saving.others" class="btn btn-primary btn-sm">
+              💾 {{ saving.others ? '保存中...' : '保存修改' }}
+            </button>
+          </div>
+
+          <!-- Sub pills switcher -->
+          <div class="sub-nav">
+            <button @click="otherSubTab = 'projects'" :class="['sub-pill', otherSubTab === 'projects' ? 'active' : '']">
+              🚀 项目展示 ({{ projectsList.length }})
+            </button>
+            <button @click="otherSubTab = 'skills'" :class="['sub-pill', otherSubTab === 'skills' ? 'active' : '']">
+              💡 技能专长 ({{ skillsList.length }})
+            </button>
+            <button @click="otherSubTab = 'timeline'" :class="['sub-pill', otherSubTab === 'timeline' ? 'active' : '']">
+              ⏳ 时间线历程 ({{ timelineList.length }})
+            </button>
+          </div>
+
+          <!-- SUB 1: 项目管理 (Projects) -->
+          <div v-if="otherSubTab === 'projects'" class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <div>
+                <div class="card-title" style="margin: 0;">🚀 项目列表 (src/data/projects.ts)</div>
+                <div class="card-subtitle" style="margin-bottom: 0;">包含 Ame-Player、TsukimiBox 等项目的展示卡片</div>
+              </div>
+              <button @click="openProjectEditor(null)" class="btn btn-secondary btn-sm">➕ 新建项目</button>
+            </div>
+
+            <div v-if="projectsList.length === 0" style="text-align: center; color: var(--text-muted); padding: 1.5rem 0;">
+              暂无项目，点击右上角新建
+            </div>
+            <div v-else style="display: flex; flex-direction: column; gap: 0.6rem;">
+              <div v-for="(p, idx) in projectsList" :key="p.id || idx" class="post-item" style="padding: 0.65rem; border: 1px solid var(--border); border-radius: 10px; background: #fff;">
+                <div>
+                  <div style="font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 0.4rem;">
+                    <span v-if="p.featured" class="badge-pill" style="background:#dcfce7; color:#15803d;">精选</span>
+                    <span>{{ p.title }}</span>
+                    <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: normal;">({{ p.category }})</span>
+                  </div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">{{ p.description }}</div>
+                  <div class="post-meta-sub">
+                    栈: {{ Array.isArray(p.techStack) ? p.techStack.join(', ') : '' }} · 状态: {{ p.status }}
+                  </div>
+                </div>
+                <div style="display: flex; gap: 0.3rem;">
+                  <button @click="openProjectEditor(p)" class="btn btn-secondary btn-sm">编辑</button>
+                  <button @click="deleteProjectItem(idx)" class="btn btn-danger btn-sm">删除</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB 2: 技能管理 (Skills) -->
+          <div v-if="otherSubTab === 'skills'" class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <div>
+                <div class="card-title" style="margin: 0;">💡 技能列表 (src/data/skills.ts)</div>
+                <div class="card-subtitle" style="margin-bottom: 0;">在技能专长页面展示的技术与熟练度</div>
+              </div>
+              <button @click="openSkillEditor(null)" class="btn btn-secondary btn-sm">➕ 新增技能</button>
+            </div>
+
+            <div v-if="skillsList.length === 0" style="text-align: center; color: var(--text-muted); padding: 1.5rem 0;">
+              暂无技能数据
+            </div>
+            <div v-else style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.6rem;">
+              <div v-for="(sk, idx) in skillsList" :key="sk.id || idx" style="padding: 0.65rem; border: 1px solid var(--border); border-radius: 10px; background: #fff; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; overflow: hidden;">
+                  <span class="icon-badge" :style="{ color: sk.color || 'var(--primary)' }">
+                    <span class="iconify" :data-icon="sk.icon || 'material-symbols:code'"></span>
+                  </span>
+                  <div style="min-width: 0;">
+                    <div style="font-weight: 700; font-size: 0.84rem; truncate;">{{ sk.name }}</div>
+                    <div style="font-size: 0.68rem; color: var(--text-muted);">{{ sk.level }} · {{ sk.category }}</div>
+                  </div>
+                </div>
+                <div style="display: flex; gap: 0.2rem; flex-shrink: 0;">
+                  <button @click="openSkillEditor(sk)" class="btn btn-secondary btn-sm" style="padding: 0.2rem 0.4rem;">✏️</button>
+                  <button @click="deleteSkillItem(idx)" class="btn btn-danger btn-sm" style="padding: 0.2rem 0.4rem;">🗑️</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB 3: 时间线管理 (Timeline) -->
+          <div v-if="otherSubTab === 'timeline'" class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <div>
+                <div class="card-title" style="margin: 0;">⏳ 时间线事件 (src/data/timeline.ts)</div>
+                <div class="card-subtitle" style="margin-bottom: 0;">按时间顺序展示的经历、里程碑与重要事件</div>
+              </div>
+              <button @click="openTimelineEditor(null)" class="btn btn-secondary btn-sm">➕ 新增历程</button>
+            </div>
+
+            <div v-if="timelineList.length === 0" style="text-align: center; color: var(--text-muted); padding: 1.5rem 0;">
+              暂无时间线事件
+            </div>
+            <div v-else style="display: flex; flex-direction: column; gap: 0.6rem;">
+              <div v-for="(tl, idx) in timelineList" :key="tl.id || idx" class="post-item" style="padding: 0.65rem; border: 1px solid var(--border); border-radius: 10px; background: #fff;">
+                <div>
+                  <div style="font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 0.4rem;">
+                    <span>{{ tl.title }}</span>
+                    <span style="font-size: 0.72rem; color: var(--primary); font-weight: 600;">{{ tl.startDate }}</span>
+                  </div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">{{ tl.description }}</div>
+                  <div class="post-meta-sub">机构: {{ tl.organization || '无' }} · 类型: {{ tl.type }}</div>
+                </div>
+                <div style="display: flex; gap: 0.3rem;">
+                  <button @click="openTimelineEditor(tl)" class="btn btn-secondary btn-sm">编辑</button>
+                  <button @click="deleteTimelineItem(idx)" class="btn btn-danger btn-sm">删除</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 6: 站点与音乐设置 ==================== -->
         <div v-if="currentTab === 'settings'">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
             <div>
@@ -1029,7 +1361,7 @@
 
           <!-- Music Player -->
           <div class="card">
-            <div class="card-title">🎵 网易云音乐播放器配置</div>
+            <div class="card-title">🎵 音乐播放器配置</div>
             <div class="card-subtitle">src/config/musicConfig.ts</div>
             <div class="grid-2">
               <div class="form-group">
@@ -1086,7 +1418,9 @@
       </main>
     </div>
 
-    <!-- Article Editor Modal -->
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- Article Editor Modal (支持 GIF 动图与配图) -->
     <div v-if="editingPost" class="modal-overlay">
       <div class="modal-card modal-card-lg">
         <div class="modal-header">
@@ -1097,14 +1431,13 @@
           <button @click="editingPost = null" class="modal-close">✕</button>
         </div>
 
-        <!-- Post Metadata Form -->
         <div class="grid-2" style="margin-bottom: 0.75rem;">
           <div class="form-group">
             <label class="form-label">文章标题 *</label>
             <input type="text" v-model="editingPost.meta.title" class="form-input" placeholder="文章标题">
           </div>
           <div class="form-group">
-            <label class="form-label">文件名 / Slug (英文/拼音) *</label>
+            <label class="form-label">文件名 / Slug *</label>
             <input type="text" v-model="editingPost.slug" :disabled="!editingPost.isNew" class="form-input" placeholder="my-post-title">
           </div>
           <div class="form-group">
@@ -1112,23 +1445,23 @@
             <input type="text" v-model="editingPost.meta.category" class="form-input" placeholder="生活 / 随笔 / 技术">
           </div>
           <div class="form-group">
-            <label class="form-label">标签 (多个标签用逗号隔开)</label>
+            <label class="form-label">标签 (多个逗号隔开)</label>
             <input type="text" v-model="editingPost.rawTags" class="form-input" placeholder="随笔, 旅行, 日常">
           </div>
         </div>
 
-        <!-- Cover Image Uploader -->
+        <!-- Cover Image Uploader (GIF supported) -->
         <div class="form-group" style="background: rgba(16, 185, 129, 0.05); padding: 0.75rem; border-radius: 12px; border: 1px dashed var(--card-border);">
           <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
             <div>
-              <label class="form-label" style="margin: 0;">🖼️ 文章封面图 (Cover Image)</label>
+              <label class="form-label" style="margin: 0;">🖼️ 文章封面图 (支持 WebP / JPG / GIF 动图)</label>
               <div style="font-size: 0.72rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 320px;">
                 {{ editingPost.meta.image || '暂无封面图' }}
               </div>
             </div>
             <div style="display: flex; gap: 0.4rem; align-items: center;">
               <label class="btn btn-primary btn-sm" style="cursor: pointer;">
-                📷 上传封面图
+                📷 上传封面 (含GIF)
                 <input type="file" accept="image/*" style="display: none;" @change="uploadArticleCover">
               </label>
               <button v-if="editingPost.meta.image" @click="editingPost.meta.image = ''" class="btn btn-danger btn-sm">🗑️ 清除封面</button>
@@ -1136,12 +1469,12 @@
           </div>
         </div>
 
-        <!-- Markdown Editor with Image Upload Tool -->
+        <!-- Markdown Editor -->
         <div class="form-group">
           <div class="editor-toolbar">
             <div class="editor-tools">
               <label class="btn btn-primary btn-sm" style="cursor: pointer; background: linear-gradient(135deg, #10b981, #0d9488);">
-                🖼️ 插入配图
+                🖼️ 插入配图/GIF
                 <input type="file" accept="image/*" style="display: none;" @change="insertImageIntoArticle">
               </label>
               <button type="button" @click="insertText('## ')" class="btn btn-secondary btn-sm">H2</button>
@@ -1150,7 +1483,7 @@
               <button type="button" @click="insertText('`代码`')" class="btn btn-secondary btn-sm">Code</button>
               <button type="button" @click="insertText('> 引用内容\n')" class="btn btn-secondary btn-sm">Quote</button>
             </div>
-            <div style="font-size: 0.72rem; color: var(--text-muted);">支持直接在编辑器内粘贴截图 (Ctrl+V)</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">支持 Ctrl+V 粘贴截图，支持 GIF 动图原画质上传</div>
           </div>
 
           <div class="editor-grid">
@@ -1160,9 +1493,8 @@
               @paste="handlePasteImage"
               @drop="handleDropImage"
               class="form-textarea"
-              style="height: 100%; min-height: 340px; font-family: monospace; line-height: 1.6;"
-              placeholder="在此编写 Markdown 正文...
-提示：点击上方【🖼️ 插入配图】可直接从手机/电脑选图自动插入！也可以直接在此处按 Ctrl+V 粘贴截图！"
+              style="height: 100%; min-height: 320px; font-family: monospace; line-height: 1.6;"
+              placeholder="在此编写 Markdown 正文..."
             ></textarea>
             <div class="editor-preview" v-html="renderedMarkdown"></div>
           </div>
@@ -1173,6 +1505,251 @@
           <button @click="saveArticle" :disabled="saving.post" class="btn btn-primary">
             {{ saving.post ? '正在发布...' : '🚀 发布并部署' }}
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Diary Editor Modal (支持 GIF 动图与多图附件) -->
+    <div v-if="editingDiary" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">{{ editingDiary.isNew ? '✍️ 发表日记' : '✏️ 编辑日记' }}</div>
+          <button @click="editingDiary = null" class="modal-close">✕</button>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">日记内容 (支持文字与表情) *</label>
+          <textarea v-model="editingDiary.content" class="form-textarea" rows="4" placeholder="随时随地，分享此刻的心情或想法..."></textarea>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">时间日期</label>
+            <input type="text" v-model="editingDiary.date" class="form-input" placeholder="2026-11-14T12:00:00Z">
+          </div>
+          <div class="form-group">
+            <label class="form-label">标签 (逗号隔开)</label>
+            <input type="text" v-model="editingDiary.rawTags" class="form-input" placeholder="生活, 碎碎念, 动漫">
+          </div>
+        </div>
+
+        <!-- Diary Images & GIF Attachments -->
+        <div class="form-group" style="background: rgba(16, 185, 129, 0.05); padding: 0.75rem; border-radius: 12px; border: 1px dashed var(--card-border);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <label class="form-label" style="margin: 0;">🖼️ 图片与 GIF 动图附件</label>
+            <label class="btn btn-primary btn-sm" style="cursor: pointer;">
+              ➕ 上传图片/GIF
+              <input type="file" accept="image/*" style="display: none;" @change="uploadDiaryImage">
+            </label>
+          </div>
+
+          <div v-if="editingDiary.images && editingDiary.images.length > 0" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <div v-for="(img, idx) in editingDiary.images" :key="idx" style="position: relative; width: 64px; height: 64px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border);">
+              <img :src="img" style="width: 100%; height: 100%; object-fit: cover;">
+              <button @click="editingDiary.images.splice(idx, 1)" style="position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.6); color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; cursor: pointer; font-size: 0.65rem; line-height: 1;">✕</button>
+            </div>
+          </div>
+          <div v-else class="help-tip">支持上传动图 GIF，保存后将在日记页面自动以动图形式循环播放</div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+          <button @click="editingDiary = null" class="btn btn-secondary">取消</button>
+          <button @click="saveDiaryAction" :disabled="saving.diary" class="btn btn-primary">
+            {{ saving.diary ? '保存中...' : '💾 保存日记' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Project Editor Modal -->
+    <div v-if="editingProject" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">{{ editingProject.isNew ? '🚀 新建项目' : '✏️ 编辑项目' }}</div>
+          <button @click="editingProject = null" class="modal-close">✕</button>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">项目 ID / 标识 *</label>
+            <input type="text" v-model="editingProject.id" class="form-input" placeholder="ame-player">
+          </div>
+          <div class="form-group">
+            <label class="form-label">项目名称 *</label>
+            <input type="text" v-model="editingProject.title" class="form-input" placeholder="Ame-Player">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">简述 (Description) *</label>
+          <textarea v-model="editingProject.description" class="form-textarea" rows="2"></textarea>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">分类 (Category)</label>
+            <select v-model="editingProject.category" class="form-select">
+              <option value="mobile">移动端 (mobile)</option>
+              <option value="web">网页端 (web)</option>
+              <option value="desktop">桌面端 (desktop)</option>
+              <option value="other">其他 (other)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">状态 (Status)</label>
+            <select v-model="editingProject.status" class="form-select">
+              <option value="in-progress">开发中 (in-progress)</option>
+              <option value="completed">已完成 (completed)</option>
+              <option value="planned">规划中 (planned)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">技术栈 (逗号隔开)</label>
+          <input type="text" v-model="editingProject.rawTechStack" class="form-input" placeholder="Kotlin, Android, Audio">
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">开源仓库地址 (sourceCode)</label>
+            <input type="text" v-model="editingProject.sourceCode" class="form-input" placeholder="https://github.com/...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">演示/访问地址 (visitUrl)</label>
+            <input type="text" v-model="editingProject.visitUrl" class="form-input">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="switch-row" style="margin-bottom: 0;">
+            <span class="switch-title">设为精选项目 (Featured)</span>
+            <input type="checkbox" v-model="editingProject.featured" style="width: 20px; height: 20px;">
+          </label>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+          <button @click="editingProject = null" class="btn btn-secondary">取消</button>
+          <button @click="saveProjectAction" class="btn btn-primary">确认保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skill Editor Modal -->
+    <div v-if="editingSkill" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">{{ editingSkill.isNew ? '💡 新增技能' : '✏️ 编辑技能' }}</div>
+          <button @click="editingSkill = null" class="modal-close">✕</button>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">技能 ID *</label>
+            <input type="text" v-model="editingSkill.id" class="form-input" placeholder="kotlin">
+          </div>
+          <div class="form-group">
+            <label class="form-label">技能名称 *</label>
+            <input type="text" v-model="editingSkill.name" class="form-input" placeholder="Kotlin">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">图标 (Iconify 标识)</label>
+          <div style="display: flex; gap: 0.4rem; align-items: center;">
+            <input type="text" v-model="editingSkill.icon" class="form-input" placeholder="logos:kotlin-icon">
+            <span class="icon-badge"><span class="iconify" :data-icon="editingSkill.icon || 'material-symbols:code'"></span></span>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">分类 (Category)</label>
+            <select v-model="editingSkill.category" class="form-select">
+              <option value="frontend">前端 (frontend)</option>
+              <option value="backend">后端 (backend)</option>
+              <option value="database">数据库 (database)</option>
+              <option value="tools">工具 (tools)</option>
+              <option value="other">其他 (other)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">熟练度 (Level)</label>
+            <select v-model="editingSkill.level" class="form-select">
+              <option value="beginner">初学者 (beginner)</option>
+              <option value="intermediate">进阶 (intermediate)</option>
+              <option value="advanced">熟练 (advanced)</option>
+              <option value="expert">精通 (expert)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">技能描述</label>
+          <textarea v-model="editingSkill.description" class="form-textarea" rows="2"></textarea>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+          <button @click="editingSkill = null" class="btn btn-secondary">取消</button>
+          <button @click="saveSkillAction" class="btn btn-primary">确认保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline Editor Modal -->
+    <div v-if="editingTimeline" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">{{ editingTimeline.isNew ? '⏳ 新增历程' : '✏️ 编辑历程' }}</div>
+          <button @click="editingTimeline = null" class="modal-close">✕</button>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">事件 ID *</label>
+            <input type="text" v-model="editingTimeline.id" class="form-input" placeholder="event-2026">
+          </div>
+          <div class="form-group">
+            <label class="form-label">事件标题 *</label>
+            <input type="text" v-model="editingTimeline.title" class="form-input" placeholder="事件或阶段名称">
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">起始日期 (YYYY-MM-DD) *</label>
+            <input type="text" v-model="editingTimeline.startDate" class="form-input" placeholder="2024-05-01">
+          </div>
+          <div class="form-group">
+            <label class="form-label">分类类型</label>
+            <select v-model="editingTimeline.type" class="form-select">
+              <option value="project">项目 (project)</option>
+              <option value="education">学业 (education)</option>
+              <option value="work">工作 (work)</option>
+              <option value="life">生活 (life)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">历程描述</label>
+          <textarea v-model="editingTimeline.description" class="form-textarea" rows="2"></textarea>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">所属组织 / 单位</label>
+            <input type="text" v-model="editingTimeline.organization" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">地点 (Location)</label>
+            <input type="text" v-model="editingTimeline.location" class="form-input">
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+          <button @click="editingTimeline = null" class="btn btn-secondary">取消</button>
+          <button @click="saveTimelineAction" class="btn btn-primary">确认保存</button>
         </div>
       </div>
     </div>
@@ -1192,7 +1769,7 @@
         <div class="form-group">
           <label class="form-label">GitHub Token (PAT) *</label>
           <input type="password" v-model="tempConfig.token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="form-input" style="font-family: monospace;">
-          <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.25rem;">需勾选 repo 权限（仅保存在本设备浏览器 LocalStorage）</div>
+          <div class="help-tip">需勾选 repo 权限（仅保存在本设备浏览器 LocalStorage）</div>
         </div>
 
         <div class="grid-2">
@@ -1233,11 +1810,18 @@
       setup() {
         const tabs = [
           { id: 'posts', name: '文章', icon: '✍️' },
+          { id: 'diary', name: '日记', icon: '📖' },
           { id: 'banners', name: '换图', icon: '🖼️' },
-          { id: 'links', name: '导航', icon: '🔗' },
+          { id: 'links', name: '导航与侧栏', icon: '🧭' },
+          { id: 'others', name: '更多项目', icon: '🧩' },
           { id: 'settings', name: '设置', icon: '⚙️' },
         ];
         const currentTab = ref('posts');
+        const otherSubTab = ref('projects');
+
+        const switchTab = (tabId) => {
+          currentTab.value = tabId;
+        };
 
         const repoConfig = reactive({
           token: localStorage.getItem('akari_admin_token') || '',
@@ -1249,21 +1833,28 @@
         const showTokenModal = ref(!repoConfig.token);
         const isConnected = computed(() => !!repoConfig.token);
 
-        const loading = reactive({ posts: false, media: false });
-        const saving = reactive({ post: false, links: false, site: false, banners: false });
+        const loading = reactive({ posts: false, media: false, diary: false });
+        const saving = reactive({ post: false, diary: false, links: false, site: false, banners: false, others: false });
         const toast = reactive({ show: false, message: '', type: 'info' });
         const imageCacheBust = ref(Date.now());
 
+        // Articles state
         const posts = ref([]);
         const editingPost = ref(null);
         const postTextarea = ref(null);
+        const mediaFiles = ref([]);
+        const lastUploadedImageMarkdown = ref('');
 
-        // Dynamic Banners Baseline
+        // Diary state
+        const diaryList = ref([]);
+        const editingDiary = ref(null);
+
+        // Banners state
         const desktopBanners = ref([
-          '/assets/desktop-banner/1.webp',
           '/assets/desktop-banner/2.webp',
           '/assets/desktop-banner/3.webp',
           '/assets/desktop-banner/4.webp',
+          '/assets/desktop-banner/banner_1794572087249.webp',
         ]);
         const mobileBanners = ref([
           '/assets/mobile-banner/1.webp',
@@ -1271,23 +1862,60 @@
           '/assets/mobile-banner/3.webp',
           '/assets/mobile-banner/4.webp',
         ]);
-
-        // Local Editable Draft for Banners (Frontend-First)
         const workingDesktopBanners = ref([]);
         const workingMobileBanners = ref([]);
         const pendingDeletions = ref([]);
-        const mediaFiles = ref([]);
 
+        // Nav & Profile links state (Dynamically loaded)
         const navLinks = ref([
           { name: 'GitHub', url: 'https://github.com/Akiyama-25', icon: 'fa7-brands:github' },
           { name: 'Bilibili', url: 'https://space.bilibili.com/1858179207', icon: 'fa7-brands:bilibili' },
-          { name: 'X (Twitter)', url: 'https://x.com/FascinatingAnon', icon: 'fa7-brands:x-twitter' }
+          { name: 'X', url: 'https://x.com/FascinatingAnon', icon: 'fa7-brands:x-twitter' }
         ]);
         const profileLinks = ref([
           { name: 'GitHub', url: 'https://github.com/Akiyama-25', icon: 'fa7-brands:github' },
           { name: 'Email', url: 'mailto:hana@anon-akari.top', icon: 'material-symbols:mail-outline' }
         ]);
 
+        // Social IDs
+        const socialAccounts = reactive({
+          bangumiUserId: '1269659',
+          bilibiliVmid: '1858179207',
+        });
+
+        // Hideable Switches State
+        const featurePages = reactive({
+          anime: true,
+          diary: true,
+          friends: false,
+          projects: true,
+          skills: false,
+          timeline: true,
+          albums: false,
+          devices: false,
+          aiTools: false,
+        });
+
+        const sidebarWidgets = reactive({
+          profile: true,
+          announcement: false,
+          'music-sidebar': true,
+          categories: true,
+          tags: true,
+          'card-toc': true,
+          'site-stats': true,
+          calendar: true,
+        });
+
+        // "Others" 3 Categories (Projects, Skills, Timeline)
+        const projectsList = ref([]);
+        const skillsList = ref([]);
+        const timelineList = ref([]);
+        const editingProject = ref(null);
+        const editingSkill = ref(null);
+        const editingTimeline = ref(null);
+
+        // Music & Settings State
         const musicConfig = reactive({
           id: '18590654316',
           server: 'netease',
@@ -1300,7 +1928,57 @@
           bio: '簡単なことも解らないわ あたしって何だっけ\n—フォニイ'
         });
 
-        const lastUploadedImageMarkdown = ref('');
+        // Icon Presets
+        const iconPresets = [
+          { id: 'fa7-brands:github', name: 'GitHub' },
+          { id: 'fa7-brands:x-twitter', name: 'X (Twitter)' },
+          { id: 'fa7-brands:bilibili', name: 'Bilibili 哔哩哔哩' },
+          { id: 'simple-icons:bangumi', name: 'Bangumi 番组计划' },
+          { id: 'fa7-brands:telegram', name: 'Telegram' },
+          { id: 'fa7-brands:discord', name: 'Discord' },
+          { id: 'fa7-brands:steam', name: 'Steam 游戏' },
+          { id: 'material-symbols:mail-outline', name: 'Email 电子邮箱' },
+          { id: 'material-symbols:home-outline', name: '主页 / 博客' },
+          { id: 'material-symbols:link', name: '通用外链' },
+          { id: 'material-symbols:rss-feed', name: 'RSS 订阅' },
+          { id: 'fa7-brands:qq', name: 'QQ' },
+          { id: 'fa7-brands:youtube', name: 'YouTube' },
+          { id: 'fa7-brands:weibo', name: '微博' },
+          { id: 'material-symbols:music-note', name: '音乐' },
+          { id: 'material-symbols:sports-esports', name: '游戏' },
+          { id: 'material-symbols:book-2-outline', name: '书籍阅读' },
+          { id: 'material-symbols:photo-library', name: '相册图库' },
+          { id: 'material-symbols:work', name: '项目作品' },
+          { id: 'material-symbols:psychology', name: '技能专长' },
+          { id: 'material-symbols:timeline', name: '时间线' },
+        ];
+
+        const isPresetIcon = (iconStr) => {
+          return iconPresets.some(p => p.id === iconStr);
+        };
+
+        const featurePageList = [
+          { key: 'anime', name: '番剧页面', desc: '追踪在看与追番动态 (/anime/)', icon: '🎬' },
+          { key: 'diary', name: '日记页面', desc: '日常动态与心情分享 (/diary/)', icon: '📖' },
+          { key: 'projects', name: '项目页面', desc: '开源项目展示与作品列表 (/projects/)', icon: '🚀' },
+          { key: 'skills', name: '技能页面', desc: '个人技术栈与熟练度 (/skills/)', icon: '💡' },
+          { key: 'timeline', name: '时间线', desc: '成长历程与时间大事记 (/timeline/)', icon: '⏳' },
+          { key: 'friends', name: '友链页面', desc: '博主好友与友情链接 (/friends/)', icon: '🤝' },
+          { key: 'albums', name: '相册页面', desc: '画廊相册与精选摄影 (/albums/)', icon: '📷' },
+          { key: 'devices', name: '设备页面', desc: '主力数码与外设清单 (/devices/)', icon: '💻' },
+          { key: 'aiTools', name: 'AI 工具箱', desc: '常用 AI 工具推荐导航 (/ai-tools/)', icon: '🤖' },
+        ];
+
+        const sidebarWidgetList = [
+          { key: 'profile', name: '博主名片卡', desc: '头像、昵称、个性签名与社交链接', icon: '👤' },
+          { key: 'music-sidebar', name: '侧栏音乐播放器', desc: '侧边栏直接可听的浮动播放器', icon: '🎵' },
+          { key: 'tags', name: '标签云', desc: '全站文章热门标签集合', icon: '🏷️' },
+          { key: 'categories', name: '分类卡片', desc: '文章分类目录与篇数统计', icon: '📑' },
+          { key: 'card-toc', name: '文章目录卡片', desc: '正文阅读时的侧边栏目录', icon: '📖' },
+          { key: 'site-stats', name: '站点统计', desc: '全站文章数、字数及运行天数', icon: '📊' },
+          { key: 'calendar', name: '日历组件', desc: '当前月份日程小部件', icon: '📅' },
+          { key: 'announcement', name: '站点公告栏', desc: '置顶通知与欢迎公告', icon: '📢' },
+        ];
 
         const showToast = (message, type = 'success') => {
           toast.message = message;
@@ -1314,34 +1992,21 @@
           showToast('已复制到剪贴板！');
         };
 
-        const localPreviews = reactive({});
-
-        const getBannerSrc = (item) => {
-          if (!item) return '';
-          if (typeof item === 'object') {
-            if (item.previewUrl && item.previewUrl.startsWith('data:')) {
-              return item.previewUrl;
-            }
-            const p = item.path || '';
-            const sep = p.includes('?') ? '&' : '?';
-            return `${p}${sep}t=${imageCacheBust.value}`;
-          }
-          if (localPreviews[item]) return localPreviews[item];
-          const sep = item.includes('?') ? '&' : '?';
-          return `${item}${sep}t=${imageCacheBust.value}`;
-        };
-
-        const onBannerImgError = (event, item) => {
-          if (!item) return;
-          const p = typeof item === 'object' ? item.path : item;
-          if (!p || p.startsWith('data:')) return;
-          const clean = p.replace(/^\//, '');
-          const rawUrl = `https://raw.githubusercontent.com/${repoConfig.owner}/${repoConfig.repo}/${repoConfig.branch}/public/${clean}`;
-          if (event.target.src !== rawUrl) {
-            event.target.src = rawUrl;
+        const formatDateTime = (isoStr) => {
+          if (!isoStr) return '';
+          try {
+            const d = new Date(isoStr);
+            return d.toLocaleString('zh-CN', { hour12: false });
+          } catch (_e) {
+            return isoStr;
           }
         };
 
+        const onBannerImgError = (event) => {
+          event.target.style.opacity = '0.5';
+        };
+
+        // GitHub API helper
         const githubFetch = async (endpoint, options = {}) => {
           if (!repoConfig.token) throw new Error('请先配置 GitHub Token');
           const isGet = !options.method || options.method === 'GET';
@@ -1401,7 +2066,6 @@
             : btoa(unescape(encodeURIComponent(contentUtf8OrBase64)));
           let currentSha = sha;
           if (!currentSha) {
-            // Check if file already exists in repository to prevent 422/409 errors
             currentSha = await getFileSha(path);
           }
           for (let attempt = 0; attempt <= retries; attempt++) {
@@ -1448,14 +2112,9 @@
         };
 
         const deleteFile = async (path, sha = null, message = 'delete file') => {
-          let currentSha = sha;
-          if (!currentSha) {
-            currentSha = await getFileSha(path);
-          }
-          if (!currentSha) {
-            return; // File does not exist, treat as deleted
-          }
-          return githubFetch(`/contents/${path}`, {
+          let currentSha = sha || (await getFileSha(path));
+          if (!currentSha) return;
+          return await githubFetch(`/contents/${path}`, {
             method: 'DELETE',
             body: JSON.stringify({
               message,
@@ -1465,87 +2124,84 @@
           });
         };
 
-        const saveTokenConfig = async () => {
-          try {
-            const userRes = await fetch('https://api.github.com/user', {
-              headers: { 'Authorization': `Bearer ${tempConfig.token}` }
-            });
-            if (!userRes.ok) throw new Error('Token 无效，请检查权限');
-            
-            repoConfig.token = tempConfig.token;
-            repoConfig.owner = tempConfig.owner;
-            repoConfig.repo = tempConfig.repo;
-            repoConfig.branch = tempConfig.branch;
+        // File reader preserving raw GIF animation frames
+        const readFileAsBase64 = (file) => {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const dataUrl = e.target.result;
+              const base64 = dataUrl.split(',')[1];
+              resolve(base64);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+        };
 
-            localStorage.setItem('akari_admin_token', repoConfig.token);
-            localStorage.setItem('akari_admin_owner', repoConfig.owner);
-            localStorage.setItem('akari_admin_repo', repoConfig.repo);
-            localStorage.setItem('akari_admin_branch', repoConfig.branch);
+        const convertToWebpBase64 = (file, maxWidth = 1920, quality = 0.88) => {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const img = new Image();
+              img.onload = () => {
+                let width = img.width;
+                let height = img.height;
+                if (width > maxWidth) {
+                  height = Math.round((height * maxWidth) / width);
+                  width = maxWidth;
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                const dataUrl = canvas.toDataURL('image/webp', quality);
+                const base64 = dataUrl.split(',')[1];
+                resolve(base64);
+              };
+              img.onerror = reject;
+              img.src = e.target.result;
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+        };
 
-            showTokenModal.value = false;
-            showToast('已成功连接到仓库！');
-            fetchAllData();
-          } catch (err) {
-            showToast(err.message, 'error');
+        // Upload helper with GIF preservation
+        const uploadFileAndGetPath = async (file, prefix = 'img', folder = 'posts') => {
+          const isGif = file.type === 'image/gif' || (file.name && file.name.toLowerCase().endsWith('.gif'));
+          const ext = isGif ? 'gif' : 'webp';
+          const fileName = `${prefix}_${Date.now()}.${ext}`;
+          const targetPath = `public/images/${folder}/${fileName}`;
+          
+          let base64;
+          if (isGif) {
+            base64 = await readFileAsBase64(file);
+          } else {
+            base64 = await convertToWebpBase64(file, 1600, 0.88);
           }
+
+          await putFile(targetPath, base64, `feat(media): upload ${fileName}`, null, true);
+          return `/images/${folder}/${fileName}`;
         };
 
-        const disconnectRepo = () => {
-          repoConfig.token = '';
-          localStorage.removeItem('akari_admin_token');
-          showTokenModal.value = false;
-          showToast('已断开连接');
-        };
-
-        const fetchPosts = async () => {
-          if (!repoConfig.token) return;
-          loading.posts = true;
-          try {
-            const files = await githubFetch(`/contents/src/content/posts?ref=${repoConfig.branch}`);
-            const mdFiles = files.filter(f => f.name.endsWith('.md') || f.name.endsWith('.mdx'));
-            
-            const postList = [];
-            for (const file of mdFiles) {
-              try {
-                const { content, sha } = await getFile(file.path);
-                const parsed = parseFrontmatter(content);
-                postList.push({
-                  name: file.name,
-                  path: file.path,
-                  sha,
-                  meta: parsed.meta,
-                  body: parsed.body,
-                  slug: file.name.replace(/\.(md|mdx)$/, '')
-                });
-              } catch (_e) {}
-            }
-            posts.value = postList;
-          } catch (err) {
-            showToast('获取文章列表失败: ' + err.message, 'error');
-          } finally {
-            loading.posts = false;
-          }
-        };
-
-        // Reset or initialize working draft from current baseline
+        // ==================== BANNERS LOGIC (v2.0 Local Draft Mode) ====================
         const resetWorkingBanners = () => {
-          workingDesktopBanners.value = desktopBanners.value.map((p, idx) => ({
-            id: 'd_' + idx + '_' + Math.random().toString(36).substring(2, 6),
+          workingDesktopBanners.value = desktopBanners.value.map(p => ({
             path: p,
-            previewUrl: p,
-            fileBase64: null,
+            key: p + '_' + Math.random().toString(36).substr(2, 5),
             isNew: false,
             isModified: false,
-            originalPath: p
+            previewUrl: null,
+            fileBase64: null
           }));
-          workingMobileBanners.value = mobileBanners.value.map((p, idx) => ({
-            id: 'm_' + idx + '_' + Math.random().toString(36).substring(2, 6),
+          workingMobileBanners.value = mobileBanners.value.map(p => ({
             path: p,
-            previewUrl: p,
-            fileBase64: null,
+            key: p + '_' + Math.random().toString(36).substr(2, 5),
             isNew: false,
             isModified: false,
-            originalPath: p
+            previewUrl: null,
+            fileBase64: null
           }));
           pendingDeletions.value = [];
         };
@@ -1574,7 +2230,20 @@
           return parts.length > 0 ? parts.join('，') : '顺序已调整';
         });
 
-        // Fetch Banners from backgroundWallpaper.ts
+        const getBannerSrc = (item) => {
+          if (!item) return '';
+          if (typeof item === 'object') {
+            if (item.previewUrl && item.previewUrl.startsWith('data:')) {
+              return item.previewUrl;
+            }
+            const p = item.path || '';
+            const sep = p.includes('?') ? '&' : '?';
+            return `${p}${sep}t=${imageCacheBust.value}`;
+          }
+          const sep = item.includes('?') ? '&' : '?';
+          return `${item}${sep}t=${imageCacheBust.value}`;
+        };
+
         const fetchBannersConfig = async () => {
           if (!repoConfig.token) return;
           try {
@@ -1599,72 +2268,50 @@
           }
         };
 
-        // Fetch Media Gallery from public/images/posts/
-        const fetchMediaGallery = async () => {
-          if (!repoConfig.token) return;
-          loading.media = true;
-          try {
-            const files = await githubFetch(`/contents/public/images/posts?ref=${repoConfig.branch}`);
-            mediaFiles.value = files.filter(f => f.type === 'file' && !f.name.startsWith('.'));
-          } catch (_e) {
-            mediaFiles.value = [];
-          } finally {
-            loading.media = false;
-          }
-        };
-
-        // Add New Banner (Local-First: Draft Mode)
         const addNewBanner = async (event, type) => {
           const file = event.target.files?.[0];
           if (!file) return;
-          const isDesk = type === 'desktop';
-          showToast(`正在本地转换${isDesk ? '电脑' : '手机'}壁纸...`, 'info');
           try {
-            const maxWidth = isDesk ? 1920 : 1080;
-            const base64 = await convertToWebpBase64(file, maxWidth, 0.88);
+            const base64 = await convertToWebpBase64(file, 2560, 0.88);
+            const previewUrl = `data:image/webp;base64,${base64}`;
             const timestamp = Date.now();
-            const relPath = `/assets/${type}-banner/banner_${timestamp}.webp`;
-            const newItem = {
-              id: `${type}_new_${timestamp}`,
-              path: relPath,
-              previewUrl: `data:image/webp;base64,${base64}`,
-              fileBase64: base64,
+            const fileName = `banner_${timestamp}.webp`;
+            const destPath = `/assets/${type}-banner/${fileName}`;
+
+            const bannerObj = {
+              path: destPath,
+              key: 'new_' + timestamp,
               isNew: true,
               isModified: false,
-              originalPath: null
+              previewUrl,
+              fileBase64: base64
             };
-            if (isDesk) {
-              workingDesktopBanners.value.push(newItem);
-            } else {
-              workingMobileBanners.value.push(newItem);
-            }
-            showToast(`新${isDesk ? '电脑' : '手机'}壁纸已添加到编辑列表（待保存）！`);
+
+            if (type === 'desktop') workingDesktopBanners.value.push(bannerObj);
+            else workingMobileBanners.value.push(bannerObj);
+
+            showToast('已加入待保存队列！点击上方【确认保存】即可生效');
           } catch (err) {
-            showToast('转换图片失败: ' + err.message, 'error');
+            showToast('添加壁纸失败: ' + err.message, 'error');
           } finally {
             event.target.value = '';
           }
         };
 
-        // Replace Banner (Local-First: Draft Mode)
         const replaceBanner = async (event, type, index) => {
           const file = event.target.files?.[0];
           if (!file) return;
-          const isDesk = type === 'desktop';
-          showToast(`正在本地转换${isDesk ? '电脑' : '手机'}壁纸...`, 'info');
           try {
-            const maxWidth = isDesk ? 1920 : 1080;
-            const base64 = await convertToWebpBase64(file, maxWidth, 0.88);
-            const targetList = isDesk ? workingDesktopBanners.value : workingMobileBanners.value;
-            const currentItem = targetList[index];
-            if (currentItem) {
-              currentItem.previewUrl = `data:image/webp;base64,${base64}`;
-              currentItem.fileBase64 = base64;
-              if (!currentItem.isNew) {
-                currentItem.isModified = true;
-              }
-              showToast(`壁纸 #${index + 1} 已更换（待保存）！`);
-            }
+            const base64 = await convertToWebpBase64(file, 2560, 0.88);
+            const previewUrl = `data:image/webp;base64,${base64}`;
+            const targetList = type === 'desktop' ? workingDesktopBanners.value : workingMobileBanners.value;
+            const item = targetList[index];
+
+            item.previewUrl = previewUrl;
+            item.fileBase64 = base64;
+            item.isModified = true;
+
+            showToast('壁纸已本地更换！点击上方【确认保存】即可生效');
           } catch (err) {
             showToast('更换壁纸失败: ' + err.message, 'error');
           } finally {
@@ -1672,67 +2319,28 @@
           }
         };
 
-        // Delete Banner (Local-First: Draft Mode)
         const deleteBanner = (type, index) => {
-          const isDesk = type === 'desktop';
-          const targetList = isDesk ? workingDesktopBanners.value : workingMobileBanners.value;
-          if (targetList.length <= 1) {
-            showToast('至少保留一张壁纸，无法全部删除哦！', 'error');
-            return;
+          const targetList = type === 'desktop' ? workingDesktopBanners.value : workingMobileBanners.value;
+          const removed = targetList.splice(index, 1)[0];
+          if (removed && !removed.isNew && removed.path) {
+            pendingDeletions.value.push(removed.path);
           }
-          const item = targetList[index];
-          if (item && item.originalPath) {
-            pendingDeletions.value.push(item.originalPath);
-          }
-          targetList.splice(index, 1);
-          showToast(`壁纸 #${index + 1} 已从列表移除（待保存）！`);
+          showToast('已从列表移除！点击上方【确认保存】生效');
         };
 
-        // Move Banner Order (Local-First)
-        const moveBanner = (type, index, delta) => {
-          const isDesk = type === 'desktop';
-          const targetList = isDesk ? workingDesktopBanners.value : workingMobileBanners.value;
-          const newIdx = index + delta;
-          if (newIdx < 0 || newIdx >= targetList.length) return;
-          const item = targetList.splice(index, 1)[0];
-          targetList.splice(newIdx, 0, item);
+        const moveBanner = (type, index, direction) => {
+          const targetList = type === 'desktop' ? workingDesktopBanners.value : workingMobileBanners.value;
+          const targetIndex = index + direction;
+          if (targetIndex < 0 || targetIndex >= targetList.length) return;
+          const temp = targetList[index];
+          targetList[index] = targetList[targetIndex];
+          targetList[targetIndex] = temp;
         };
 
-        // Sync Banner Arrays to Configuration Files
-        const syncBannersToRepo = async (newListDesktop, newListMobile, message = 'feat(banner): update banner configuration') => {
-          const dStr = newListDesktop.map(s => `\t\t\t"${s}",`).join('\n');
-          const mStr = newListMobile.map(s => `\t\t\t"${s}",`).join('\n');
-          const dStrSc = newListDesktop.map(s => `\t\t\t\t"${s}",`).join('\n');
-          const mStrSc = newListMobile.map(s => `\t\t\t\t"${s}",`).join('\n');
-
-          // 1. backgroundWallpaper.ts
-          await updateFileSafe('src/config/backgroundWallpaper.ts', (content) => {
-            let res = content.replace(/desktop:\s*\[[\s\S]*?\]/, `desktop: [\n${dStr}\n\t\t]`);
-            res = res.replace(/mobile:\s*\[[\s\S]*?\]/, `mobile: [\n${mStr}\n\t\t]`);
-            return res;
-          }, message);
-
-          // Short breath to prevent git tree lock
-          await new Promise(r => setTimeout(r, 600));
-
-          // 2. siteConfig.ts
-          await updateFileSafe('src/config/siteConfig.ts', (content) => {
-            let res = content.replace(/desktop:\s*\[[\s\S]*?\]/, `desktop: [\n${dStrSc}\n\t\t\t]`);
-            res = res.replace(/mobile:\s*\[[\s\S]*?\]/, `mobile: [\n${mStrSc}\n\t\t\t]`);
-            return res;
-          }, message);
-        };
-
-        // Save All Banner Changes (Batch Commit from Client)
         const saveAllBannerChanges = async () => {
-          if (!hasUnsavedBannerChanges.value) {
-            showToast('当前没有未保存的壁纸修改', 'info');
-            return;
-          }
           saving.banners = true;
-          showToast('开始保存壁纸：正在上传新增/更换的图片...', 'info');
           try {
-            // 1. Upload new or modified desktop banners
+            // Upload new/modified desktop banners
             for (let i = 0; i < workingDesktopBanners.value.length; i++) {
               const item = workingDesktopBanners.value[i];
               if (item.fileBase64 && (item.isNew || item.isModified)) {
@@ -1743,11 +2351,11 @@
                 item.fileBase64 = null;
                 item.isNew = false;
                 item.isModified = false;
-                await new Promise(r => setTimeout(r, 600));
+                await new Promise(r => setTimeout(r, 500));
               }
             }
 
-            // 2. Upload new or modified mobile banners
+            // Upload new/modified mobile banners
             for (let i = 0; i < workingMobileBanners.value.length; i++) {
               const item = workingMobileBanners.value[i];
               if (item.fileBase64 && (item.isNew || item.isModified)) {
@@ -1758,11 +2366,11 @@
                 item.fileBase64 = null;
                 item.isNew = false;
                 item.isModified = false;
-                await new Promise(r => setTimeout(r, 600));
+                await new Promise(r => setTimeout(r, 500));
               }
             }
 
-            // 3. Delete removed files if applicable
+            // Clean removed files
             const activePaths = new Set([
               ...workingDesktopBanners.value.map(b => b.path),
               ...workingMobileBanners.value.map(b => b.path)
@@ -1774,28 +2382,42 @@
                   const sha = await getFileSha(cleanPath);
                   if (sha) {
                     await deleteFile(cleanPath, sha, `feat(banner): delete removed banner ${delPath}`);
-                    await new Promise(r => setTimeout(r, 500));
+                    await new Promise(r => setTimeout(r, 400));
                   }
                 } catch (e) {
-                  console.warn('删除物理文件跳过或已被清理:', cleanPath, e);
+                  console.warn('删除物理文件跳过:', cleanPath, e);
                 }
               }
             }
             pendingDeletions.value = [];
 
-            // 4. Update configuration files
+            // Update configuration files
             showToast('正在更新全站壁纸配置文件...', 'info');
             const finalDesk = workingDesktopBanners.value.map(b => b.path);
             const finalMob = workingMobileBanners.value.map(b => b.path);
-            await syncBannersToRepo(finalDesk, finalMob, 'feat(banner): update wallpaper configuration');
 
-            // 5. Update local state & baseline
+            const formatArr = (arr) => '[\n' + arr.map(p => `\t\t\t\t"${p}",`).join('\n') + '\n\t\t\t]';
+            const deskStr = formatArr(finalDesk);
+            const mobStr = formatArr(finalMob);
+
+            await updateFileSafe('src/config/backgroundWallpaper.ts', (content) => {
+              let text = content.replace(/desktop:\s*\[[\s\S]*?\],/, `desktop: ${deskStr},`);
+              text = text.replace(/mobile:\s*\[[\s\S]*?\],/, `mobile: ${mobStr},`);
+              return text;
+            }, 'feat(banner): update backgroundWallpaper.ts');
+
+            await updateFileSafe('src/config/siteConfig.ts', (content) => {
+              let text = content.replace(/desktop:\s*\[[\s\S]*?\],/, `desktop: ${deskStr},`);
+              text = text.replace(/mobile:\s*\[[\s\S]*?\],/, `mobile: ${mobStr},`);
+              return text;
+            }, 'feat(banner): update siteConfig banner list');
+
             desktopBanners.value = [...finalDesk];
             mobileBanners.value = [...finalMob];
             resetWorkingBanners();
             imageCacheBust.value = Date.now();
 
-            showToast('🎉 全部壁纸已成功保存生效！Cloudflare 正在自动化构建～', 'success');
+            showToast('🎉 全部壁纸已成功保存生效！');
           } catch (err) {
             showToast('保存壁纸失败: ' + err.message, 'error');
           } finally {
@@ -1803,15 +2425,69 @@
           }
         };
 
-        const deleteMediaFile = async (media) => {
-          if (!confirm(`确定要从图库永久删除图片《${media.name}》吗？`)) return;
-          showToast(`正在删除 ${media.name}...`, 'info');
+        const uploadAvatar = async (event) => {
+          const file = event.target.files?.[0];
+          if (!file) return;
+          showToast('正在转换并更新头像...', 'info');
           try {
-            await deleteFile(media.path, media.sha, `feat(media): delete ${media.name}`);
-            showToast(`图片 ${media.name} 已成功删除！`);
-            await fetchMediaGallery();
+            const base64 = await convertToWebpBase64(file, 400, 0.9);
+            const sha1 = await getFileSha('src/assets/images/avatar.webp');
+            await putFile('src/assets/images/avatar.webp', base64, 'feat(avatar): update avatar.webp', sha1, true);
+
+            const sha2 = await getFileSha('public/assets/home/home.webp');
+            await putFile('public/assets/home/home.webp', base64, 'feat(avatar): update home.webp', sha2, true);
+
+            showToast('头像已成功更新并推送到仓库！');
+            imageCacheBust.value = Date.now();
           } catch (err) {
-            showToast('删除图片失败: ' + err.message, 'error');
+            showToast('更新头像失败: ' + err.message, 'error');
+          } finally {
+            event.target.value = '';
+          }
+        };
+
+        // ==================== POSTS & MEDIA (GIF SUPPORTED) ====================
+        const fetchPosts = async () => {
+          if (!repoConfig.token) return;
+          loading.posts = true;
+          try {
+            const files = await githubFetch(`/contents/src/content/posts?ref=${repoConfig.branch}`);
+            const mdFiles = files.filter(f => f.name.endsWith('.md') || f.name.endsWith('.mdx'));
+            const loadedPosts = [];
+            for (const f of mdFiles) {
+              try {
+                const fileData = await getFile(f.path);
+                const { meta, body } = parseFrontmatter(fileData.content);
+                loadedPosts.push({
+                  name: f.name,
+                  slug: f.name.replace(/\.mdx?$/, ''),
+                  path: f.path,
+                  sha: f.sha,
+                  meta,
+                  body
+                });
+              } catch (e) {
+                console.error('解析文章失败:', f.name, e);
+              }
+            }
+            posts.value = loadedPosts;
+          } catch (err) {
+            showToast('拉取文章失败: ' + err.message, 'error');
+          } finally {
+            loading.posts = false;
+          }
+        };
+
+        const fetchMediaGallery = async () => {
+          if (!repoConfig.token) return;
+          loading.media = true;
+          try {
+            const files = await githubFetch(`/contents/public/images/posts?ref=${repoConfig.branch}`);
+            mediaFiles.value = files.filter(f => /\.(webp|png|jpe?g|gif)$/i.test(f.name));
+          } catch (_e) {
+            mediaFiles.value = [];
+          } finally {
+            loading.media = false;
           }
         };
 
@@ -1886,50 +2562,12 @@
           }, 0);
         };
 
-        const convertToWebpBase64 = (file, maxWidth = 1920, quality = 0.88) => {
-          return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              const img = new Image();
-              img.onload = () => {
-                let width = img.width;
-                let height = img.height;
-                if (width > maxWidth) {
-                  height = Math.round((height * maxWidth) / width);
-                  width = maxWidth;
-                }
-                const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                const dataUrl = canvas.toDataURL('image/webp', quality);
-                const base64 = dataUrl.split(',')[1];
-                resolve(base64);
-              };
-              img.onerror = reject;
-              img.src = e.target.result;
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-          });
-        };
-
-        const uploadFileAndGetPath = async (file, prefix = 'img') => {
-          const timestamp = Date.now();
-          const fileName = `${prefix}_${timestamp}.webp`;
-          const targetPath = `public/images/posts/${fileName}`;
-          const base64 = await convertToWebpBase64(file, 1600, 0.88);
-          await putFile(targetPath, base64, `feat(media): upload ${fileName}`, null, true);
-          return `/images/posts/${fileName}`;
-        };
-
         const insertImageIntoArticle = async (event) => {
           const file = event.target.files?.[0];
           if (!file) return;
-          showToast('正在上传配图...', 'info');
+          showToast('正在上传配图/动图...', 'info');
           try {
-            const imgUrl = await uploadFileAndGetPath(file, 'img');
+            const imgUrl = await uploadFileAndGetPath(file, 'img', 'posts');
             insertText(`\n![配图](${imgUrl})\n`);
             showToast('配图上传成功并已插入正文！');
             await fetchMediaGallery();
@@ -1945,7 +2583,7 @@
           if (!file) return;
           showToast('正在上传封面图...', 'info');
           try {
-            const imgUrl = await uploadFileAndGetPath(file, 'cover');
+            const imgUrl = await uploadFileAndGetPath(file, 'cover', 'posts');
             editingPost.value.meta.image = imgUrl;
             showToast('封面图上传成功！');
             await fetchMediaGallery();
@@ -1963,14 +2601,14 @@
               const file = item.getAsFile();
               if (file) {
                 event.preventDefault();
-                showToast('检测到粘贴图片，正在自动上传...', 'info');
+                showToast('检测到粘贴图片/动图，正在自动上传...', 'info');
                 try {
-                  const imgUrl = await uploadFileAndGetPath(file, 'paste');
+                  const imgUrl = await uploadFileAndGetPath(file, 'paste', 'posts');
                   insertText(`\n![截图](${imgUrl})\n`);
-                  showToast('粘贴图片上传成功并已插入正文！');
+                  showToast('粘贴图片上传成功并已插入！');
                   await fetchMediaGallery();
                 } catch (err) {
-                  showToast('粘贴图片上传失败: ' + err.message, 'error');
+                  showToast('粘贴图片失败: ' + err.message, 'error');
                 }
                 break;
               }
@@ -1984,13 +2622,43 @@
           if (files && files.length > 0 && files[0].type.startsWith('image/')) {
             showToast('检测到拖入图片，正在上传...', 'info');
             try {
-              const imgUrl = await uploadFileAndGetPath(files[0], 'drop');
+              const imgUrl = await uploadFileAndGetPath(files[0], 'drop', 'posts');
               insertText(`\n![图片](${imgUrl})\n`);
-              showToast('拖入图片上传成功并已插入！');
+              showToast('图片上传成功并已插入！');
               await fetchMediaGallery();
             } catch (err) {
               showToast('拖放图片失败: ' + err.message, 'error');
             }
+          }
+        };
+
+        const uploadPostImage = async (event) => {
+          const file = event.target.files?.[0];
+          if (!file) return;
+          showToast('正在上传图片/动图到素材库...', 'info');
+          try {
+            const imgUrl = await uploadFileAndGetPath(file, 'img', 'posts');
+            const markdownTag = `![配图](${imgUrl})`;
+            lastUploadedImageMarkdown.value = markdownTag;
+            copyText(markdownTag);
+            showToast('上传成功并已复制 Markdown 语法！');
+            await fetchMediaGallery();
+          } catch (err) {
+            showToast('上传失败: ' + err.message, 'error');
+          } finally {
+            event.target.value = '';
+          }
+        };
+
+        const deleteMediaFile = async (media) => {
+          if (!confirm(`确定要从图库永久删除图片《${media.name}》吗？`)) return;
+          showToast(`正在删除 ${media.name}...`, 'info');
+          try {
+            await deleteFile(media.path, media.sha, `feat(media): delete ${media.name}`);
+            showToast(`图片 ${media.name} 已成功删除！`);
+            await fetchMediaGallery();
+          } catch (err) {
+            showToast('删除图片失败: ' + err.message, 'error');
           }
         };
 
@@ -2054,43 +2722,209 @@
           }
         };
 
-        const uploadAvatar = async (event) => {
+        // ==================== DIARY MANAGEMENT (GIF SUPPORTED) ====================
+        const fetchDiary = async () => {
+          if (!repoConfig.token) return;
+          loading.diary = true;
+          try {
+            const file = await getFile('src/data/diary.ts');
+            const match = file.content.match(/(?:export\s+)?const\s+diaryData:\s*DiaryItem\[\]\s*=\s*(\[[\s\S]*?\]);/);
+            if (match) {
+              diaryList.value = new Function('return ' + match[1])();
+            }
+          } catch (err) {
+            console.warn('获取日记失败:', err);
+          } finally {
+            loading.diary = false;
+          }
+        };
+
+        const openDiaryEditor = (item) => {
+          if (item) {
+            editingDiary.value = {
+              isNew: false,
+              id: item.id,
+              content: item.content,
+              date: item.date,
+              rawTags: (item.tags || []).join(', '),
+              images: item.images ? [...item.images] : []
+            };
+          } else {
+            editingDiary.value = {
+              isNew: true,
+              id: Date.now(),
+              content: '',
+              date: new Date().toISOString(),
+              rawTags: '生活, 随笔',
+              images: []
+            };
+          }
+        };
+
+        const uploadDiaryImage = async (event) => {
           const file = event.target.files?.[0];
           if (!file) return;
-          showToast('正在转换并更新头像...', 'info');
+          showToast('正在上传图片/动图...', 'info');
           try {
-            const base64 = await convertToWebpBase64(file, 400, 0.9);
-            
-            const sha1 = await getFileSha('src/assets/images/avatar.webp');
-            await putFile('src/assets/images/avatar.webp', base64, 'feat(avatar): update avatar.webp', sha1, true);
-
-            const sha2 = await getFileSha('public/assets/home/home.webp');
-            await putFile('public/assets/home/home.webp', base64, 'feat(avatar): update home.webp', sha2, true);
-
-            showToast('头像已成功更新并推送到仓库！');
-            imageCacheBust.value = Date.now();
+            const imgUrl = await uploadFileAndGetPath(file, 'diary', 'diary');
+            if (!editingDiary.value.images) editingDiary.value.images = [];
+            editingDiary.value.images.push(imgUrl);
+            showToast('动图/图片上传并关联成功！');
           } catch (err) {
-            showToast('更新头像失败: ' + err.message, 'error');
+            showToast('上传失败: ' + err.message, 'error');
           } finally {
             event.target.value = '';
           }
         };
 
-        const uploadPostImage = async (event) => {
-          const file = event.target.files?.[0];
-          if (!file) return;
-          showToast('正在上传图片到素材库...', 'info');
+        const saveDiaryAction = async () => {
+          if (!editingDiary.value.content) {
+            showToast('请填写日记内容', 'error');
+            return;
+          }
+          saving.diary = true;
           try {
-            const imgUrl = await uploadFileAndGetPath(file, 'img');
-            const markdownTag = `![配图](${imgUrl})`;
-            lastUploadedImageMarkdown.value = markdownTag;
-            copyText(markdownTag);
-            showToast('图片上传成功并已复制 Markdown 语法！');
-            await fetchMediaGallery();
+            const tags = editingDiary.value.rawTags
+              ? editingDiary.value.rawTags.split(/[,，]/).map(t => t.trim()).filter(Boolean)
+              : [];
+
+            const diaryItem = {
+              id: editingDiary.value.id || Date.now(),
+              content: editingDiary.value.content,
+              date: editingDiary.value.date || new Date().toISOString(),
+              images: editingDiary.value.images && editingDiary.value.images.length ? editingDiary.value.images : undefined,
+              tags: tags.length ? tags : undefined
+            };
+
+            const list = [...diaryList.value];
+            if (editingDiary.value.isNew) {
+              list.unshift(diaryItem);
+            } else {
+              const idx = list.findIndex(i => i.id === diaryItem.id);
+              if (idx !== -1) list[idx] = diaryItem;
+              else list.unshift(diaryItem);
+            }
+
+            const code = `export const diaryData: DiaryItem[] = ${JSON.stringify(list, null, '\t')};\n`;
+            await updateFileSafe('src/data/diary.ts', (content) => {
+              return content.replace(/(?:export\s+)?const\s+diaryData:\s*DiaryItem\[\]\s*=\s*\[[\s\S]*?\];/, code.trim());
+            }, 'feat(diary): update moments data');
+
+            diaryList.value = list;
+            editingDiary.value = null;
+            showToast('日记已成功发布！');
           } catch (err) {
-            showToast('上传图片失败: ' + err.message, 'error');
+            showToast('保存日记失败: ' + err.message, 'error');
           } finally {
-            event.target.value = '';
+            saving.diary = false;
+          }
+        };
+
+        const deleteDiaryItem = async (item) => {
+          if (!confirm(`确定要删除这条日记动态吗？`)) return;
+          saving.diary = true;
+          try {
+            const list = diaryList.value.filter(i => i.id !== item.id);
+            const code = `export const diaryData: DiaryItem[] = ${JSON.stringify(list, null, '\t')};\n`;
+            await updateFileSafe('src/data/diary.ts', (content) => {
+              return content.replace(/(?:export\s+)?const\s+diaryData:\s*DiaryItem\[\]\s*=\s*\[[\s\S]*?\];/, code.trim());
+            }, 'feat(diary): delete diary entry');
+
+            diaryList.value = list;
+            showToast('日记已删除！');
+          } catch (err) {
+            showToast('删除失败: ' + err.message, 'error');
+          } finally {
+            saving.diary = false;
+          }
+        };
+
+        // ==================== NAV, PROFILE, SWITCHES & SOCIAL (BUG FIX) ====================
+        const fetchLinksConfig = async () => {
+          if (!repoConfig.token) return;
+          try {
+            // Fetch navBarConfig.ts avoiding comment header
+            const navFile = await getFile('src/config/navBarConfig.ts');
+            const navContent = navFile.content;
+            const splitArr = navContent.split(/export\s+const\s+navBarConfig/);
+            if (splitArr.length > 1) {
+              const codePart = splitArr[1];
+              const linksBlockMatch = codePart.match(/name:\s*["']Links["'][\s\S]*?children:\s*\[([\s\S]*?)\]\s*,?\s*\}/);
+              if (linksBlockMatch) {
+                const rawItems = linksBlockMatch[1];
+                const items = [];
+                const itemRegex = /\{\s*name:\s*["']([^"']+)["'][\s\S]*?url:\s*["']([^"']+)["'][\s\S]*?icon:\s*["']([^"']+)["'][\s\S]*?\}/g;
+                let m;
+                while ((m = itemRegex.exec(rawItems)) !== null) {
+                  items.push({ name: m[1], url: m[2], icon: m[3] });
+                }
+                if (items.length > 0) {
+                  navLinks.value = items;
+                }
+              }
+            }
+
+            // Fetch profileConfig.ts
+            const profFile = await getFile('src/config/profileConfig.ts');
+            const profMatch = profFile.content.match(/links:\s*\[([\s\S]*?)\]/);
+            if (profMatch) {
+              const rawItems = profMatch[1];
+              const items = [];
+              const itemRegex = /\{\s*name:\s*["']([^"']+)["'],[\s\S]*?icon:\s*["']([^"']+)["'],[\s\S]*?url:\s*["']([^"']+)["'][\s\S]*?\}/g;
+              let m;
+              while ((m = itemRegex.exec(rawItems)) !== null) {
+                items.push({ name: m[1], icon: m[2], url: m[3] });
+              }
+              if (items.length > 0) {
+                profileLinks.value = items;
+              }
+            }
+          } catch (err) {
+            console.warn('获取链接失败:', err);
+          }
+        };
+
+        const fetchSwitchesConfig = async () => {
+          if (!repoConfig.token) return;
+          try {
+            // Fetch siteConfig.ts
+            const siteFile = await getFile('src/config/siteConfig.ts');
+            const content = siteFile.content;
+
+            const fpMatch = content.match(/featurePages:\s*\{([\s\S]*?)\}/);
+            if (fpMatch) {
+              const r = /([a-zA-Z0-9]+):\s*(true|false)/g;
+              let m;
+              while ((m = r.exec(fpMatch[1])) !== null) {
+                if (featurePages[m[1]] !== undefined) {
+                  featurePages[m[1]] = m[2] === 'true';
+                }
+              }
+            }
+
+            const bgmMatch = content.match(/bangumi:\s*\{[\s\S]*?userId:\s*["']([^"']*)["']/);
+            if (bgmMatch) socialAccounts.bangumiUserId = bgmMatch[1];
+
+            const biliMatch = content.match(/bilibili:\s*\{[\s\S]*?vmid:\s*["']([^"']*)["']/);
+            if (biliMatch) socialAccounts.bilibiliVmid = biliMatch[1];
+
+            const hueMatch = content.match(/hue:\s*(\d+)/);
+            if (hueMatch) siteMeta.hue = parseInt(hueMatch[1], 10);
+
+            const titleMatch = content.match(/title:\s*["']([^"']+)["']/);
+            if (titleMatch) siteMeta.title = titleMatch[1];
+
+            // Fetch sidebarConfig.ts
+            const sideFile = await getFile('src/config/sidebarConfig.ts');
+            const compMatch = sideFile.content.match(/components:\s*\{([\s\S]*?)\}/);
+            if (compMatch) {
+              const str = compMatch[1];
+              for (const key of Object.keys(sidebarWidgets)) {
+                sidebarWidgets[key] = str.includes(`"${key}"`) || str.includes(`'${key}'`);
+              }
+            }
+          } catch (err) {
+            console.warn('获取开关配置失败:', err);
           }
         };
 
@@ -2100,6 +2934,7 @@
         const removeNavLink = (idx) => {
           navLinks.value.splice(idx, 1);
         };
+
         const addProfileLink = () => {
           profileLinks.value.push({ name: '平台', url: 'https://', icon: 'material-symbols:link' });
         };
@@ -2107,29 +2942,351 @@
           profileLinks.value.splice(idx, 1);
         };
 
-        const saveLinksConfig = async () => {
+        const addQuickSocial = (type) => {
+          if (type === 'Bangumi') {
+            const uid = socialAccounts.bangumiUserId || '1269659';
+            profileLinks.value.push({
+              name: 'Bangumi',
+              url: `https://bgm.tv/user/${uid}`,
+              icon: 'simple-icons:bangumi'
+            });
+            showToast('已添加 Bangumi 至侧栏社交链接！');
+          } else if (type === 'X') {
+            profileLinks.value.push({
+              name: 'X',
+              url: 'https://x.com/FascinatingAnon',
+              icon: 'fa7-brands:x-twitter'
+            });
+            showToast('已添加 X 至侧栏社交链接！');
+          }
+        };
+
+        const saveAllNavAndSidebar = async () => {
           saving.links = true;
           try {
-            const childrenCode = navLinks.value.map(l => `\t\t\t\t{\n\t\t\t\t\tname: "${l.name}",\n\t\t\t\t\turl: "${l.url}",\n\t\t\t\t\texternal: true,\n\t\t\t\t\ticon: "${l.icon}",\n\t\t\t\t}`).join(',\n');
-            const newChildrenBlock = `children: [\n${childrenCode},\n\t\t\t]`;
+            // 1. Update navBarConfig.ts (avoid comments, update actual Links children)
+            const childrenCode = navLinks.value.map(l =>
+              `\t\t\t\t{\n\t\t\t\t\tname: "${l.name}",\n\t\t\t\t\turl: "${l.url}",\n\t\t\t\t\texternal: true,\n\t\t\t\t\ticon: "${l.icon}",\n\t\t\t\t}`
+            ).join(',\n');
+
             await updateFileSafe('src/config/navBarConfig.ts', (content) => {
-              return content.replace(/children:\s*\[[\s\S]*?\]/, newChildrenBlock);
+              const parts = content.split(/(export\s+const\s+navBarConfig[\s\S]*)/);
+              if (parts.length > 1) {
+                const before = parts[0];
+                let after = parts[1];
+                const linksRegex = /(name:\s*["']Links["'][\s\S]*?children:\s*\[)([\s\S]*?)(\]\s*,?\s*\})/;
+                if (linksRegex.test(after)) {
+                  after = after.replace(linksRegex, `$1\n${childrenCode},\n\t\t\t$3`);
+                  return before + after;
+                }
+              }
+              return content;
             }, 'feat(nav): update custom navigation links');
 
-            const profLinksCode = profileLinks.value.map(l => `\t\t{\n\t\t\tname: "${l.name}",\n\t\t\ticon: "${l.icon}",\n\t\t\turl: "${l.url}",\n\t\t}`).join(',\n');
-            const newProfBlock = `links: [\n${profLinksCode},\n\t]`;
+            // 2. Update profileConfig.ts
+            const profLinksCode = profileLinks.value.map(l =>
+              `\t\t{\n\t\t\tname: "${l.name}",\n\t\t\ticon: "${l.icon}",\n\t\t\turl: "${l.url}",\n\t\t}`
+            ).join(',\n');
+
             await updateFileSafe('src/config/profileConfig.ts', (content) => {
-              return content.replace(/links:\s*\[[\s\S]*?\]/, newProfBlock);
+              const profRegex = /(links:\s*\[)([\s\S]*?)(\])/;
+              if (profRegex.test(content)) {
+                return content.replace(profRegex, `$1\n${profLinksCode},\n\t$3`);
+              }
+              return content;
             }, 'feat(profile): update profile links');
 
-            showToast('所有链接配置已成功保存！');
+            // 3. Update siteConfig.ts (Feature pages & Bangumi / Bilibili IDs)
+            await updateFileSafe('src/config/siteConfig.ts', (content) => {
+              let text = content;
+              for (const [key, val] of Object.entries(featurePages)) {
+                const r = new RegExp(`(${key}:\\s*)(true|false)`);
+                text = text.replace(r, `$1${val}`);
+              }
+              if (socialAccounts.bangumiUserId) {
+                text = text.replace(/(bangumi:\s*\{[\s\S]*?userId:\s*["'])([^"']*)(["'])/, `$1${socialAccounts.bangumiUserId}$3`);
+              }
+              if (socialAccounts.bilibiliVmid) {
+                text = text.replace(/(bilibili:\s*\{[\s\S]*?vmid:\s*["'])([^"']*)(["'])/, `$1${socialAccounts.bilibiliVmid}$3`);
+              }
+              return text;
+            }, 'feat(site): update feature pages and social IDs');
+
+            // 4. Update sidebarConfig.ts (Sidebar widgets layout)
+            await updateFileSafe('src/config/sidebarConfig.ts', (content) => {
+              const leftOrder = ["profile", "tags", "card-toc"];
+              const rightOrder = ["site-stats", "calendar", "categories", "music-sidebar", "announcement"];
+              const drawerOrder = ["profile", "music-sidebar", "categories", "tags", "announcement"];
+
+              const activeLeft = leftOrder.filter(w => sidebarWidgets[w]);
+              const activeRight = rightOrder.filter(w => sidebarWidgets[w]);
+              const activeDrawer = drawerOrder.filter(w => sidebarWidgets[w]);
+
+              const newCompBlock = `components: {\n\t\tleft: ${JSON.stringify(activeLeft)},\n\t\tright: ${JSON.stringify(activeRight)},\n\t\tdrawer: ${JSON.stringify(activeDrawer)},\n\t}`;
+              return content.replace(/components:\s*\{[\s\S]*?\}/, newCompBlock);
+            }, 'feat(sidebar): update visible widgets layout');
+
+            showToast('所有导航、侧栏与显示配置已成功保存生效！');
           } catch (err) {
-            showToast('保存链接失败: ' + err.message, 'error');
+            showToast('保存配置失败: ' + err.message, 'error');
           } finally {
             saving.links = false;
           }
         };
 
+        // ==================== "OTHERS" 3 CATEGORIES (PROJECTS, SKILLS, TIMELINE) ====================
+        const fetchProjects = async () => {
+          if (!repoConfig.token) return;
+          try {
+            const file = await getFile('src/data/projects.ts');
+            const match = file.content.match(/(?:export\s+)?const\s+projectsData:\s*Project\[\]\s*=\s*(\[[\s\S]*?\]);/);
+            if (match) projectsList.value = new Function('return ' + match[1])();
+          } catch (e) {
+            console.warn('获取项目失败:', e);
+          }
+        };
+
+        const fetchSkills = async () => {
+          if (!repoConfig.token) return;
+          try {
+            const file = await getFile('src/data/skills.ts');
+            const match = file.content.match(/(?:export\s+)?const\s+skillsData:\s*Skill\[\]\s*=\s*(\[[\s\S]*?\]);/);
+            if (match) skillsList.value = new Function('return ' + match[1])();
+          } catch (e) {
+            console.warn('获取技能失败:', e);
+          }
+        };
+
+        const fetchTimeline = async () => {
+          if (!repoConfig.token) return;
+          try {
+            const file = await getFile('src/data/timeline.ts');
+            const match = file.content.match(/(?:export\s+)?const\s+timelineData:\s*TimelineItem\[\]\s*=\s*(\[[\s\S]*?\]);/);
+            if (match) timelineList.value = new Function('return ' + match[1])();
+          } catch (e) {
+            console.warn('获取时间线失败:', e);
+          }
+        };
+
+        const openProjectEditor = (p) => {
+          if (p) {
+            editingProject.value = {
+              isNew: false,
+              id: p.id,
+              title: p.title,
+              description: p.description,
+              image: p.image || '',
+              category: p.category || 'mobile',
+              status: p.status || 'in-progress',
+              rawTechStack: (p.techStack || []).join(', '),
+              sourceCode: p.sourceCode || '',
+              visitUrl: p.visitUrl || '',
+              startDate: p.startDate || '2024-01-01',
+              featured: !!p.featured
+            };
+          } else {
+            editingProject.value = {
+              isNew: true,
+              id: 'project-' + Date.now().toString().slice(-4),
+              title: '',
+              description: '',
+              image: '',
+              category: 'mobile',
+              status: 'in-progress',
+              rawTechStack: 'Kotlin, Android',
+              sourceCode: 'https://github.com/Akiyama-25/',
+              visitUrl: '',
+              startDate: new Date().toISOString().split('T')[0],
+              featured: true
+            };
+          }
+        };
+
+        const saveProjectAction = () => {
+          if (!editingProject.value.title || !editingProject.value.id) {
+            showToast('请填写标题和ID', 'error');
+            return;
+          }
+          const stack = editingProject.value.rawTechStack
+            ? editingProject.value.rawTechStack.split(/[,，]/).map(t => t.trim()).filter(Boolean)
+            : [];
+          const item = {
+            id: editingProject.value.id,
+            title: editingProject.value.title,
+            description: editingProject.value.description,
+            image: editingProject.value.image,
+            category: editingProject.value.category,
+            techStack: stack,
+            status: editingProject.value.status,
+            sourceCode: editingProject.value.sourceCode || undefined,
+            visitUrl: editingProject.value.visitUrl || undefined,
+            startDate: editingProject.value.startDate,
+            featured: editingProject.value.featured
+          };
+
+          if (editingProject.value.isNew) {
+            projectsList.value.unshift(item);
+          } else {
+            const idx = projectsList.value.findIndex(p => p.id === item.id);
+            if (idx !== -1) projectsList.value[idx] = item;
+            else projectsList.value.unshift(item);
+          }
+          editingProject.value = null;
+          showToast('项目已更新到待保存列表，点击右上角保存即可同步！');
+        };
+
+        const deleteProjectItem = (idx) => {
+          projectsList.value.splice(idx, 1);
+          showToast('已从列表移除，点击右上角保存生效！');
+        };
+
+        const openSkillEditor = (sk) => {
+          if (sk) {
+            editingSkill.value = {
+              isNew: false,
+              id: sk.id,
+              name: sk.name,
+              description: sk.description,
+              icon: sk.icon,
+              category: sk.category || 'tools',
+              level: sk.level || 'intermediate',
+              color: sk.color || '#10b981'
+            };
+          } else {
+            editingSkill.value = {
+              isNew: true,
+              id: 'skill-' + Date.now().toString().slice(-4),
+              name: '',
+              description: '',
+              icon: 'logos:javascript',
+              category: 'frontend',
+              level: 'advanced',
+              color: '#3b82f6'
+            };
+          }
+        };
+
+        const saveSkillAction = () => {
+          if (!editingSkill.value.name || !editingSkill.value.id) {
+            showToast('请填写名称和ID', 'error');
+            return;
+          }
+          const item = {
+            id: editingSkill.value.id,
+            name: editingSkill.value.name,
+            description: editingSkill.value.description,
+            icon: editingSkill.value.icon,
+            category: editingSkill.value.category,
+            level: editingSkill.value.level,
+            experience: { years: 1, months: 0 },
+            color: editingSkill.value.color
+          };
+
+          if (editingSkill.value.isNew) {
+            skillsList.value.unshift(item);
+          } else {
+            const idx = skillsList.value.findIndex(s => s.id === item.id);
+            if (idx !== -1) skillsList.value[idx] = item;
+            else skillsList.value.unshift(item);
+          }
+          editingSkill.value = null;
+          showToast('技能已更新，点击右上角保存生效！');
+        };
+
+        const deleteSkillItem = (idx) => {
+          skillsList.value.splice(idx, 1);
+          showToast('已从列表移除，点击右上角保存生效！');
+        };
+
+        const openTimelineEditor = (tl) => {
+          if (tl) {
+            editingTimeline.value = {
+              isNew: false,
+              id: tl.id,
+              title: tl.title,
+              description: tl.description,
+              type: tl.type || 'project',
+              startDate: tl.startDate,
+              organization: tl.organization || '',
+              location: tl.location || ''
+            };
+          } else {
+            editingTimeline.value = {
+              isNew: true,
+              id: 'timeline-' + Date.now().toString().slice(-4),
+              title: '',
+              description: '',
+              type: 'project',
+              startDate: new Date().toISOString().split('T')[0],
+              organization: '',
+              location: ''
+            };
+          }
+        };
+
+        const saveTimelineAction = () => {
+          if (!editingTimeline.value.title || !editingTimeline.value.id) {
+            showToast('请填写标题和ID', 'error');
+            return;
+          }
+          const item = {
+            id: editingTimeline.value.id,
+            title: editingTimeline.value.title,
+            description: editingTimeline.value.description,
+            type: editingTimeline.value.type,
+            startDate: editingTimeline.value.startDate,
+            organization: editingTimeline.value.organization || undefined,
+            location: editingTimeline.value.location || undefined,
+            icon: 'material-symbols:event',
+            color: '#10b981'
+          };
+
+          if (editingTimeline.value.isNew) {
+            timelineList.value.unshift(item);
+          } else {
+            const idx = timelineList.value.findIndex(t => t.id === item.id);
+            if (idx !== -1) timelineList.value[idx] = item;
+            else timelineList.value.unshift(item);
+          }
+          editingTimeline.value = null;
+          showToast('历程已更新，点击右上角保存生效！');
+        };
+
+        const deleteTimelineItem = (idx) => {
+          timelineList.value.splice(idx, 1);
+          showToast('已从列表移除，点击右上角保存生效！');
+        };
+
+        const saveCurrentOtherCategory = async () => {
+          saving.others = true;
+          try {
+            if (otherSubTab.value === 'projects') {
+              const code = `export const projectsData: Project[] = ${JSON.stringify(projectsList.value, null, '\t')};\n`;
+              await updateFileSafe('src/data/projects.ts', (content) => {
+                return content.replace(/(?:export\s+)?const\s+projectsData:\s*Project\[\]\s*=\s*\[[\s\S]*?\];/, code.trim());
+              }, 'feat(projects): update projects data');
+              showToast('项目展示数据已成功保存至仓库！');
+            } else if (otherSubTab.value === 'skills') {
+              const code = `export const skillsData: Skill[] = ${JSON.stringify(skillsList.value, null, '\t')};\n`;
+              await updateFileSafe('src/data/skills.ts', (content) => {
+                return content.replace(/(?:export\s+)?const\s+skillsData:\s*Skill\[\]\s*=\s*\[[\s\S]*?\];/, code.trim());
+              }, 'feat(skills): update skills data');
+              showToast('技能专长数据已成功保存至仓库！');
+            } else if (otherSubTab.value === 'timeline') {
+              const code = `export const timelineData: TimelineItem[] = ${JSON.stringify(timelineList.value, null, '\t')};\n`;
+              await updateFileSafe('src/data/timeline.ts', (content) => {
+                return content.replace(/(?:export\s+)?const\s+timelineData:\s*TimelineItem\[\]\s*=\s*\[[\s\S]*?\];/, code.trim());
+              }, 'feat(timeline): update timeline data');
+              showToast('时间线历程数据已成功保存至仓库！');
+            }
+          } catch (err) {
+            showToast('保存失败: ' + err.message, 'error');
+          } finally {
+            saving.others = false;
+          }
+        };
+
+        // ==================== SETTINGS (MUSIC & APPEARANCE) ====================
         const saveSiteConfig = async () => {
           saving.site = true;
           try {
@@ -2160,11 +3317,52 @@
           }
         };
 
+        const saveTokenConfig = async () => {
+          if (!tempConfig.token) {
+            showToast('Token 不能为空', 'error');
+            return;
+          }
+          try {
+            const res = await fetch(`https://api.github.com/repos/${tempConfig.owner}/${tempConfig.repo}`, {
+              headers: {
+                'Authorization': `Bearer ${tempConfig.token}`,
+                'Accept': 'application/vnd.github.v3+json'
+              }
+            });
+            if (!res.ok) throw new Error('仓库连接失败，请检查 Token 权限');
+            const data = await res.json();
+
+            localStorage.setItem('akari_admin_token', tempConfig.token);
+            localStorage.setItem('akari_admin_owner', tempConfig.owner);
+            localStorage.setItem('akari_admin_repo', tempConfig.repo);
+            localStorage.setItem('akari_admin_branch', tempConfig.branch);
+
+            Object.assign(repoConfig, tempConfig);
+            showTokenModal.value = false;
+            showToast(`成功连接到 ${data.full_name}！`);
+            await fetchAllData();
+          } catch (err) {
+            showToast('连接失败: ' + err.message, 'error');
+          }
+        };
+
+        const disconnectRepo = () => {
+          localStorage.removeItem('akari_admin_token');
+          repoConfig.token = '';
+          showToast('已断开连接并清理本地缓存！');
+        };
+
         const fetchAllData = async () => {
           if (!repoConfig.token) return;
           fetchPosts();
+          fetchDiary();
           fetchBannersConfig();
           fetchMediaGallery();
+          fetchLinksConfig();
+          fetchSwitchesConfig();
+          fetchProjects();
+          fetchSkills();
+          fetchTimeline();
         };
 
         onMounted(() => {
@@ -2176,6 +3374,8 @@
         return {
           tabs,
           currentTab,
+          otherSubTab,
+          switchTab,
           repoConfig,
           tempConfig,
           showTokenModal,
@@ -2187,6 +3387,8 @@
           editingPost,
           postTextarea,
           renderedMarkdown,
+          diaryList,
+          editingDiary,
           imageCacheBust,
           desktopBanners,
           mobileBanners,
@@ -2200,16 +3402,33 @@
           mediaFiles,
           navLinks,
           profileLinks,
+          socialAccounts,
+          featurePages,
+          sidebarWidgets,
+          featurePageList,
+          sidebarWidgetList,
+          iconPresets,
+          isPresetIcon,
+          projectsList,
+          skillsList,
+          timelineList,
+          editingProject,
+          editingSkill,
+          editingTimeline,
           musicConfig,
           siteMeta,
           lastUploadedImageMarkdown,
           showToast,
           copyText,
+          formatDateTime,
           saveTokenConfig,
           disconnectRepo,
           fetchPosts,
+          fetchDiary,
           fetchBannersConfig,
           fetchMediaGallery,
+          fetchLinksConfig,
+          fetchSwitchesConfig,
           replaceBanner,
           deleteBanner,
           addNewBanner,
@@ -2218,6 +3437,10 @@
           insertText,
           saveArticle,
           deletePost,
+          openDiaryEditor,
+          uploadDiaryImage,
+          saveDiaryAction,
+          deleteDiaryItem,
           uploadAvatar,
           uploadPostImage,
           uploadArticleCover,
@@ -2228,7 +3451,18 @@
           removeNavLink,
           addProfileLink,
           removeProfileLink,
-          saveLinksConfig,
+          addQuickSocial,
+          saveAllNavAndSidebar,
+          openProjectEditor,
+          saveProjectAction,
+          deleteProjectItem,
+          openSkillEditor,
+          saveSkillAction,
+          deleteSkillItem,
+          openTimelineEditor,
+          saveTimelineAction,
+          deleteTimelineItem,
+          saveCurrentOtherCategory,
           saveSiteConfig,
           getBannerSrc,
           onBannerImgError
