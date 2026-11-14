@@ -22,6 +22,7 @@ export interface SwupHookHandlers {
 	cleanupFancybox?: () => void;
 	initCustomScrollbar?: () => void;
 	checkKatex?: () => void;
+	initAnime?: () => void;
 }
 
 // 访问对象类型
@@ -172,10 +173,11 @@ export class SwupHooksManager {
 			this.ensureNavbarVisibleForFullscreen();
 			this.updatePageOverlay();
 
-			// 初始化新页面的图片、公式、滚动条和 TOC
+			// 初始化新页面的图片、公式、滚动条、TOC 和追番页面
 			this.handlers.initFancybox?.();
 			this.handlers.checkKatex?.();
 			this.handlers.initCustomScrollbar?.();
+			this.handlers.initAnime?.();
 
 			// 处理 TOC 重新初始化
 			this.handleTOCReinit();
@@ -229,6 +231,9 @@ export class SwupHooksManager {
 
 			// 同步主题状态
 			this.syncThemeState();
+
+			// 确认追番页面 UI 渲染正常
+			this.handlers.initAnime?.();
 
 			// 触发页面加载完成事件
 			this.dispatchPageLoadedEvent();

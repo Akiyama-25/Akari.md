@@ -26,6 +26,7 @@ import {
 import type { PanelHandler } from "./handlers/panel-handler";
 import { getPanelHandler, initPanelHandler } from "./handlers/panel-handler";
 import { checkKatex, initCustomScrollbar } from "./handlers/scroll-handler";
+import { initAnimeHandler, initAnimePage } from "./anime-handler";
 
 /**
  * Swup 管理器类
@@ -120,12 +121,19 @@ export class SwupManager {
 			checkKatex: () => {
 				checkKatex();
 			},
+			initAnime: () => {
+				initAnimePage();
+			},
 		});
+
+		// 启动 Anime 页面交互与事件监听
+		initAnimeHandler();
 
 		// 如果 Swup 已经就绪，直接设置钩子
 		if (window?.swup?.hooks) {
 			initFancybox();
 			checkKatex();
+			initAnimePage();
 			this.hooksManager.registerHooks();
 		} else {
 			// 监听 Swup 就绪事件
@@ -140,10 +148,12 @@ export class SwupManager {
 				document.addEventListener("DOMContentLoaded", async () => {
 					await initFancybox();
 					checkKatex();
+					initAnimePage();
 				});
 			} else {
 				initFancybox();
 				checkKatex();
+				initAnimePage();
 			}
 		}
 	}
