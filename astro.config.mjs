@@ -127,7 +127,7 @@ export default defineConfig({
 			animationClass: "transition-swup-",
 			containers: ["main"],
 			smoothScrolling: false, // 禁用平滑滚动以提升性能，避免与锚点导航冲突
-			cache: true,
+			cache: false, // 禁用 Swup 内存缓存，统一由浏览器与服务端协商缓存接管，保证页面即时更新
 			preload: false, // 禁用预加载以提升性能
 			accessibility: true,
 			updateHead: process.env.NODE_ENV === "production",
