@@ -21,65 +21,81 @@ export interface Project {
 
 export const projectsData: Project[] = [
 	{
-		id: "ame-player",
-		title: "Ame-Player",
-		description:
-			"Android本地播放器，兼网易云第三方客户端，支持USB独占",
-		image: "",
-		category: "mobile",
-		techStack: ["Kotlin", "Android", "Audio"],
-		status: "in-progress",
-		sourceCode: "https://github.com/Akiyama-25/Ame-Player",
-		startDate: "2024-01-01",
-		featured: true,
-		tags: ["Android", "Music", "Player"],
-		showImage: false,
+		"id": "ame-player",
+		"title": "Ame-Player",
+		"description": "Android本地播放器，兼网易云第三方客户端，支持USB独占",
+		"image": "",
+		"category": "mobile",
+		"techStack": [
+			"Kotlin",
+			"Android",
+			"Audio"
+		],
+		"status": "in-progress",
+		"sourceCode": "https://github.com/Akiyama-25/Ame-Player",
+		"startDate": "2024-01-01",
+		"featured": true,
+		"tags": [
+			"Android",
+			"Music",
+			"Player"
+		],
+		"showImage": false
 	},
 	{
-		id: "tsukimibox",
-		title: "TsukimiBox",
-		description:
-			"全能微型调试与常用功能聚合箱，轻快简洁的 Android 工具利器。",
-		image: "",
-		category: "mobile",
-		techStack: ["Kotlin", "Android", "Toolbox"],
-		status: "in-progress",
-		sourceCode: "https://github.com/Akiyama-25/TsukimiBox",
-		startDate: "2024-05-01",
-		featured: true,
-		tags: ["Android", "Toolbox", "Utility"],
-		showImage: false,
+		"id": "tsukimibox",
+		"title": "TsukimiBox",
+		"description": "全能微型调试与常用功能聚合箱，轻快简洁的 Android 工具利器。",
+		"image": "",
+		"category": "mobile",
+		"techStack": [
+			"Kotlin",
+			"Android",
+			"Toolbox"
+		],
+		"status": "in-progress",
+		"sourceCode": "https://github.com/Akiyama-25/TsukimiBox",
+		"startDate": "2024-05-01",
+		"featured": true,
+		"tags": [
+			"Android",
+			"Toolbox",
+			"Utility"
+		],
+		"showImage": false
 	},
 	{
-		id: "ncm-converter",
-		title: "NCM Converter",
-		description:
-			"网易云音乐加密音频格式本地极速转码工具，支持完整元数据与封面保留。",
-		image: "",
-		category: "desktop",
-		techStack: ["Kotlin", "Java", "Audio"],
-		status: "completed",
-		sourceCode: "https://github.com/Akiyama-25/NCM-Converter-For-Android",
-		startDate: "2024-08-01",
-		featured: true,
-		tags: ["Audio", "Converter", "NCM"],
-		showImage: false,
+		"id": "ncm-converter",
+		"title": "NCM Converter",
+		"description": "网易云音乐加密音频格式本地极速转码工具，支持完整元数据与封面保留。",
+		"image": "",
+		"category": "mobile",
+		"techStack": [
+			"Kotlin",
+			"Java",
+			"Audio"
+		],
+		"status": "completed",
+		"sourceCode": "https://github.com/Akiyama-25/NCM-Converter-For-Android",
+		"startDate": "2024-08-01",
+		"featured": true
 	},
 	{
-		id: "rename-apps",
-		title: "Rename Apps",
-		description:
-			"APK 自动化重命名、信息提取与一键重签名小工具。",
-		image: "",
-		category: "other",
-		techStack: ["Shell", "Python", "Android"],
-		status: "completed",
-		sourceCode: "https://github.com/Akiyama-25/rename-your-APPs",
-		startDate: "2024-09-01",
-		featured: true,
-		tags: ["Android", "Automation", "Sign"],
-		showImage: false,
-	},
+		"id": "rename-apps",
+		"title": "Rename Apps",
+		"description": "一个可以将桌面上的APP重命名的XPosed模块",
+		"image": "",
+		"category": "mobile",
+		"techStack": [
+			"Shell",
+			"Python",
+			"Android"
+		],
+		"status": "completed",
+		"sourceCode": "https://github.com/Akiyama-25/rename-your-APPs",
+		"startDate": "2024-09-01",
+		"featured": true
+	}
 ];
 
 // Get project statistics
