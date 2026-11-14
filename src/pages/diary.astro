@@ -244,9 +244,11 @@ const subtitle = i18n(I18nKey.diarySubtitle);
 						.map(function (img, i) {
 							return (
 								'<div class="relative rounded-lg overflow-hidden aspect-square cursor-pointer">' +
-								'<a href="javascript:void(0)" data-src="' +
+								'<a href="' +
 								escapeHtml(img) +
-								'" data-fancybox="diary-' +
+								'" data-src="' +
+								escapeHtml(img) +
+								'" data-type="image" data-fancybox="diary-' +
 								index +
 								"-" +
 								i +

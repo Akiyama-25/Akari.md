@@ -171,7 +171,7 @@ export const navBarConfig: NavBarConfig = {
 					icon: "fa7-brands:bilibili",
 				},
 				{
-					name: "X (Twitter)",
+					name: "X",
 					url: "https://x.com/FascinatingAnon",
 					external: true,
 					icon: "fa7-brands:x-twitter",
