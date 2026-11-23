@@ -161,7 +161,7 @@ export const navBarConfig: NavBarConfig = {
 				{
 					name: "GitHub",
 					url: "https://github.com/Akiyama-25",
-					external: true, // 外部链接，新标签页打开
+					external: true,
 					icon: "fa7-brands:github",
 				},
 				{
