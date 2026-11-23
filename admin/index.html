@@ -171,20 +171,30 @@
       }
     }
 
-    /* 6 Navigation Tabs (2 Rows of 3 on Mobile) */
+    /* Navigation Tabs (Responsive 4+3 Wrap on Mobile, Vertical Sidebar on Desktop) */
     .nav-tabs {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      display: flex;
+      flex-wrap: wrap;
       gap: 0.5rem;
       width: 100%;
+    }
+
+    .nav-tabs .tab-btn {
+      flex: 1 1 calc(25% - 0.5rem);
+      min-width: 72px;
     }
 
     @media (min-width: 768px) {
       .nav-tabs {
         display: flex;
         flex-direction: column;
+        flex-wrap: nowrap;
         width: 190px;
         flex-shrink: 0;
+      }
+
+      .nav-tabs .tab-btn {
+        flex: none;
       }
     }
 
@@ -734,6 +744,72 @@
       line-height: 1.4;
       margin-top: 0.2rem;
     }
+
+    /* Friends Management Cards */
+    .friend-admin-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+
+    @media (min-width: 640px) {
+      .friend-admin-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .friend-admin-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 0.9rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 0.65rem;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+    }
+
+    .friend-admin-card:hover {
+      border-color: var(--primary-border);
+      box-shadow: 0 6px 16px -4px rgba(16, 185, 129, 0.12);
+    }
+
+    .friend-admin-head {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .friend-avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      object-fit: cover;
+      border: 1px solid var(--border);
+      background: #f1f5f9;
+      flex-shrink: 0;
+    }
+
+    .friend-tag-pill {
+      display: inline-block;
+      padding: 0.14rem 0.48rem;
+      border-radius: 6px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      background: var(--primary-light);
+      color: var(--primary-hover);
+      border: 1px solid var(--primary-border);
+    }
+
+    .friend-preview-box {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(248, 250, 252, 0.9));
+      border: 1px dashed var(--primary-border);
+      border-radius: 14px;
+      padding: 0.85rem;
+      margin-bottom: 1rem;
+    }
   </style>
 </head>
 <body>
@@ -752,7 +828,7 @@
           <div>
             <div class="brand-title">
               <span>Akari 管理后台</span>
-              <span class="version-pill">v2.2</span>
+              <span class="version-pill">v2.3</span>
             </div>
             <div class="brand-sub">anon-akari.top · 站点管理中心</div>
           </div>
@@ -771,7 +847,7 @@
     <!-- Main Content -->
     <div class="main-wrap">
 
-      <!-- Navigation Tabs (6 Tabs, 2 Rows of 3 on Mobile) -->
+      <!-- Navigation Tabs -->
       <nav class="nav-tabs">
         <button
           v-for="tab in tabs"
@@ -792,7 +868,7 @@
           <div>
             <strong style="color: var(--primary);">🔑 尚未连接 GitHub Token</strong>
             <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">
-              填入拥有 repo 权限的个人访问令牌，即可直接发文章、发日记、换壁纸与管理全站开关。
+              填入拥有 repo 权限的个人访问令牌，即可直接发文章、发日记、管理友链、换壁纸与管理全站开关。
             </div>
           </div>
           <button @click="showTokenModal = true" class="btn btn-primary btn-sm">立即配置 Token</button>
@@ -936,7 +1012,194 @@
           </div>
         </div>
 
-        <!-- ==================== TAB 3: 壁纸换图 (v2.0 本地草稿模式) ==================== -->
+        <!-- ==================== TAB 3: 友链管理 ==================== -->
+        <div v-if="currentTab === 'friends'">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <h2 style="font-size: 1.15rem; font-weight: 700;">友情链接管理</h2>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">管理 /friends/ 页面的友链卡片与申请说明，支持搜索、排序与头像上传</div>
+            </div>
+            <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+              <a href="/friends/" target="_blank" class="btn btn-secondary btn-sm">
+                🔗 预览友链页
+              </a>
+              <button @click="fetchFriends" :disabled="loading.friends" class="btn btn-secondary btn-sm">
+                🔄 {{ loading.friends ? '加载中...' : '刷新' }}
+              </button>
+              <button @click="openFriendEditor(null)" class="btn btn-primary btn-sm">
+                ➕ 新增友链
+              </button>
+            </div>
+          </div>
+
+          <!-- Feature Page Disabled Reminder -->
+          <div v-if="!featurePages.friends" class="card" style="border-left: 4px solid #f59e0b; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+            <div>
+              <strong style="color: #b45309;">ℹ️ 友链页面当前处于关闭状态</strong>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">
+                关闭状态下访问 /friends/ 将跳转至 404，可前往【导航与侧栏】开启“友链页面”开关。
+              </div>
+            </div>
+            <button @click="switchTab('links')" class="btn btn-secondary btn-sm">前往开启</button>
+          </div>
+
+          <!-- Unsaved Friends Notice -->
+          <div v-if="hasUnsavedFriendChanges" class="card" style="background: linear-gradient(135deg, rgba(254, 243, 199, 0.9), rgba(253, 230, 138, 0.7)); border: 1px solid #f59e0b; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <strong style="color: #b45309;">⚠️ 友链列表有未保存的本地修改</strong>
+              <div style="font-size: 0.75rem; color: #92400e; margin-top: 0.15rem;">
+                当前列表共 {{ friendsList.length }} 条友链。确认无误后点击右侧按钮一次性提交至 GitHub。
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.4rem;">
+              <button @click="resetFriendsDraft" :disabled="saving.friends" class="btn btn-secondary btn-sm">↩️ 放弃修改</button>
+              <button @click="saveFriendsToRepo" :disabled="saving.friends" class="btn btn-primary btn-sm">
+                💾 {{ saving.friends ? '正在同步...' : '保存全部友链' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Friends List Card -->
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
+              <div>
+                <div class="card-title" style="margin: 0;">🤝 友链卡片列表 (src/data/friends.ts)</div>
+                <div class="card-subtitle" style="margin-bottom: 0;">共 {{ friendsList.length }} 条友链 · 当前显示 {{ filteredFriends.length }} 条</div>
+              </div>
+              <input
+                type="text"
+                v-model="friendSearch"
+                class="form-input"
+                placeholder="🔍 搜索站点名、简介、网址或标签..."
+                style="max-width: 260px;"
+              >
+            </div>
+
+            <!-- Tag Filter Pills -->
+            <div v-if="allFriendTags.length > 0" class="sub-nav" style="margin-bottom: 0.85rem;">
+              <button
+                @click="friendTagFilter = 'all'"
+                :class="['sub-pill', friendTagFilter === 'all' ? 'active' : '']"
+              >
+                全部 ({{ friendsList.length }})
+              </button>
+              <button
+                v-for="tag in allFriendTags"
+                :key="tag"
+                @click="friendTagFilter = tag"
+                :class="['sub-pill', friendTagFilter === tag ? 'active' : '']"
+              >
+                {{ tag }}
+              </button>
+            </div>
+
+            <div v-if="loading.friends" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
+              正在连接 GitHub 读取友链列表...
+            </div>
+            <div v-else-if="friendsList.length === 0" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
+              暂无友链数据，点击右上角“新增友链”添加第一位小伙伴吧～
+            </div>
+            <div v-else-if="filteredFriends.length === 0" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
+              没有匹配的友链，请调整搜索关键词或标签筛选。
+            </div>
+            <div v-else class="friend-admin-grid">
+              <div v-for="(friend, idx) in filteredFriends" :key="friend.id + '-' + idx" class="friend-admin-card">
+                <div>
+                  <div class="friend-admin-head">
+                    <img
+                      :src="getFriendAvatarSrc(friend)"
+                      :alt="friend.title"
+                      class="friend-avatar"
+                      loading="lazy"
+                      @error="onFriendAvatarError"
+                    >
+                    <div style="flex: 1; min-width: 0;">
+                      <div style="font-weight: 700; font-size: 0.92rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        {{ friend.title }}
+                      </div>
+                      <a
+                        :href="friend.siteurl"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style="display: block; font-size: 0.73rem; color: var(--primary-hover); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 0.1rem;"
+                        :title="friend.siteurl"
+                      >
+                        {{ getHostname(friend.siteurl) || friend.siteurl }}
+                      </a>
+                      <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                        {{ friend.desc || '暂无简介' }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div v-if="friend.tags && friend.tags.length > 0" style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.6rem;">
+                    <span v-for="(t, tIdx) in friend.tags" :key="tIdx" class="friend-tag-pill">
+                      {{ t }}
+                    </span>
+                  </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 0.55rem; border-top: 1px solid #f1f5f9; gap: 0.35rem;">
+                  <div style="display: flex; gap: 0.25rem; align-items: center;">
+                    <template v-if="canReorderFriends">
+                      <button
+                        @click="moveFriend(idx, -1)"
+                        :disabled="idx === 0"
+                        class="btn btn-secondary btn-sm"
+                        style="padding: 0.2rem 0.45rem; font-size: 0.7rem;"
+                        title="上移"
+                      >⬆️</button>
+                      <button
+                        @click="moveFriend(idx, 1)"
+                        :disabled="idx === friendsList.length - 1"
+                        class="btn btn-secondary btn-sm"
+                        style="padding: 0.2rem 0.45rem; font-size: 0.7rem;"
+                        title="下移"
+                      >⬇️</button>
+                    </template>
+                    <span style="font-size: 0.68rem; color: #94a3b8; margin-left: 0.15rem;">#{{ friend.id }}</span>
+                  </div>
+                  <div style="display: flex; gap: 0.3rem;">
+                    <button @click="copyText(friend.siteurl)" class="btn btn-secondary btn-sm" style="padding: 0.25rem 0.5rem;" title="复制网址">📋</button>
+                    <button @click="openFriendEditor(friend)" class="btn btn-secondary btn-sm">编辑</button>
+                    <button @click="deleteFriendItem(friend)" class="btn btn-danger btn-sm">删除</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Friends Page Markdown Description Card -->
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
+              <div>
+                <div class="card-title" style="margin: 0;">📝 友链页说明文档 (src/content/spec/friends.md)</div>
+                <div class="card-subtitle" style="margin-bottom: 0;">显示在友链卡片下方的 Markdown 说明，可用于展示本站信息与友链申请规则</div>
+              </div>
+              <div style="display: flex; gap: 0.4rem;">
+                <button @click="fillFriendsDocTemplate" class="btn btn-secondary btn-sm">✨ 填入申请模板</button>
+                <button @click="saveFriendsDoc" :disabled="saving.friendsDoc" class="btn btn-primary btn-sm">
+                  💾 {{ saving.friendsDoc ? '保存中...' : '保存说明文档' }}
+                </button>
+              </div>
+            </div>
+
+            <div class="editor-grid" style="height: 260px;">
+              <textarea
+                v-model="friendsDocContent"
+                class="form-textarea"
+                style="height: 100%; min-height: 220px; font-family: monospace; line-height: 1.6;"
+                placeholder="在此编写友链页底部说明（支持 Markdown），留空则不显示额外说明..."
+              ></textarea>
+              <div class="editor-preview">
+                <div v-if="renderedFriendsDoc" v-html="renderedFriendsDoc"></div>
+                <span v-else style="color: #94a3b8;">右侧将实时预览 Markdown 说明文档...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 4: 壁纸换图 (v2.0 本地草稿模式) ==================== -->
         <div v-if="currentTab === 'banners'">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
             <div>
@@ -1561,6 +1824,103 @@
       </div>
     </div>
 
+    <!-- Friend Editor Modal -->
+    <div v-if="editingFriend" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">{{ editingFriend.isNew ? '🤝 新增友链' : '✏️ 编辑友链' }}</div>
+          <button @click="editingFriend = null" class="modal-close">✕</button>
+        </div>
+
+        <!-- Live Preview -->
+        <div class="friend-preview-box">
+          <div style="font-size: 0.68rem; font-weight: 600; color: var(--primary-hover); margin-bottom: 0.45rem;">实时卡片预览</div>
+          <div class="friend-admin-head">
+            <img
+              :src="editingFriend.avatarPreviewUrl || editingFriend.imgurl || ''"
+              :alt="editingFriend.title || '预览'"
+              class="friend-avatar"
+              @error="onFriendAvatarError"
+            >
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-weight: 700; font-size: 0.92rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                {{ editingFriend.title || '站点名称' }}
+              </div>
+              <div style="font-size: 0.73rem; color: var(--primary-hover); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                {{ getHostname(editingFriend.siteurl) || 'example.com' }}
+              </div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                {{ editingFriend.desc || '站点简介将显示在这里...' }}
+              </div>
+            </div>
+          </div>
+          <div v-if="editingFriendTags.length > 0" style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.5rem;">
+            <span v-for="(tag, idx) in editingFriendTags" :key="idx" class="friend-tag-pill">{{ tag }}</span>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">站点名称 (title) *</label>
+            <input type="text" v-model="editingFriend.title" class="form-input" placeholder="例如: Akari's Blog">
+          </div>
+          <div class="form-group">
+            <label class="form-label">站点网址 (siteurl) *</label>
+            <input type="url" v-model="editingFriend.siteurl" class="form-input" placeholder="https://example.com">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">头像 / 图标地址 (imgurl) *</label>
+          <div style="display: flex; gap: 0.4rem; align-items: center;">
+            <input
+              type="text"
+              v-model="editingFriend.imgurl"
+              @input="editingFriend.avatarPreviewUrl = ''"
+              class="form-input"
+              placeholder="https://... 或点击右侧上传图片"
+            >
+            <label class="btn btn-secondary btn-sm" style="cursor: pointer; flex-shrink: 0;">
+              📤 上传图片
+              <input type="file" accept="image/*" style="display: none;" @change="uploadFriendAvatar">
+            </label>
+          </div>
+          <div class="help-tip">支持直接粘贴外链头像 URL，或上传本地图片自动保存至 public/images/friends/</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">站点简介 (desc)</label>
+          <textarea v-model="editingFriend.desc" class="form-textarea" rows="2" placeholder="一句话介绍这个站点..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">分类标签 (tags，多个用逗号隔开)</label>
+          <input type="text" v-model="editingFriend.rawTags" class="form-input" placeholder="博客, 朋友, 技术">
+          <div v-if="allFriendTags.length > 0" style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.4rem; align-items: center;">
+            <span style="font-size: 0.68rem; color: var(--text-muted);">已有标签：</span>
+            <button
+              type="button"
+              v-for="tag in allFriendTags"
+              :key="'pick-' + tag"
+              @click="appendFriendTag(tag)"
+              class="btn btn-secondary btn-sm"
+              style="padding: 0.12rem 0.45rem; font-size: 0.68rem;"
+            >
+              + {{ tag }}
+            </button>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap;">
+          <button @click="editingFriend = null" class="btn btn-secondary">取消</button>
+          <button @click="saveFriendAction(false)" :disabled="saving.friends" class="btn btn-secondary">仅暂存到列表</button>
+          <button @click="saveFriendAction(true)" :disabled="saving.friends" class="btn btn-primary">
+            {{ saving.friends ? '正在同步...' : '💾 保存并同步' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Project Editor Modal -->
     <div v-if="editingProject" class="modal-overlay">
       <div class="modal-card">
@@ -1811,6 +2171,7 @@
         const tabs = [
           { id: 'posts', name: '文章', icon: '✍️' },
           { id: 'diary', name: '日记', icon: '📖' },
+          { id: 'friends', name: '友链', icon: '🤝' },
           { id: 'banners', name: '换图', icon: '🖼️' },
           { id: 'links', name: '导航与侧栏', icon: '🧭' },
           { id: 'others', name: '更多项目', icon: '🧩' },
@@ -1833,8 +2194,8 @@
         const showTokenModal = ref(!repoConfig.token);
         const isConnected = computed(() => !!repoConfig.token);
 
-        const loading = reactive({ posts: false, media: false, diary: false });
-        const saving = reactive({ post: false, diary: false, links: false, site: false, banners: false, others: false });
+        const loading = reactive({ posts: false, media: false, diary: false, friends: false });
+        const saving = reactive({ post: false, diary: false, friends: false, friendsDoc: false, links: false, site: false, banners: false, others: false });
         const toast = reactive({ show: false, message: '', type: 'info' });
         const imageCacheBust = ref(Date.now());
 
@@ -1848,6 +2209,16 @@
         // Diary state
         const diaryList = ref([]);
         const editingDiary = ref(null);
+
+        // Friends state
+        const friendsList = ref([]);
+        const savedFriendsSnapshot = ref('[]');
+        const friendSearch = ref('');
+        const friendTagFilter = ref('all');
+        const editingFriend = ref(null);
+        const friendsDocContent = ref('');
+        const friendsDocSha = ref(null);
+        const friendAvatarPreviewMap = reactive({});
 
         // Banners state
         const desktopBanners = ref([
@@ -1887,7 +2258,7 @@
         const featurePages = reactive({
           anime: true,
           diary: true,
-          friends: false,
+          friends: true,
           projects: true,
           skills: false,
           timeline: true,
@@ -2839,6 +3210,383 @@
           }
         };
 
+        // ==================== FRIENDS MANAGEMENT ====================
+        const FRIEND_AVATAR_FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23e2e8f0'/%3E%3Ccircle cx='32' cy='25' r='11' fill='%2394a3b8'/%3E%3Cpath d='M14 54c2-11 10-16 18-16s16 5 18 16' fill='%2394a3b8'/%3E%3C/svg%3E";
+        const FRIENDS_ARRAY_REGEX = /(?:export\s+)?const\s+friendsData:\s*FriendItem\[\]\s*=\s*(\[\s*\]|\[[\s\S]*?\n\]);/;
+        const FRIENDS_ARRAY_FALLBACK_REGEX = /(?:export\s+)?const\s+friendsData:\s*FriendItem\[\]\s*=\s*(\[[\s\S]*?\]);/;
+
+        const normalizeFriendList = (rawList) => {
+          if (!Array.isArray(rawList)) return [];
+          return rawList.map((item, idx) => ({
+            id: Number.isFinite(Number(item?.id)) ? Number(item.id) : idx + 1,
+            title: String(item?.title || '').trim(),
+            imgurl: String(item?.imgurl || '').trim(),
+            desc: String(item?.desc || '').trim(),
+            siteurl: String(item?.siteurl || '').trim(),
+            tags: Array.isArray(item?.tags)
+              ? item.tags.map(t => String(t).trim()).filter(Boolean)
+              : []
+          }));
+        };
+
+        const formatFriendsDataTs = (list) => {
+          const cleanList = normalizeFriendList(list);
+          if (cleanList.length === 0) {
+            return 'export const friendsData: FriendItem[] = [];';
+          }
+          const itemsCode = cleanList.map((f) => {
+            const tagsCode = '[' + f.tags.map(t => JSON.stringify(t)).join(', ') + ']';
+            return [
+              '\t{',
+              `\t\tid: ${f.id},`,
+              `\t\ttitle: ${JSON.stringify(f.title)},`,
+              `\t\timgurl: ${JSON.stringify(f.imgurl)},`,
+              `\t\tdesc: ${JSON.stringify(f.desc)},`,
+              `\t\tsiteurl: ${JSON.stringify(f.siteurl)},`,
+              `\t\ttags: ${tagsCode},`,
+              '\t},',
+            ].join('\n');
+          }).join('\n');
+          return `export const friendsData: FriendItem[] = [\n${itemsCode}\n];`;
+        };
+
+        const getHostname = (url) => {
+          if (!url) return '';
+          try {
+            return new URL(url.trim()).hostname;
+          } catch (_e) {
+            return '';
+          }
+        };
+
+        const isValidHttpUrl = (url) => {
+          if (!url) return false;
+          try {
+            const parsed = new URL(url.trim());
+            return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+          } catch (_e) {
+            return false;
+          }
+        };
+
+        const getFriendAvatarSrc = (friend) => {
+          if (!friend || !friend.imgurl) return FRIEND_AVATAR_FALLBACK;
+          return friendAvatarPreviewMap[friend.imgurl] || friend.imgurl;
+        };
+
+        const onFriendAvatarError = (event) => {
+          if (event.target.dataset.fallbackApplied) return;
+          event.target.dataset.fallbackApplied = '1';
+          event.target.src = FRIEND_AVATAR_FALLBACK;
+        };
+
+        const hasUnsavedFriendChanges = computed(() => {
+          return JSON.stringify(friendsList.value) !== savedFriendsSnapshot.value;
+        });
+
+        const allFriendTags = computed(() => {
+          const tagSet = new Set();
+          friendsList.value.forEach((f) => {
+            if (Array.isArray(f.tags)) {
+              f.tags.forEach((t) => {
+                if (t) tagSet.add(t);
+              });
+            }
+          });
+          return Array.from(tagSet);
+        });
+
+        const canReorderFriends = computed(() => {
+          return !friendSearch.value.trim() && friendTagFilter.value === 'all';
+        });
+
+        const filteredFriends = computed(() => {
+          const keyword = friendSearch.value.trim().toLowerCase();
+          const activeTag = friendTagFilter.value;
+          return friendsList.value.filter((f) => {
+            if (activeTag !== 'all' && !(Array.isArray(f.tags) && f.tags.includes(activeTag))) {
+              return false;
+            }
+            if (!keyword) return true;
+            const hay = [
+              f.title || '',
+              f.desc || '',
+              f.siteurl || '',
+              ...(Array.isArray(f.tags) ? f.tags : [])
+            ].join(' ').toLowerCase();
+            return hay.includes(keyword);
+          });
+        });
+
+        const editingFriendTags = computed(() => {
+          if (!editingFriend.value || !editingFriend.value.rawTags) return [];
+          return editingFriend.value.rawTags.split(/[,，]/).map(t => t.trim()).filter(Boolean);
+        });
+
+        const renderedFriendsDoc = computed(() => {
+          if (!friendsDocContent.value || !window.marked) return '';
+          return marked.parse(friendsDocContent.value);
+        });
+
+        const fetchFriends = async () => {
+          if (!repoConfig.token) return;
+          loading.friends = true;
+          try {
+            const file = await getFile('src/data/friends.ts');
+            const match = file.content.match(FRIENDS_ARRAY_REGEX) || file.content.match(FRIENDS_ARRAY_FALLBACK_REGEX);
+            if (match) {
+              const parsed = new Function('return ' + match[1])();
+              const normalized = normalizeFriendList(parsed);
+              friendsList.value = normalized;
+              savedFriendsSnapshot.value = JSON.stringify(normalized);
+            }
+          } catch (err) {
+            console.warn('获取友链数据失败:', err);
+            showToast('读取友链数据失败: ' + err.message, 'error');
+          } finally {
+            loading.friends = false;
+          }
+
+          try {
+            const docFile = await getFile('src/content/spec/friends.md');
+            friendsDocContent.value = docFile.content || '';
+            friendsDocSha.value = docFile.sha || null;
+          } catch (_e) {
+            friendsDocContent.value = '';
+            friendsDocSha.value = null;
+          }
+        };
+
+        const openFriendEditor = (friend) => {
+          if (friend) {
+            editingFriend.value = {
+              isNew: false,
+              id: friend.id,
+              title: friend.title || '',
+              siteurl: friend.siteurl || '',
+              imgurl: friend.imgurl || '',
+              avatarPreviewUrl: friendAvatarPreviewMap[friend.imgurl] || '',
+              desc: friend.desc || '',
+              rawTags: Array.isArray(friend.tags) ? friend.tags.join(', ') : ''
+            };
+          } else {
+            const maxId = friendsList.value.reduce((max, item) => {
+              const n = Number(item.id);
+              return Number.isFinite(n) && n > max ? n : max;
+            }, 0);
+            editingFriend.value = {
+              isNew: true,
+              id: maxId + 1,
+              title: '',
+              siteurl: 'https://',
+              imgurl: '',
+              avatarPreviewUrl: '',
+              desc: '',
+              rawTags: ''
+            };
+          }
+        };
+
+        const appendFriendTag = (tag) => {
+          if (!editingFriend.value) return;
+          const current = editingFriendTags.value;
+          if (current.includes(tag)) return;
+          editingFriend.value.rawTags = [...current, tag].join(', ');
+        };
+
+        const uploadFriendAvatar = async (event) => {
+          const file = event.target.files?.[0];
+          if (!file) return;
+          showToast('正在上传友链头像...', 'info');
+          try {
+            const previewPromise = new Promise((resolve) => {
+              const reader = new FileReader();
+              reader.onload = (e) => resolve(e.target.result);
+              reader.onerror = () => resolve('');
+              reader.readAsDataURL(file);
+            });
+            const [imgUrl, previewDataUrl] = await Promise.all([
+              uploadFileAndGetPath(file, 'friend', 'friends'),
+              previewPromise
+            ]);
+            if (previewDataUrl) {
+              friendAvatarPreviewMap[imgUrl] = previewDataUrl;
+            }
+            if (editingFriend.value) {
+              editingFriend.value.imgurl = imgUrl;
+              editingFriend.value.avatarPreviewUrl = previewDataUrl;
+            }
+            showToast('友链头像上传成功！');
+          } catch (err) {
+            showToast('头像上传失败: ' + err.message, 'error');
+          } finally {
+            event.target.value = '';
+          }
+        };
+
+        const saveFriendsToRepo = async () => {
+          const cleanList = normalizeFriendList(friendsList.value);
+          for (const item of cleanList) {
+            if (!item.title || !isValidHttpUrl(item.siteurl)) {
+              showToast(`友链「${item.title || item.id}」的网址格式无效，必须以 http:// 或 https:// 开头`, 'error');
+              return false;
+            }
+          }
+          saving.friends = true;
+          try {
+            await updateFileSafe('src/data/friends.ts', (content) => {
+              const code = formatFriendsDataTs(cleanList);
+              if (FRIENDS_ARRAY_REGEX.test(content)) {
+                return content.replace(FRIENDS_ARRAY_REGEX, code);
+              }
+              if (FRIENDS_ARRAY_FALLBACK_REGEX.test(content)) {
+                return content.replace(FRIENDS_ARRAY_FALLBACK_REGEX, code);
+              }
+              throw new Error('未在 src/data/friends.ts 中找到 friendsData 定义');
+            }, 'feat(friends): update friends data');
+
+            friendsList.value = cleanList;
+            savedFriendsSnapshot.value = JSON.stringify(cleanList);
+            showToast('🎉 友链数据已成功保存至 GitHub 仓库！');
+            return true;
+          } catch (err) {
+            showToast('保存友链失败: ' + err.message, 'error');
+            return false;
+          } finally {
+            saving.friends = false;
+          }
+        };
+
+        const saveFriendAction = async (syncImmediately = true) => {
+          if (!editingFriend.value) return;
+          const title = (editingFriend.value.title || '').trim();
+          const siteurl = (editingFriend.value.siteurl || '').trim();
+          const imgurl = (editingFriend.value.imgurl || '').trim();
+          const desc = (editingFriend.value.desc || '').trim();
+
+          if (!title) {
+            showToast('请填写站点名称', 'error');
+            return;
+          }
+          if (!isValidHttpUrl(siteurl)) {
+            showToast('请填写有效的站点网址（必须以 http:// 或 https:// 开头）', 'error');
+            return;
+          }
+          if (!imgurl) {
+            showToast('请填写头像地址或上传本地图片', 'error');
+            return;
+          }
+
+          const tags = editingFriend.value.rawTags
+            ? Array.from(new Set(editingFriend.value.rawTags.split(/[,，]/).map(t => t.trim()).filter(Boolean)))
+            : [];
+
+          const item = {
+            id: Number(editingFriend.value.id) || (friendsList.value.length + 1),
+            title,
+            imgurl,
+            desc,
+            siteurl,
+            tags
+          };
+
+          const prevList = friendsList.value.map(f => ({ ...f, tags: [...(f.tags || [])] }));
+          if (editingFriend.value.isNew) {
+            friendsList.value.push(item);
+          } else {
+            const idx = friendsList.value.findIndex(f => f.id === item.id);
+            if (idx !== -1) friendsList.value[idx] = item;
+            else friendsList.value.push(item);
+          }
+
+          if (syncImmediately) {
+            const ok = await saveFriendsToRepo();
+            if (ok) {
+              editingFriend.value = null;
+            } else {
+              friendsList.value = prevList;
+            }
+          } else {
+            editingFriend.value = null;
+            showToast('已暂存至友链列表，点击上方【保存全部友链】即可统一同步！');
+          }
+        };
+
+        const deleteFriendItem = (friend) => {
+          if (!confirm(`确定要从列表中移除友链「${friend.title}」吗？`)) return;
+          const idx = friendsList.value.findIndex(f => f.id === friend.id);
+          if (idx !== -1) {
+            friendsList.value.splice(idx, 1);
+            if (friendTagFilter.value !== 'all' && !allFriendTags.value.includes(friendTagFilter.value)) {
+              friendTagFilter.value = 'all';
+            }
+            showToast('已从列表移除，点击上方【保存全部友链】生效！');
+          }
+        };
+
+        const moveFriend = (index, direction) => {
+          if (!canReorderFriends.value) return;
+          const targetIndex = index + direction;
+          if (targetIndex < 0 || targetIndex >= friendsList.value.length) return;
+          const list = [...friendsList.value];
+          const temp = list[index];
+          list[index] = list[targetIndex];
+          list[targetIndex] = temp;
+          friendsList.value = list;
+        };
+
+        const resetFriendsDraft = () => {
+          try {
+            friendsList.value = JSON.parse(savedFriendsSnapshot.value);
+            friendTagFilter.value = 'all';
+            showToast('已放弃未保存的友链修改');
+          } catch (_e) {
+            fetchFriends();
+          }
+        };
+
+        const fillFriendsDocTemplate = () => {
+          if (friendsDocContent.value.trim() && !confirm('当前说明文档已有内容，确定要替换为默认申请模板吗？')) {
+            return;
+          }
+          friendsDocContent.value = [
+            '## 申请友链',
+            '',
+            '欢迎交换友情链接！请在下方评论区留言或通过邮箱联系，并附上以下信息：',
+            '',
+            '- **站点名称**：你的博客名称',
+            '- **站点地址**：`https://your-site.com/`',
+            '- **头像链接**：`https://your-site.com/avatar.png`',
+            '- **站点简介**：一句话介绍你的网站',
+            '',
+            '### 本站信息',
+            '',
+            '- **名称**：AKARI.md',
+            '- **网址**：`https://anon-akari.top/`',
+            '- **头像**：`https://anon-akari.top/assets/home/home.webp`',
+            '- **简介**：Ciallo～(∠・ω< )⌒★',
+            ''
+          ].join('\n');
+        };
+
+        const saveFriendsDoc = async () => {
+          saving.friendsDoc = true;
+          try {
+            const res = await putFile(
+              'src/content/spec/friends.md',
+              friendsDocContent.value,
+              'feat(friends): update friends page description',
+              friendsDocSha.value
+            );
+            friendsDocSha.value = res?.content?.sha || await getFileSha('src/content/spec/friends.md');
+            showToast('友链页说明文档已保存！');
+          } catch (err) {
+            showToast('保存说明文档失败: ' + err.message, 'error');
+          } finally {
+            saving.friendsDoc = false;
+          }
+        };
+
         // ==================== NAV, PROFILE, SWITCHES & SOCIAL (BUG FIX) ====================
         const fetchLinksConfig = async () => {
           if (!repoConfig.token) return;
@@ -3356,6 +4104,7 @@
           if (!repoConfig.token) return;
           fetchPosts();
           fetchDiary();
+          fetchFriends();
           fetchBannersConfig();
           fetchMediaGallery();
           fetchLinksConfig();
@@ -3389,6 +4138,17 @@
           renderedMarkdown,
           diaryList,
           editingDiary,
+          friendsList,
+          friendSearch,
+          friendTagFilter,
+          editingFriend,
+          friendsDocContent,
+          hasUnsavedFriendChanges,
+          allFriendTags,
+          canReorderFriends,
+          filteredFriends,
+          editingFriendTags,
+          renderedFriendsDoc,
           imageCacheBust,
           desktopBanners,
           mobileBanners,
@@ -3425,6 +4185,7 @@
           disconnectRepo,
           fetchPosts,
           fetchDiary,
+          fetchFriends,
           fetchBannersConfig,
           fetchMediaGallery,
           fetchLinksConfig,
@@ -3441,6 +4202,19 @@
           uploadDiaryImage,
           saveDiaryAction,
           deleteDiaryItem,
+          getHostname,
+          getFriendAvatarSrc,
+          onFriendAvatarError,
+          openFriendEditor,
+          appendFriendTag,
+          uploadFriendAvatar,
+          saveFriendsToRepo,
+          saveFriendAction,
+          deleteFriendItem,
+          moveFriend,
+          resetFriendsDraft,
+          fillFriendsDocTemplate,
+          saveFriendsDoc,
           uploadAvatar,
           uploadPostImage,
           uploadArticleCover,
