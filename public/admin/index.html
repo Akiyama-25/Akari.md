@@ -7,6 +7,8 @@
   <link rel="icon" href="/favicon.png">
   <script src="/admin/vendor/vue.global.prod.js"></script>
   <script src="/admin/vendor/marked.min.js"></script>
+  <script src="/admin/vendor/nacl-fast.min.js"></script>
+  <script src="/admin/vendor/sealedbox.js"></script>
   <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
   <style>
     :root {
@@ -951,7 +953,7 @@
           <div>
             <div class="brand-title">
               <span>Akari 管理后台</span>
-              <span class="version-pill">v2.4</span>
+              <span class="version-pill">v2.4.1</span>
             </div>
             <div class="brand-sub">anon-akari.top · 站点管理中心</div>
           </div>
@@ -1251,13 +1253,16 @@
 
             <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;">
               <button @click="syncFromWebdavBrowser" :disabled="loading.webdav" class="btn btn-primary btn-sm">
-                🔄 {{ loading.webdav ? '正在拉取解析...' : '从 WebDAV 拉取同步' }}
+                🔄 {{ loading.webdav ? '正在拉取解析...' : '浏览器内拉取同步' }}
+              </button>
+              <button @click="triggerWebdavGithubAction" :disabled="saving.webdavAction" class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
+                ☁️ {{ saving.webdavAction ? '同步中...' : '保存凭据并云端 Actions 同步' }}
+              </button>
+              <button @click="syncWebdavSecretsOnly" :disabled="saving.webdavSecrets" class="btn btn-secondary btn-sm">
+                🔐 {{ saving.webdavSecrets ? '写入中...' : '仅写入 GitHub Secrets' }}
               </button>
               <button @click="pushToWebdavBrowser" :disabled="saving.webdavPush" class="btn btn-secondary btn-sm">
                 ⬆️ {{ saving.webdavPush ? '正在推送...' : '反向备份到 WebDAV' }}
-              </button>
-              <button @click="triggerWebdavGithubAction" :disabled="saving.webdavAction" class="btn btn-secondary btn-sm">
-                ☁️ {{ saving.webdavAction ? '触发中...' : '触发 GitHub Actions 云端同步' }}
               </button>
               <label class="btn btn-secondary btn-sm" style="cursor: pointer;">
                 📂 导入本地文件
@@ -3275,7 +3280,7 @@
         const isConnected = computed(() => !!repoConfig.token);
 
         const loading = reactive({ posts: false, media: false, diary: false, friends: false, anime: false, webdav: false, albums: false });
-        const saving = reactive({ post: false, diary: false, friends: false, friendsDoc: false, links: false, site: false, banners: false, others: false, anime: false, animeMode: false, webdavPush: false, webdavAction: false, announcement: false, albums: false });
+        const saving = reactive({ post: false, diary: false, friends: false, friendsDoc: false, links: false, site: false, banners: false, others: false, anime: false, animeMode: false, webdavPush: false, webdavAction: false, webdavSecrets: false, announcement: false, albums: false });
         const toast = reactive({ show: false, message: '', type: 'info' });
         const imageCacheBust = ref(Date.now());
 
@@ -5216,17 +5221,51 @@
           return fallback;
         };
 
+        const parseEpsFromInfo = (infoStr) => {
+          if (!infoStr || typeof infoStr !== 'string') return 0;
+          const m = infoStr.match(/(\d+)\s*(?:话|話|集|ep)/i);
+          return m ? parseInt(m[1], 10) : 0;
+        };
+
+        const extractKazumiMaxEp = (item) => {
+          let maxEp = toSafeNum(item.lastWatchEpisode, 0);
+          if (item.progresses && typeof item.progresses === 'object') {
+            for (const [k, val] of Object.entries(item.progresses)) {
+              const ep = toSafeNum(val?.episode ?? k, 0);
+              if (ep > maxEp) maxEp = ep;
+            }
+          }
+          return Math.max(0, Math.round(maxEp));
+        };
+
         const normalizeAnimeItem = (item, isKazumi = false) => {
           if (!item || typeof item !== 'object') return null;
+          const hasBangumiItem = Boolean(item.bangumiItem && typeof item.bangumiItem === 'object');
+          const isKazumiHistory = hasBangumiItem && (item.lastWatchEpisode !== undefined || item.progresses !== undefined || item.lastWatchTime !== undefined);
           const sub = item.bangumiItem || item.subject || item.anime || item;
           const title = String(item.title || item.name_cn || item.nameCn || sub.nameCn || sub.name_cn || sub.title || sub.name || item.name || item.series_title || '').trim();
           if (!title) return null;
 
-          const status = normalizeAnimeStatus(item.status ?? item.state ?? item.type ?? item.collectType ?? item.my_status ?? (isKazumi ? 1 : 'watching'), isKazumi);
-          const progress = Math.max(0, Math.round(toSafeNum(item.progress ?? item.ep_status ?? item.watched_episodes ?? item.my_watched_episodes ?? item.lastWatchEpisode ?? item.episode ?? item.watched ?? 0, 0)));
-          let totalEpisodes = Math.max(0, Math.round(toSafeNum(item.totalEpisodes ?? item.total_episodes ?? item.eps ?? item.episodes ?? item.series_episodes ?? sub.eps ?? sub.totalEpisodes ?? 0, 0)));
+          const progress = isKazumiHistory
+            ? extractKazumiMaxEp(item)
+            : Math.max(0, Math.round(toSafeNum(item.progress ?? item.ep_status ?? item.watched_episodes ?? item.my_watched_episodes ?? item.lastWatchEpisode ?? item.episode ?? item.watched ?? 0, 0)));
+
+          const infoEps = parseEpsFromInfo(sub.info || item.info || '');
+          let totalEpisodes = Math.max(0, Math.round(toSafeNum(item.totalEpisodes ?? item.total_episodes ?? item.eps ?? item.episodes ?? item.series_episodes ?? sub.eps ?? sub.totalEpisodes ?? infoEps ?? 0, 0)));
+          const hasKnownTotal = totalEpisodes > 0;
+
+          let status;
+          if (isKazumiHistory) {
+            if (item.status || item.collectType) status = normalizeAnimeStatus(item.status ?? item.collectType, true);
+            else if (hasKnownTotal && progress >= totalEpisodes) status = 'completed';
+            else status = 'watching';
+          } else {
+            const rawStatus = item.status ?? item.state ?? item.collectType ?? item.my_status ?? (!hasBangumiItem ? item.type : undefined) ?? 'watching';
+            status = normalizeAnimeStatus(rawStatus, isKazumi);
+          }
+
           if (totalEpisodes === 0) totalEpisodes = progress > 0 ? Math.max(progress, 12) : 12;
-          const rating = Number(toSafeNum(item.rating ?? item.rate ?? item.score ?? item.my_score ?? sub.ratingScore ?? sub.score ?? 0, 0).toFixed(1));
+          const rating = Number(toSafeNum(item.rating ?? item.rate ?? item.score ?? item.my_score ?? sub.ratingScore ?? sub.rating?.score ?? sub.score ?? 0, 0).toFixed(1));
 
           let cover = '';
           const rawCover = item.cover ?? item.image ?? item.poster ?? item.img ?? sub.images?.large ?? sub.images?.common ?? sub.images?.medium ?? sub.cover ?? sub.image ?? '';
@@ -5264,7 +5303,10 @@
             totalEpisodes,
             startDate: String(item.startDate || rawDate || '').slice(0, 10),
             endDate: String(item.endDate || '').slice(0, 10),
-            _bangumiId: subjectId && /^\d+$/.test(String(subjectId)) ? String(subjectId) : ''
+            _bangumiId: subjectId && /^\d+$/.test(String(subjectId)) ? String(subjectId) : '',
+            _hasKnownTotal: hasKnownTotal,
+            _isKazumiHistory: isKazumiHistory,
+            _lastWatchTime: toSafeNum(item.lastWatchTime ?? item.updatedAt ?? 0, 0)
           };
         };
 
@@ -5349,7 +5391,7 @@
         const parseAnimePayloadText = (rawText, format = 'auto', filenameHint = '') => {
           const trimmed = String(rawText || '').trim();
           if (!trimmed) return [];
-          const isKazumiHint = format === 'kazumi' || /kazumi|collectibles|histories/i.test(filenameHint);
+          const isKazumiHint = format === 'kazumi' || /kazumi|collectibles|histories|snapshot\.json/i.test(filenameHint);
           if (format === 'mal-xml' || (format === 'auto' && /<myanimelist[\s>]|<anime>/i.test(trimmed))) {
             return parseAnimeMalXml(trimmed);
           }
@@ -5369,7 +5411,7 @@
             let arr = [];
             if (Array.isArray(parsed)) arr = parsed;
             else if (typeof parsed === 'object') {
-              const keys = ['data', 'items', 'list', 'animes', 'anime', 'animeList', 'bangumi', 'collections', 'collectibles', 'histories', 'records'];
+              const keys = ['histories', 'collectibles', 'data', 'items', 'list', 'animes', 'anime', 'animeList', 'bangumi', 'collections', 'records'];
               for (const k of keys) {
                 if (Array.isArray(parsed[k])) { arr = parsed[k]; break; }
               }
@@ -5378,7 +5420,11 @@
                 if (vals.length > 0 && vals.every(v => v && typeof v === 'object' && !Array.isArray(v))) arr = vals;
               }
             }
-            return arr.map(it => normalizeAnimeItem(it, isKazumiHint)).filter(Boolean);
+            const normalized = arr.map(it => normalizeAnimeItem(it, isKazumiHint)).filter(Boolean);
+            if (normalized.some(n => n._lastWatchTime > 0)) {
+              normalized.sort((a, b) => (b._lastWatchTime || 0) - (a._lastWatchTime || 0));
+            }
+            return normalized;
           }
           if (format === 'auto' && trimmed.includes('\n') && /[,;\t]/.test(trimmed.split('\n')[0])) {
             return parseAnimeCsv(trimmed);
@@ -5386,14 +5432,14 @@
           return [];
         };
 
-        const stripInternalAnimeFields = (list) => list.map(({ _bangumiId, ...rest }) => rest);
+        const stripInternalAnimeFields = (list) => list.map(({ _bangumiId, _hasKnownTotal, _isKazumiHistory, _lastWatchTime, ...rest }) => rest);
 
         const applySyncedAnimeRecords = async (incomingList, sourceLabel) => {
           let processed = incomingList;
           if (webdavConfig.enrichBangumi) {
-            const needEnrich = processed.filter(it => it._bangumiId && (!it.cover || it.cover === '/assets/anime/default.webp' || !it.description));
+            const needEnrich = processed.filter(it => it._bangumiId && (!it.cover || it.cover === '/assets/anime/default.webp' || !it.description || !it.studio || !it._hasKnownTotal));
             if (needEnrich.length > 0) {
-              showToast(`正在从 Bangumi 补全 ${Math.min(needEnrich.length, 30)} 部番剧封面与简介...`, 'info');
+              showToast(`正在从 Bangumi 补全 ${Math.min(needEnrich.length, 30)} 部番剧详情...`, 'info');
               let count = 0;
               for (const it of needEnrich) {
                 if (count >= 30) break;
@@ -5406,6 +5452,16 @@
                     if (!it.description && detail.summary) it.description = detail.summary.trim();
                     if (!it.year && detail.date) it.year = String(detail.date).slice(0, 4);
                     if ((!it.genre || !it.genre.length) && Array.isArray(detail.tags)) it.genre = detail.tags.slice(0, 3).map(t => t.name);
+                    const detailEps = Number(detail.eps || detail.total_episodes || 0);
+                    if (!it._hasKnownTotal && detailEps > 0) {
+                      it.totalEpisodes = detailEps;
+                      it.episodes = `${detailEps} episodes`;
+                      if (it._isKazumiHistory && it.progress >= detailEps) it.status = 'completed';
+                    }
+                    if (!it.studio && Array.isArray(detail.infobox)) {
+                      const sInfo = detail.infobox.find(i => ['动画制作', '制作', '製作'].includes(i.key));
+                      if (sInfo) it.studio = typeof sInfo.value === 'string' ? sInfo.value : (Array.isArray(sInfo.value) && sInfo.value[0]?.v ? sInfo.value[0].v : '');
+                    }
                   }
                 } catch (_e) {}
               }
@@ -5448,15 +5504,12 @@
           showToast(`成功同步解析 ${cleanIncoming.length} 部番剧！`);
         };
 
-        const buildWebdavRequestUrl = (baseUrl, remotePath) => {
+        const buildWebdavTargetUrl = (baseUrl, remotePath) => {
           const cleanBase = String(baseUrl || '').trim().replace(/\/+$/, '');
           const cleanPath = String(remotePath || '').trim();
-          const full = !cleanPath || cleanPath === '/'
+          return !cleanPath || cleanPath === '/'
             ? `${cleanBase}/`
             : (/^https?:\/\//i.test(cleanPath) ? cleanPath : `${cleanBase}/${cleanPath.replace(/^\/+/, '')}`);
-          const proxy = String(webdavConfig.corsProxy || '').trim();
-          if (!proxy) return full;
-          return proxy.includes('{url}') ? proxy.replace('{url}', encodeURIComponent(full)) : `${proxy}${encodeURIComponent(full)}`;
         };
 
         const buildWebdavAuthHeaders = () => {
@@ -5468,6 +5521,38 @@
           return headers;
         };
 
+        // Fetch via custom CORS proxy, built-in Cloudflare Pages Function (/admin/api/webdav-proxy), or direct
+        const webdavSmartFetch = async (targetUrl, method = 'GET', extraHeaders = {}, body = undefined) => {
+          const authHeaders = { ...buildWebdavAuthHeaders(), ...extraHeaders };
+          const customProxy = String(webdavConfig.corsProxy || '').trim();
+          if (customProxy) {
+            const proxiedUrl = customProxy.includes('{url}')
+              ? customProxy.replace('{url}', encodeURIComponent(targetUrl))
+              : `${customProxy}${encodeURIComponent(targetUrl)}`;
+            return await fetch(proxiedUrl, { method, headers: authHeaders, body });
+          }
+
+          // Try built-in same-origin Pages Function proxy first (solves Jianguoyun CORS automatically)
+          try {
+            const builtInUrl = `/admin/api/webdav-proxy?url=${encodeURIComponent(targetUrl)}`;
+            const proxyRes = await fetch(builtInUrl, {
+              method: method === 'PROPFIND' ? 'POST' : method,
+              headers: { ...authHeaders, 'X-WebDAV-Method': method },
+              body,
+              credentials: 'same-origin'
+            });
+            // If Cloudflare Pages Function is deployed, it won't return HTML 404 page
+            const ct = (proxyRes.headers.get('content-type') || '').toLowerCase();
+            const isMissingFunction = proxyRes.status === 404 && ct.includes('text/html');
+            if (!isMissingFunction) {
+              return proxyRes;
+            }
+          } catch (_e) {}
+
+          // Fallback to direct browser fetch
+          return await fetch(targetUrl, { method, headers: authHeaders, body });
+        };
+
         const syncFromWebdavBrowser = async () => {
           persistWebdavLocal();
           if (!webdavConfig.url.trim()) {
@@ -5477,23 +5562,27 @@
           loading.webdav = true;
           webdavSyncLog.value = null;
           try {
-            const headers = buildWebdavAuthHeaders();
             const rawPath = (webdavConfig.path || '/anime.json').trim();
             const isDir = rawPath.endsWith('/') || !/\.[a-z0-9]{2,5}$/i.test(rawPath);
             let collected = [];
 
             if (!isDir) {
-              const reqUrl = buildWebdavRequestUrl(webdavConfig.url, rawPath);
-              const res = await fetch(reqUrl, { method: 'GET', headers });
-              if (!res.ok) throw new Error(`WebDAV 返回 HTTP ${res.status} (${res.statusText || '请求失败'})`);
+              const targetUrl = buildWebdavTargetUrl(webdavConfig.url, rawPath);
+              const res = await webdavSmartFetch(targetUrl, 'GET');
+              if (!res.ok) {
+                if (res.status === 401 || res.status === 403) {
+                  throw new Error(`鉴权失败 (HTTP ${res.status})，请检查 WebDAV 用户名和应用授权码是否正确`);
+                }
+                throw new Error(`WebDAV 返回 HTTP ${res.status} (${res.statusText || '请求失败'})`);
+              }
               const text = await res.text();
               collected = parseAnimePayloadText(text, webdavConfig.format, rawPath);
             } else {
-              const candidates = ['anime.json', 'bangumi-data.json', 'bangumi.json', 'webdav-anime-data.json', 'collectibles.tmp', 'histories.tmp', 'kazumiSync/collectibles.tmp', 'kazumiSync/histories.tmp'];
+              const candidates = ['history/snapshot.json', 'snapshot.json', 'kazumiSync/history/snapshot.json', 'anime.json', 'bangumi-data.json', 'bangumi.json', 'webdav-anime-data.json', 'collectibles.tmp', 'histories.tmp'];
               for (const name of candidates) {
                 const subPath = `${rawPath.replace(/\/+$/, '')}/${name}`;
                 try {
-                  const res = await fetch(buildWebdavRequestUrl(webdavConfig.url, subPath), { method: 'GET', headers });
+                  const res = await webdavSmartFetch(buildWebdavTargetUrl(webdavConfig.url, subPath), 'GET');
                   if (res.ok) {
                     const txt = await res.text();
                     const parsed = parseAnimePayloadText(txt, webdavConfig.format, name);
@@ -5506,7 +5595,7 @@
             if (collected.length === 0) {
               webdavSyncLog.value = {
                 type: 'error',
-                message: '未能从 WebDAV 文件中解析出有效番剧记录，请检查文件路径、文件内容格式（如 JSON / MAL XML / CSV / Kazumi 文本）或切换“数据格式”选项。'
+                message: '已连通 WebDAV 但未能解析出有效番剧记录，请检查远程路径是否正确（例如 /kazumiSync/history/snapshot.json）或确认文件非空。'
               };
               showToast('未解析到有效追番记录', 'error');
               return;
@@ -5517,10 +5606,10 @@
             webdavSyncLog.value = {
               type: 'error',
               message: isCors
-                ? '❌ 浏览器直连 WebDAV 被跨域 (CORS) 或网络策略拦截。解决方式：① 填写上方的 CORS 代理前缀；② 在 GitHub Secrets 配置 WEBDAV_* 后直接点击【触发 GitHub Actions 云端同步】（推荐，完全免 CORS）；③ 下载文件后点击【导入本地文件】。'
+                ? '❌ 浏览器直连 WebDAV 被跨域 (CORS) 拦截。请直接点击右侧蓝色按钮【保存凭据并云端 Actions 同步】（会自动加密写入 GitHub Secrets 并在云端免 CORS 拉取），或等待同源代理生效后重试。'
                 : `❌ WebDAV 同步失败：${err.message}`
             };
-            showToast('WebDAV 拉取失败，请查看下方日志提示', 'error');
+            showToast('WebDAV 拉取失败，请查看下方提示', 'error');
           } finally {
             loading.webdav = false;
           }
@@ -5539,15 +5628,13 @@
           }
           saving.webdavPush = true;
           try {
-            const reqUrl = buildWebdavRequestUrl(webdavConfig.url, rawPath);
-            const res = await fetch(reqUrl, {
-              method: 'PUT',
-              headers: {
-                ...buildWebdavAuthHeaders(),
-                'Content-Type': 'application/json; charset=utf-8'
-              },
-              body: JSON.stringify(activeAnimeList.value, null, 2)
-            });
+            const targetUrl = buildWebdavTargetUrl(webdavConfig.url, rawPath);
+            const res = await webdavSmartFetch(
+              targetUrl,
+              'PUT',
+              { 'Content-Type': 'application/json; charset=utf-8' },
+              JSON.stringify(activeAnimeList.value, null, 2)
+            );
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             webdavSyncLog.value = {
               type: 'success',
@@ -5557,7 +5644,7 @@
           } catch (err) {
             webdavSyncLog.value = {
               type: 'error',
-              message: `❌ 反向备份失败（可能受 CORS 或权限限制）：${err.message}`
+              message: `❌ 反向备份失败：${err.message}`
             };
             showToast('备份到 WebDAV 失败', 'error');
           } finally {
@@ -5565,13 +5652,87 @@
           }
         };
 
+        // Encrypt and upload WebDAV secrets directly to GitHub Actions Secrets via libsodium sealed box
+        const syncWebdavSecretsToGithub = async () => {
+          if (!repoConfig.token) throw new Error('请先配置 GitHub Token');
+          if (!window.sealGitHubSecret || !window.nacl) {
+            throw new Error('加密模块未加载，请强制刷新页面 (Ctrl+F5)');
+          }
+          const entries = [
+            ['WEBDAV_URL', (webdavConfig.url || '').trim()],
+            ['WEBDAV_PATH', (webdavConfig.path || '/anime.json').trim()],
+            ['WEBDAV_USERNAME', (webdavConfig.username || '').trim()],
+            ['WEBDAV_PASSWORD', webdavConfig.password || ''],
+          ].filter(([, val]) => val !== '');
+
+          if (entries.length === 0) {
+            throw new Error('请先填写 WebDAV 服务器地址、用户名和应用授权码');
+          }
+
+          const pubKeyRes = await githubFetch('/actions/secrets/public-key');
+          if (!pubKeyRes?.key || !pubKeyRes?.key_id) {
+            throw new Error('无法获取仓库 Actions Secrets 公钥，请检查 PAT 是否勾选 repo 权限');
+          }
+
+          for (const [name, value] of entries) {
+            const encrypted_value = window.sealGitHubSecret(pubKeyRes.key, value, window.nacl);
+            const res = await fetch(`https://api.github.com/repos/${repoConfig.owner}/${repoConfig.repo}/actions/secrets/${name}`, {
+              method: 'PUT',
+              headers: {
+                'Authorization': `Bearer ${repoConfig.token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                encrypted_value,
+                key_id: pubKeyRes.key_id
+              })
+            });
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              throw new Error(`写入 Secret ${name} 失败 (${res.status}): ${err.message || '请确认 Token 拥有 repo 权限'}`);
+            }
+          }
+          return entries.map(([n]) => n);
+        };
+
+        const syncWebdavSecretsOnly = async () => {
+          persistWebdavLocal();
+          saving.webdavSecrets = true;
+          try {
+            const names = await syncWebdavSecretsToGithub();
+            webdavSyncLog.value = {
+              type: 'success',
+              message: `🔐 已将 ${names.join(' / ')} 加密写入 GitHub Actions Secrets！现在可随时通过云端 Actions 同步。`
+            };
+            showToast('🔐 WebDAV 凭据已加密写入 GitHub Secrets！');
+          } catch (err) {
+            webdavSyncLog.value = { type: 'error', message: `❌ 写入 Secrets 失败：${err.message}` };
+            showToast('写入 Secrets 失败: ' + err.message, 'error');
+          } finally {
+            saving.webdavSecrets = false;
+          }
+        };
+
         const triggerWebdavGithubAction = async () => {
+          persistWebdavLocal();
           if (!repoConfig.token) {
             showToast('请先配置 GitHub Token', 'error');
             return;
           }
+          if (!webdavConfig.url.trim()) {
+            showToast('请先填写 WebDAV 服务器地址 (URL)', 'error');
+            return;
+          }
           saving.webdavAction = true;
           try {
+            // Step 1: Automatically sync credentials to GitHub Actions Secrets
+            webdavSyncLog.value = { type: 'success', message: '🔐 第 1/3 步：正在将 WebDAV 地址、用户名与授权码加密写入 GitHub Actions Secrets...' };
+            const writtenSecrets = await syncWebdavSecretsToGithub();
+
+            // Step 2: Dispatch workflow
+            webdavSyncLog.value = { type: 'success', message: `🚀 第 2/3 步：已写入 Secrets (${writtenSecrets.join(', ')})，正在触发云端 WebDAV 同步工作流...` };
+            const beforeDispatchTime = Date.now() - 5000;
             const res = await fetch(`https://api.github.com/repos/${repoConfig.owner}/${repoConfig.repo}/actions/workflows/sync-webdav-anime.yml/dispatches`, {
               method: 'POST',
               headers: {
@@ -5591,17 +5752,54 @@
               const errData = await res.json().catch(() => ({}));
               throw new Error(errData.message || `HTTP ${res.status}（请确认 Token 含 workflow 权限）`);
             }
-            webdavSyncLog.value = {
-              type: 'success',
-              message: '☁️ 已成功触发 GitHub Actions 云端 WebDAV 同步工作流！约 30 秒后刷新本页即可看到云端拉取结果（请确保仓库 Secrets 已配置 WEBDAV_URL / WEBDAV_USERNAME / WEBDAV_PASSWORD）。'
-            };
-            showToast('☁️ 已触发云端 WebDAV 同步任务！');
+
+            // Step 3: Poll workflow run status & auto-reload synced anime list
+            webdavSyncLog.value = { type: 'success', message: '⏳ 第 3/3 步：云端同步任务已启动，正在等待 GitHub Actions 执行完成...' };
+            let targetRun = null;
+            for (let attempt = 0; attempt < 30; attempt++) {
+              await new Promise(r => setTimeout(r, 3000));
+              try {
+                const runsData = await githubFetch('/actions/workflows/sync-webdav-anime.yml/runs?per_page=5');
+                const runs = runsData?.workflow_runs || [];
+                targetRun = runs.find(r => new Date(r.created_at).getTime() >= beforeDispatchTime) || runs[0];
+                if (targetRun) {
+                  if (targetRun.status === 'completed') break;
+                  webdavSyncLog.value = {
+                    type: 'success',
+                    message: `⏳ 云端任务状态：${targetRun.status}（Run #${targetRun.run_number}），请稍候...`
+                  };
+                }
+              } catch (_e) {}
+            }
+
+            if (targetRun && targetRun.status === 'completed') {
+              if (targetRun.conclusion === 'success') {
+                animeTarget.value = 'webdav';
+                await fetchAnimeData();
+                webdavSyncLog.value = {
+                  type: 'success',
+                  message: `🎉 云端 WebDAV 同步成功（Run #${targetRun.run_number}）！已自动刷新列表，当前共 ${webdavAnimeList.value.length} 部番剧。站点也已自动开始重新构建部署。`
+                };
+                showToast(`🎉 云端同步成功，共 ${webdavAnimeList.value.length} 部番剧！`);
+              } else {
+                webdavSyncLog.value = {
+                  type: 'error',
+                  message: `❌ 云端同步执行失败（结论：${targetRun.conclusion}）。常见原因：坚果云账号/应用密码错误、文件路径不存在或文件为空。请检查填写信息或在 GitHub Actions 查看 Run #${targetRun.run_number} 日志。`
+                };
+                showToast('云端同步失败，请查看下方提示', 'error');
+              }
+            } else {
+              webdavSyncLog.value = {
+                type: 'success',
+                message: '☁️ 云端同步任务仍在运行中，请稍候点击右上角【刷新】查看最新追番记录。'
+              };
+            }
           } catch (err) {
             webdavSyncLog.value = {
               type: 'error',
-              message: `❌ 触发云端同步失败：${err.message}`
+              message: `❌ 云端同步失败：${err.message}`
             };
-            showToast('触发 Actions 失败: ' + err.message, 'error');
+            showToast('云端同步失败: ' + err.message, 'error');
           } finally {
             saving.webdavAction = false;
           }
@@ -5701,7 +5899,17 @@
               }
               return text;
             }, `feat(anime): set anime mode to ${animeMode.value} and update webdav config`);
-            showToast(`🎬 番剧模式已切换为「${animeMode.value}」并保存！`);
+
+            let secretMsg = '';
+            if (webdavConfig.url.trim() && (webdavConfig.username.trim() || webdavConfig.password)) {
+              try {
+                await syncWebdavSecretsToGithub();
+                secretMsg = '，且 WebDAV 账号密码已同步加密写入 GitHub Secrets';
+              } catch (se) {
+                secretMsg = `（注意：自动写入 Secrets 失败：${se.message}）`;
+              }
+            }
+            showToast(`🎬 番剧模式已保存为「${animeMode.value}」${secretMsg}！`);
           } catch (err) {
             showToast('保存番剧模式失败: ' + err.message, 'error');
           } finally {
@@ -6886,6 +7094,7 @@
           countAnimeByStatus,
           syncFromWebdavBrowser,
           pushToWebdavBrowser,
+          syncWebdavSecretsOnly,
           triggerWebdavGithubAction,
           importAnimeFromLocalFile,
           exportCurrentAnimeJson,

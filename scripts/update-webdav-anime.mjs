@@ -52,7 +52,7 @@ function joinWebDavUrl(baseUrl, remotePath) {
 
 function buildAuthHeaders(username, password) {
 	const headers = {
-		"User-Agent": "Akari.md-WebDAV-Anime-Sync/1.0",
+		"User-Agent": "Akari.md-WebDAV-Anime-Sync/1.1",
 	};
 	if (username || password) {
 		const token = Buffer.from(
@@ -67,9 +67,6 @@ function buildAuthHeaders(username, password) {
 function normalizeStatus(raw) {
 	if (raw === undefined || raw === null || raw === "") return "watching";
 	if (typeof raw === "number") {
-		// Bangumi / Kazumi numeric collection types:
-		// Bangumi: 1=wish(planned), 2=collect(completed), 3=do(watching), 4=on_hold, 5=dropped
-		// Kazumi CollectType: 1=watching, 2=completed, 3=planned, 4=onhold, 5=dropped (if tagged kazumi)
 		const numMap = {
 			1: "planned",
 			2: "completed",
@@ -104,9 +101,9 @@ function normalizeStatus(raw) {
 	return "watching";
 }
 
-function normalizeKazumiStatus(raw) {
+function normalizeKazumiCollectStatus(raw) {
 	if (typeof raw === "number") {
-		// Kazumi CollectType: 0=none, 1=watching, 2=completed, 3=planned/wish, 4=onhold, 5=dropped
+		// Kazumi CollectType: 1=watching, 2=completed, 3=planned, 4=onhold, 5=dropped
 		const kMap = {
 			1: "watching",
 			2: "completed",
@@ -136,7 +133,9 @@ function normalizeTags(raw) {
 		return raw
 			.map((t) => {
 				if (typeof t === "string") return t.trim();
-				if (t && typeof t === "object") return String(t.name || t.label || t.title || "").trim();
+				if (t && typeof t === "object") {
+					return String(t.name || t.label || t.title || "").trim();
+				}
 				return "";
 			})
 			.filter(Boolean)
@@ -158,10 +157,33 @@ function extractYear(rawDate) {
 	return m ? m[0] : "";
 }
 
+function parseEpsFromInfo(infoStr) {
+	if (!infoStr || typeof infoStr !== "string") return 0;
+	const m = infoStr.match(/(\d+)\s*(?:话|話|集|ep)/i);
+	return m ? Number.parseInt(m[1], 10) : 0;
+}
+
+function extractKazumiMaxEpisode(item) {
+	let maxEp = toNumber(item.lastWatchEpisode, 0);
+	if (item.progresses && typeof item.progresses === "object") {
+		for (const [k, val] of Object.entries(item.progresses)) {
+			const ep = toNumber(val?.episode ?? k, 0);
+			if (ep > maxEp) maxEp = ep;
+		}
+	}
+	return Math.max(0, Math.round(maxEp));
+}
+
 function normalizeAnimeRecord(item, isKazumi = false) {
 	if (!item || typeof item !== "object") return null;
 
-	// Kazumi collectibles / history item often wraps `bangumiItem`
+	const hasBangumiItem = Boolean(item.bangumiItem && typeof item.bangumiItem === "object");
+	const isKazumiHistory =
+		hasBangumiItem &&
+		(item.lastWatchEpisode !== undefined ||
+			item.progresses !== undefined ||
+			item.lastWatchTime !== undefined);
+
 	const sub = item.bangumiItem || item.subject || item.anime || item;
 	const title = String(
 		item.title ||
@@ -178,34 +200,26 @@ function normalizeAnimeRecord(item, isKazumi = false) {
 
 	if (!title) return null;
 
-	const rawStatus =
-		item.status ??
-		item.state ??
-		item.type ??
-		item.collectType ??
-		item.my_status ??
-		(isKazumi ? 1 : "watching");
-	const status = isKazumi
-		? normalizeKazumiStatus(rawStatus)
-		: normalizeStatus(rawStatus);
-
-	const progress = Math.max(
-		0,
-		Math.round(
-			toNumber(
-				item.progress ??
-					item.ep_status ??
-					item.watched_episodes ??
-					item.my_watched_episodes ??
-					item.lastWatchEpisode ??
-					item.episode ??
-					item.watched ??
-					0,
+	const progress = isKazumiHistory
+		? extractKazumiMaxEpisode(item)
+		: Math.max(
 				0,
-			),
-		),
-	);
+				Math.round(
+					toNumber(
+						item.progress ??
+							item.ep_status ??
+							item.watched_episodes ??
+							item.my_watched_episodes ??
+							item.lastWatchEpisode ??
+							item.episode ??
+							item.watched ??
+							0,
+						0,
+					),
+				),
+			);
 
+	const infoEps = parseEpsFromInfo(sub.info || item.info || "");
 	let totalEpisodes = Math.max(
 		0,
 		Math.round(
@@ -217,11 +231,37 @@ function normalizeAnimeRecord(item, isKazumi = false) {
 					item.series_episodes ??
 					sub.eps ??
 					sub.totalEpisodes ??
+					infoEps ??
 					0,
 				0,
 			),
 		),
 	);
+	const hasKnownTotal = totalEpisodes > 0;
+
+	let status;
+	if (isKazumiHistory) {
+		if (item.status || item.collectType) {
+			status = normalizeKazumiCollectStatus(item.status ?? item.collectType);
+		} else if (hasKnownTotal && progress >= totalEpisodes) {
+			status = "completed";
+		} else {
+			status = "watching";
+		}
+	} else {
+		// Note: never treat bangumiItem.type (2=anime) as collect status
+		const rawStatus =
+			item.status ??
+			item.state ??
+			item.collectType ??
+			item.my_status ??
+			(!hasBangumiItem ? item.type : undefined) ??
+			"watching";
+		status = isKazumi
+			? normalizeKazumiCollectStatus(rawStatus)
+			: normalizeStatus(rawStatus);
+	}
+
 	if (totalEpisodes === 0) {
 		totalEpisodes = progress > 0 ? Math.max(progress, 12) : 12;
 	}
@@ -233,6 +273,7 @@ function normalizeAnimeRecord(item, isKazumi = false) {
 				item.score ??
 				item.my_score ??
 				sub.ratingScore ??
+				sub.rating?.score ??
 				sub.score ??
 				0,
 			0,
@@ -297,6 +338,7 @@ function normalizeAnimeRecord(item, isKazumi = false) {
 	).trim();
 
 	const studio = String(item.studio || item.company || sub.studio || "").trim();
+	const lastWatchTime = toNumber(item.lastWatchTime ?? item.updatedAt ?? 0, 0);
 
 	return {
 		title,
@@ -315,6 +357,9 @@ function normalizeAnimeRecord(item, isKazumi = false) {
 		endDate: String(item.endDate || "").slice(0, 10),
 		_bangumiId:
 			subjectId && /^\d+$/.test(String(subjectId)) ? String(subjectId) : "",
+		_hasKnownTotal: hasKnownTotal,
+		_isKazumiHistory: isKazumiHistory,
+		_lastWatchTime: lastWatchTime,
 	};
 }
 
@@ -428,6 +473,8 @@ function extractArrayFromJson(parsed) {
 	if (Array.isArray(parsed)) return parsed;
 	if (parsed && typeof parsed === "object") {
 		const candidateKeys = [
+			"histories",
+			"collectibles",
 			"data",
 			"items",
 			"list",
@@ -436,14 +483,11 @@ function extractArrayFromJson(parsed) {
 			"animeList",
 			"bangumi",
 			"collections",
-			"collectibles",
-			"histories",
 			"records",
 		];
 		for (const key of candidateKeys) {
 			if (Array.isArray(parsed[key])) return parsed[key];
 		}
-		// Kazumi map-like object { "12345": { bangumiItem: ... } }
 		const values = Object.values(parsed);
 		if (
 			values.length > 0 &&
@@ -455,13 +499,13 @@ function extractArrayFromJson(parsed) {
 	return [];
 }
 
-function parseAnimePayload(rawText, format = "auto", filenameHint = "") {
+export function parseAnimePayload(rawText, format = "auto", filenameHint = "") {
 	const trimmed = String(rawText || "").trim();
 	if (!trimmed) return [];
 
 	const isKazumiHint =
 		format === "kazumi" ||
-		/kazumi|collectibles|histories/i.test(filenameHint);
+		/kazumi|collectibles|histories|snapshot\.json/i.test(filenameHint);
 
 	if (
 		format === "mal-xml" ||
@@ -474,7 +518,6 @@ function parseAnimePayload(rawText, format = "auto", filenameHint = "") {
 		return parseCsvContent(trimmed);
 	}
 
-	// Try JSON parse (direct or embedded JSON snippet)
 	let parsed = null;
 	try {
 		parsed = JSON.parse(trimmed);
@@ -497,12 +540,20 @@ function parseAnimePayload(rawText, format = "auto", filenameHint = "") {
 
 	if (parsed !== null) {
 		const arr = extractArrayFromJson(parsed);
-		return arr
+		const normalized = arr
 			.map((item) => normalizeAnimeRecord(item, isKazumiHint))
 			.filter(Boolean);
+		if (normalized.some((n) => n._lastWatchTime > 0)) {
+			normalized.sort((a, b) => (b._lastWatchTime || 0) - (a._lastWatchTime || 0));
+		}
+		return normalized;
 	}
 
-	if (format === "auto" && trimmed.includes("\n") && /[,;\t]/.test(trimmed.split("\n")[0])) {
+	if (
+		format === "auto" &&
+		trimmed.includes("\n") &&
+		/[,;\t]/.test(trimmed.split("\n")[0])
+	) {
 		return parseCsvContent(trimmed);
 	}
 
@@ -534,11 +585,19 @@ function mergeAnimeLists(lists) {
 					studio: item.studio || existing.studio,
 					year: item.year || existing.year,
 					genre: item.genre?.length ? item.genre : existing.genre,
+					_lastWatchTime: Math.max(
+						existing._lastWatchTime || 0,
+						item._lastWatchTime || 0,
+					),
 				});
 			}
 		}
 	}
-	return Array.from(map.values());
+	const result = Array.from(map.values());
+	if (result.some((n) => n._lastWatchTime > 0)) {
+		result.sort((a, b) => (b._lastWatchTime || 0) - (a._lastWatchTime || 0));
+	}
+	return result;
 }
 
 async function enrichFromBangumi(items) {
@@ -548,13 +607,15 @@ async function enrichFromBangumi(items) {
 		const needsCover =
 			!item.cover || item.cover === "/assets/anime/default.webp";
 		const needsDesc = !item.description;
+		const needsStudio = !item.studio;
+		const needsEps = !item._hasKnownTotal;
 		const bgmId = item._bangumiId;
 
-		if (bgmId && (needsCover || needsDesc) && fetchCount < 60) {
+		if (bgmId && (needsCover || needsDesc || needsStudio || needsEps) && fetchCount < 60) {
 			fetchCount++;
 			try {
 				const res = await fetch(`https://api.bgm.tv/v0/subjects/${bgmId}`, {
-					headers: { "User-Agent": "Akari.md-WebDAV-Anime-Sync/1.0" },
+					headers: { "User-Agent": "Akari.md-WebDAV-Anime-Sync/1.1" },
 				});
 				if (res.ok) {
 					const detail = await res.json();
@@ -573,7 +634,15 @@ async function enrichFromBangumi(items) {
 					if (!item.rating && detail.rating?.score) {
 						item.rating = Number(Number(detail.rating.score).toFixed(1));
 					}
-					if (!item.studio && Array.isArray(detail.infobox)) {
+					const detailEps = Number(detail.eps || detail.total_episodes || 0);
+					if (needsEps && detailEps > 0) {
+						item.totalEpisodes = detailEps;
+						item.episodes = `${detailEps} episodes`;
+						if (item._isKazumiHistory && item.progress >= detailEps) {
+							item.status = "completed";
+						}
+					}
+					if (needsStudio && Array.isArray(detail.infobox)) {
 						const studioInfo = detail.infobox.find((i) =>
 							["动画制作", "制作", "製作"].includes(i.key),
 						);
@@ -591,7 +660,7 @@ async function enrichFromBangumi(items) {
 				// Ignore transient Bangumi API failures
 			}
 		}
-		const { _bangumiId, ...clean } = item;
+		const { _bangumiId, _hasKnownTotal, _isKazumiHistory, _lastWatchTime, ...clean } = item;
 		enriched.push(clean);
 	}
 	return enriched;
@@ -606,6 +675,9 @@ async function fetchWebDavText(url, headers) {
 
 async function discoverWebDavFiles(dirUrl, headers) {
 	const candidates = [
+		"history/snapshot.json",
+		"snapshot.json",
+		"kazumiSync/history/snapshot.json",
 		"anime.json",
 		"bangumi-data.json",
 		"bangumi.json",
@@ -617,7 +689,6 @@ async function discoverWebDavFiles(dirUrl, headers) {
 	];
 	const discovered = [];
 
-	// Try PROPFIND first
 	try {
 		const res = await fetch(dirUrl, {
 			method: "PROPFIND",
@@ -662,37 +733,52 @@ async function main() {
 		return;
 	}
 
-	const webdavUrl = process.env.WEBDAV_URL || config.url;
-	const webdavPath = process.env.WEBDAV_PATH || config.path || "/anime.json";
-	const username = process.env.WEBDAV_USERNAME || "";
+	const webdavUrl = (process.env.WEBDAV_URL || config.url || "").trim();
+	const webdavPath = (process.env.WEBDAV_PATH || config.path || "/anime.json").trim();
+	const username = (process.env.WEBDAV_USERNAME || "").trim();
 	const password = process.env.WEBDAV_PASSWORD || "";
-	const format = process.env.WEBDAV_FORMAT || config.format || "auto";
+	const format = (process.env.WEBDAV_FORMAT || config.format || "auto").trim();
 	const shouldEnrich =
 		process.env.WEBDAV_ENRICH_BANGUMI !== undefined
 			? process.env.WEBDAV_ENRICH_BANGUMI === "true"
 			: config.enrichBangumi;
 
 	if (!webdavUrl) {
-		console.log(
-			"[WebDAV Anime] WEBDAV_URL is not configured; keeping existing src/data/webdav-anime-data.json.",
-		);
+		const msg =
+			"[WebDAV Anime] WEBDAV_URL 未配置（请在后台填好 WebDAV 信息并点击同步，或在 GitHub Secrets 配置 WEBDAV_URL / WEBDAV_USERNAME / WEBDAV_PASSWORD）。";
+		if (forceRun) {
+			throw new Error(msg);
+		}
+		console.log(`${msg} 保持现有 src/data/webdav-anime-data.json 不变。`);
 		return;
+	}
+
+	if (!username || !password) {
+		const warn =
+			"[WebDAV Anime] 未检测到 WEBDAV_USERNAME / WEBDAV_PASSWORD Secrets，将尝试匿名访问（坚果云等服务需要账号密码，请通过管理后台一键写入 Secrets）。";
+		console.warn(warn);
 	}
 
 	const headers = buildAuthHeaders(username, password);
 	const targetUrl = joinWebDavUrl(webdavUrl, webdavPath);
 	const isDirHint = webdavPath.endsWith("/") || !/\.[a-z0-9]{2,5}$/i.test(webdavPath);
 
-	console.log(`[WebDAV Anime] Fetching from ${targetUrl}...`);
+	console.log(`[WebDAV Anime] Target URL: ${targetUrl} (format=${format}, auth=${username ? "Basic" : "None"})`);
 
 	const parsedLists = [];
 
 	if (!isDirHint) {
 		const res = await fetchWebDavText(targetUrl, headers);
 		if (!res.ok) {
-			throw new Error(`WebDAV GET failed with HTTP ${res.status} for ${targetUrl}`);
+			if (res.status === 401 || res.status === 403) {
+				throw new Error(
+					`WebDAV 鉴权失败 (HTTP ${res.status})：请检查用户名和应用授权码是否已正确写入 GitHub Secrets`,
+				);
+			}
+			throw new Error(`WebDAV GET 失败 (HTTP ${res.status}): ${targetUrl}`);
 		}
 		const items = parseAnimePayload(res.text, format, webdavPath);
+		console.log(`[WebDAV Anime] Downloaded ${res.text.length} bytes, parsed ${items.length} records.`);
 		if (items.length > 0) parsedLists.push(items);
 	} else {
 		const urls = await discoverWebDavFiles(targetUrl, headers);
@@ -714,15 +800,18 @@ async function main() {
 
 	const merged = mergeAnimeLists(parsedLists);
 	if (merged.length === 0) {
-		console.warn(
-			"[WebDAV Anime] No valid anime records parsed from WebDAV. Keeping existing local file.",
-		);
+		const msg = "[WebDAV Anime] 已连通 WebDAV 但未解析到有效追番记录，请检查文件路径和内容格式。";
+		if (forceRun) throw new Error(msg);
+		console.warn(`${msg} Keeping existing local file.`);
 		return;
 	}
 
 	const finalList = shouldEnrich
 		? await enrichFromBangumi(merged)
-		: merged.map(({ _bangumiId, ...clean }) => clean);
+		: merged.map(
+				({ _bangumiId, _hasKnownTotal, _isKazumiHistory, _lastWatchTime, ...clean }) =>
+					clean,
+			);
 
 	await fs.mkdir(path.dirname(OUTPUT_FILE), { recursive: true });
 	await fs.writeFile(OUTPUT_FILE, `${JSON.stringify(finalList, null, 2)}\n`, "utf-8");
@@ -731,10 +820,15 @@ async function main() {
 	);
 }
 
-main().catch((err) => {
-	console.error("[WebDAV Anime] Sync error:", err.message || err);
-	// Do not hard-fail CI build if cached data already exists unless forced
-	if (process.env.WEBDAV_FORCE_SYNC === "true") {
-		process.exit(1);
-	}
-});
+const isCliEntry =
+	process.argv[1] &&
+	path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
+
+if (isCliEntry) {
+	main().catch((err) => {
+		console.error("[WebDAV Anime] Sync error:", err.message || err);
+		if (process.env.WEBDAV_FORCE_SYNC === "true") {
+			process.exit(1);
+		}
+	});
+}

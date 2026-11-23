@@ -53,6 +53,12 @@ jobs:
           # CONTENT_REPO_URL: ${{ secrets.CONTENT_REPO_URL }}
           # USE_SUBMODULE: true
       
+      - name: Copy Cloudflare Pages Functions into dist
+        run: |
+          if [ -d "functions" ]; then
+            cp -r functions dist/functions
+          fi
+
       - name: Deploy to pages branch
         uses: JamesIves/github-pages-deploy-action@v4
         with:
