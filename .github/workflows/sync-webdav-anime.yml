@@ -1,0 +1,59 @@
+name: Sync WebDAV Anime Records
+
+on:
+  workflow_dispatch:
+    inputs:
+      webdav_path:
+        description: "可选：覆盖远程 WebDAV 追番文件路径或目录（如 /anime.json 或 /kazumiSync/）"
+        required: false
+        type: string
+      format:
+        description: "数据格式（auto / json / kazumi / mal-xml / csv）"
+        required: false
+        default: "auto"
+        type: choice
+        options:
+          - auto
+          - json
+          - kazumi
+          - mal-xml
+          - csv
+
+permissions:
+  contents: write
+
+jobs:
+  sync-webdav-anime:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Sync anime records from WebDAV
+        run: node scripts/update-webdav-anime.mjs
+        env:
+          WEBDAV_FORCE_SYNC: "true"
+          WEBDAV_URL: ${{ secrets.WEBDAV_URL }}
+          WEBDAV_USERNAME: ${{ secrets.WEBDAV_USERNAME }}
+          WEBDAV_PASSWORD: ${{ secrets.WEBDAV_PASSWORD }}
+          WEBDAV_PATH: ${{ inputs.webdav_path || secrets.WEBDAV_PATH }}
+          WEBDAV_FORMAT: ${{ inputs.format || 'auto' }}
+
+      - name: Commit updated anime data
+        run: |
+          if git diff --quiet src/data/webdav-anime-data.json; then
+            echo "No anime data changes detected."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/webdav-anime-data.json
+          git commit -m "chore(anime): sync anime records from WebDAV"
+          git push

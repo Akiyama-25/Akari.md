@@ -91,6 +91,13 @@ export function getAnimeSourceConfigs(): Record<string, AnimeSourceConfig> {
 			fetchOnDev: undefined,
 			emptyDescription: i18n(I18nKey.animeEmptyBangumi),
 		},
+		webdav: {
+			type: "json",
+			filename: "webdav-anime-data.json",
+			fetchOnDev: true,
+			emptyDescription:
+				"请在管理后台【追番】面板同步 WebDAV 数据，或配置 GitHub Secrets 后触发同步。",
+		},
 	};
 }
 

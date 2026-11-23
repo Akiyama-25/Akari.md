@@ -44,6 +44,10 @@ jobs:
         run: pnpm run build
         env:
           ASTRO_BASE: /
+          WEBDAV_URL: ${{ secrets.WEBDAV_URL }}
+          WEBDAV_USERNAME: ${{ secrets.WEBDAV_USERNAME }}
+          WEBDAV_PASSWORD: ${{ secrets.WEBDAV_PASSWORD }}
+          WEBDAV_PATH: ${{ secrets.WEBDAV_PATH }}
           # 如果需要启用内容分离,取消以下注释并配置
           # ENABLE_CONTENT_SYNC: true
           # CONTENT_REPO_URL: ${{ secrets.CONTENT_REPO_URL }}

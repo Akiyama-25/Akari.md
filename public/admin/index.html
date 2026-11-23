@@ -810,6 +810,129 @@
       padding: 0.85rem;
       margin-bottom: 1rem;
     }
+
+    /* Anime Management Cards */
+    .anime-admin-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+
+    @media (min-width: 640px) {
+      .anime-admin-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .anime-admin-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 0.75rem;
+      display: flex;
+      gap: 0.75rem;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+    }
+
+    .anime-admin-card:hover {
+      border-color: var(--primary-border);
+      box-shadow: 0 6px 16px -4px rgba(16, 185, 129, 0.12);
+    }
+
+    .anime-cover-thumb {
+      width: 68px;
+      height: 98px;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 1px solid var(--border);
+      background: #f1f5f9;
+      flex-shrink: 0;
+    }
+
+    .anime-progress-bar {
+      width: 100%;
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 9999px;
+      overflow: hidden;
+      margin: 0.35rem 0;
+    }
+
+    .anime-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), #34d399);
+      border-radius: 9999px;
+      transition: width 0.25s ease;
+    }
+
+    .status-badge-watching { background: #dcfce7; color: #15803d; border-color: #bbf7d0; }
+    .status-badge-completed { background: #dbeafe; color: #1d4ed8; border-color: #bfdbfe; }
+    .status-badge-planned { background: #fef3c7; color: #b45309; border-color: #fde68a; }
+    .status-badge-onhold { background: #f3e8ff; color: #7e22ce; border-color: #e9d5ff; }
+    .status-badge-dropped { background: #fee2e2; color: #b91c1c; border-color: #fecaca; }
+
+    /* AI Tools / Devices / Albums Admin Grid */
+    .tool-admin-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+
+    @media (min-width: 640px) {
+      .tool-admin-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .tool-admin-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 0.6rem;
+      transition: all 0.2s ease;
+    }
+
+    .tool-admin-card:hover {
+      border-color: var(--primary-border);
+      box-shadow: 0 6px 16px -4px rgba(16, 185, 129, 0.12);
+    }
+
+    .album-cover-thumb {
+      width: 84px;
+      height: 64px;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 1px solid var(--border);
+      background: #f1f5f9;
+      flex-shrink: 0;
+    }
+
+    .device-img-thumb {
+      width: 64px;
+      height: 64px;
+      border-radius: 10px;
+      object-fit: contain;
+      padding: 4px;
+      border: 1px solid var(--border);
+      background: #f8fafc;
+      flex-shrink: 0;
+    }
+
+    .code-pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 0.75rem;
+      border-radius: 10px;
+      font-size: 0.72rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      overflow-x: auto;
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
@@ -828,7 +951,7 @@
           <div>
             <div class="brand-title">
               <span>Akari 管理后台</span>
-              <span class="version-pill">v2.3</span>
+              <span class="version-pill">v2.4</span>
             </div>
             <div class="brand-sub">anon-akari.top · 站点管理中心</div>
           </div>
@@ -1006,6 +1129,260 @@
                 <div style="display: flex; gap: 0.4rem; flex-shrink: 0;">
                   <button @click="openDiaryEditor(item)" class="btn btn-secondary btn-sm">编辑</button>
                   <button @click="deleteDiaryItem(item)" class="btn btn-danger btn-sm">删除</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 2.5: 追番管理与 WebDAV 同步 ==================== -->
+        <div v-if="currentTab === 'anime'">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <h2 style="font-size: 1.15rem; font-weight: 700;">追番记录与 WebDAV 同步</h2>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">切换追番数据源、从 WebDAV 同步记录（支持 JSON / Kazumi / MAL XML / CSV）或手动维护追番进度</div>
+            </div>
+            <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+              <a href="/anime/" target="_blank" class="btn btn-secondary btn-sm">🎬 预览追番页</a>
+              <button @click="fetchAnimeData" :disabled="loading.anime" class="btn btn-secondary btn-sm">
+                🔄 {{ loading.anime ? '加载中...' : '刷新' }}
+              </button>
+              <button @click="openAnimeEditor(null)" class="btn btn-primary btn-sm">➕ 新增番剧</button>
+            </div>
+          </div>
+
+          <!-- Feature Page Disabled Reminder -->
+          <div v-if="!featurePages.anime" class="card" style="border-left: 4px solid #f59e0b; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+            <div>
+              <strong style="color: #b45309;">ℹ️ 追番页面当前处于关闭状态</strong>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">
+                关闭状态下访问 /anime/ 将跳转至 404，点击右侧按钮可直接开启。
+              </div>
+            </div>
+            <button @click="quickEnableFeaturePage('anime', '番剧页面')" class="btn btn-primary btn-sm">立即开启番剧页</button>
+          </div>
+
+          <!-- Anime Mode Selector Card -->
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
+              <div>
+                <div class="card-title" style="margin: 0;">🎛️ 追番数据源模式 (siteConfig.anime.mode)</div>
+                <div class="card-subtitle" style="margin-bottom: 0;">决定前台 /anime/ 页面展示哪个数据源的追番列表</div>
+              </div>
+              <button @click="saveAnimeModeConfig" :disabled="saving.animeMode" class="btn btn-primary btn-sm">
+                💾 {{ saving.animeMode ? '保存中...' : '保存模式与同步路径' }}
+              </button>
+            </div>
+
+            <div class="grid-2">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">当前启用模式</label>
+                <select v-model="animeMode" class="form-select">
+                  <option value="bangumi">Bangumi API 自动拉取 (bangumi)</option>
+                  <option value="webdav">WebDAV 追番同步 (webdav)</option>
+                  <option value="local">本地手动追番列表 (local)</option>
+                  <option value="bilibili">Bilibili 追番列表 (bilibili)</option>
+                </select>
+                <div class="help-tip">选择 webdav 后，站点将渲染 src/data/webdav-anime-data.json 中的同步结果。</div>
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Bangumi 缺失信息自动补全</label>
+                <label class="switch-row" style="margin-bottom: 0; padding: 0.45rem 0.75rem;">
+                  <span style="font-size: 0.78rem;">缺少封面/简介时自动从 Bangumi 补全</span>
+                  <input type="checkbox" v-model="webdavConfig.enrichBangumi" style="width: 18px; height: 18px;">
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- WebDAV Sync Panel -->
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
+              <div>
+                <div class="card-title" style="margin: 0;">☁️ WebDAV 追番同步</div>
+                <div class="card-subtitle" style="margin-bottom: 0;">支持坚果云 / Alist / OpenList / Nextcloud / 自建 WebDAV；账号密码仅保存在本机浏览器 localStorage</div>
+              </div>
+              <button @click="showWebdavHelp = !showWebdavHelp" class="btn btn-secondary btn-sm">
+                {{ showWebdavHelp ? '收起说明' : '📖 格式与配置说明' }}
+              </button>
+            </div>
+
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">WebDAV 服务器地址 (URL) *</label>
+                <input type="url" v-model="webdavConfig.url" @change="persistWebdavLocal" class="form-input" placeholder="https://dav.jianguoyun.com/dav/">
+              </div>
+              <div class="form-group">
+                <label class="form-label">远程文件路径或目录 (Path)</label>
+                <input type="text" v-model="webdavConfig.path" @change="persistWebdavLocal" class="form-input" placeholder="/anime.json 或 /kazumiSync/">
+              </div>
+              <div class="form-group">
+                <label class="form-label">WebDAV 用户名 (仅存本地)</label>
+                <input type="text" v-model="webdavConfig.username" @change="persistWebdavLocal" class="form-input" placeholder="your-email@example.com">
+              </div>
+              <div class="form-group">
+                <label class="form-label">WebDAV 密码 / 应用授权码 (仅存本地)</label>
+                <input type="password" v-model="webdavConfig.password" @change="persistWebdavLocal" class="form-input" placeholder="应用专用密码">
+              </div>
+              <div class="form-group">
+                <label class="form-label">数据格式</label>
+                <select v-model="webdavConfig.format" @change="persistWebdavLocal" class="form-select">
+                  <option value="auto">自动识别 (JSON / Kazumi / MAL XML / CSV)</option>
+                  <option value="json">标准 / 通用 JSON</option>
+                  <option value="kazumi">Kazumi 同步数据 (collectibles / histories)</option>
+                  <option value="mal-xml">MyAnimeList XML 导出</option>
+                  <option value="csv">CSV / TSV 表格</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">同步合并策略</label>
+                <select v-model="webdavConfig.mergeMode" @change="persistWebdavLocal" class="form-select">
+                  <option value="merge">按标题增量合并（保留已有项，更新进度与新增）</option>
+                  <option value="replace">完全覆盖当前编辑列表</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">可选：CORS 代理前缀（浏览器直连遇跨域拦截时填写）</label>
+              <input type="text" v-model="webdavConfig.corsProxy" @change="persistWebdavLocal" class="form-input" placeholder="例如 https://your-worker.workers.dev/?url= （留空则直接请求）">
+              <div class="help-tip">提示：坚果云等公有 WebDAV 默认限制浏览器跨域。若直连报 CORS 错误，可填写自建代理，或点击下方“触发云端 Actions 同步”（完全无 CORS 限制）。</div>
+            </div>
+
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;">
+              <button @click="syncFromWebdavBrowser" :disabled="loading.webdav" class="btn btn-primary btn-sm">
+                🔄 {{ loading.webdav ? '正在拉取解析...' : '从 WebDAV 拉取同步' }}
+              </button>
+              <button @click="pushToWebdavBrowser" :disabled="saving.webdavPush" class="btn btn-secondary btn-sm">
+                ⬆️ {{ saving.webdavPush ? '正在推送...' : '反向备份到 WebDAV' }}
+              </button>
+              <button @click="triggerWebdavGithubAction" :disabled="saving.webdavAction" class="btn btn-secondary btn-sm">
+                ☁️ {{ saving.webdavAction ? '触发中...' : '触发 GitHub Actions 云端同步' }}
+              </button>
+              <label class="btn btn-secondary btn-sm" style="cursor: pointer;">
+                📂 导入本地文件
+                <input type="file" accept=".json,.xml,.csv,.tsv,.tmp,.txt" style="display: none;" @change="importAnimeFromLocalFile">
+              </label>
+              <button @click="exportCurrentAnimeJson" class="btn btn-secondary btn-sm">
+                📥 导出当前 JSON
+              </button>
+            </div>
+
+            <!-- Last sync log -->
+            <div v-if="webdavSyncLog" style="margin-top: 0.75rem; padding: 0.65rem 0.85rem; border-radius: 10px; font-size: 0.76rem;" :style="webdavSyncLog.type === 'error' ? 'background:#fef2f2; color:#b91c1c; border:1px solid #fecaca;' : 'background:#ecfdf5; color:#047857; border:1px solid #a7f3d0;'">
+              {{ webdavSyncLog.message }}
+            </div>
+
+            <!-- Collapsible Help -->
+            <div v-if="showWebdavHelp" style="margin-top: 0.85rem; padding-top: 0.85rem; border-top: 1px solid var(--border);">
+              <div style="font-size: 0.78rem; font-weight: 700; margin-bottom: 0.4rem;">1. 云端无 CORS 同步（GitHub Secrets 配置）</div>
+              <div style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 0.65rem; line-height: 1.6;">
+                在 GitHub 仓库 <code>Settings → Secrets and variables → Actions</code> 中添加以下 Secrets 后，即可随时点击【触发 GitHub Actions 云端同步】，或在每次站点部署时自动拉取：
+                <br>• <code>WEBDAV_URL</code>：WebDAV 服务根地址（如 <code>https://dav.jianguoyun.com/dav/</code>）
+                <br>• <code>WEBDAV_USERNAME</code>：登录账号
+                <br>• <code>WEBDAV_PASSWORD</code>：应用专用密码
+                <br>• <code>WEBDAV_PATH</code>：远程文件路径或目录（如 <code>/anime.json</code> 或 <code>/kazumiSync/</code>）
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                <span style="font-size: 0.78rem; font-weight: 700;">2. 标准 JSON 格式示例（同样兼容 Bangumi / Kazumi / MAL XML / CSV）</span>
+                <button @click="copyWebdavSampleJson" class="btn btn-secondary btn-sm">📋 复制模板</button>
+              </div>
+              <pre class="code-pre">[
+  {
+    "title": "葬送的芙莉莲",
+    "status": "completed",
+    "rating": 9.6,
+    "cover": "https://lain.bgm.tv/pic/cover/m/13/c5/400602_ZI8Y9.jpg",
+    "description": "打倒魔王之后的奇幻旅程。",
+    "year": "2023",
+    "studio": "MADHOUSE",
+    "genre": ["奇幻", "冒险", "治愈"],
+    "link": "https://bgm.tv/subject/400602",
+    "progress": 28,
+    "totalEpisodes": 28
+  }
+]</pre>
+            </div>
+          </div>
+
+          <!-- Unsaved Anime Notice -->
+          <div v-if="hasUnsavedAnimeChanges" class="card" style="background: linear-gradient(135deg, rgba(254, 243, 199, 0.9), rgba(253, 230, 138, 0.7)); border: 1px solid #f59e0b; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <strong style="color: #b45309;">⚠️ 追番列表有未保存的本地修改</strong>
+              <div style="font-size: 0.75rem; color: #92400e; margin-top: 0.15rem;">
+                当前库：{{ animeTarget === 'webdav' ? 'src/data/webdav-anime-data.json' : 'src/data/anime.ts' }}（共 {{ activeAnimeList.length }} 部）。确认后点击右侧保存同步至仓库。
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.4rem;">
+              <button @click="resetAnimeDraft" :disabled="saving.anime" class="btn btn-secondary btn-sm">↩️ 放弃修改</button>
+              <button @click="saveAnimeListToRepo" :disabled="saving.anime" class="btn btn-primary btn-sm">
+                💾 {{ saving.anime ? '正在保存...' : '保存全部追番记录' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Anime List Card -->
+          <div class="card">
+            <div class="sub-nav" style="margin-bottom: 0.75rem;">
+              <button @click="animeTarget = 'webdav'" :class="['sub-pill', animeTarget === 'webdav' ? 'active' : '']">
+                ☁️ WebDAV 同步库 ({{ webdavAnimeList.length }})
+              </button>
+              <button @click="animeTarget = 'local'" :class="['sub-pill', animeTarget === 'local' ? 'active' : '']">
+                📁 本地追番库 ({{ localAnimeList.length }})
+              </button>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
+              <div>
+                <div class="card-title" style="margin: 0;">
+                  🎬 {{ animeTarget === 'webdav' ? 'WebDAV 同步追番列表 (src/data/webdav-anime-data.json)' : '本地追番列表 (src/data/anime.ts)' }}
+                </div>
+                <div class="card-subtitle" style="margin-bottom: 0;">共 {{ activeAnimeList.length }} 部 · 当前筛选 {{ filteredAnimeList.length }} 部</div>
+              </div>
+              <input type="text" v-model="animeSearch" class="form-input" placeholder="🔍 搜索番名、制作公司、标签..." style="max-width: 240px;">
+            </div>
+
+            <!-- Status filter pills -->
+            <div class="sub-nav" style="margin-bottom: 0.85rem;">
+              <button v-for="st in animeStatusFilters" :key="st.value" @click="animeStatusFilter = st.value" :class="['sub-pill', animeStatusFilter === st.value ? 'active' : '']">
+                {{ st.label }} ({{ countAnimeByStatus(st.value) }})
+              </button>
+            </div>
+
+            <div v-if="loading.anime" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
+              正在读取追番数据...
+            </div>
+            <div v-else-if="filteredAnimeList.length === 0" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
+              当前列表暂无匹配番剧，可通过上方 WebDAV 同步、导入文件或点击“新增番剧”添加～
+            </div>
+            <div v-else class="anime-admin-grid">
+              <div v-for="(item, idx) in filteredAnimeList" :key="(item.title || 'anime') + '-' + idx" class="anime-admin-card">
+                <img :src="item.cover || '/assets/anime/default.webp'" :alt="item.title" class="anime-cover-thumb" loading="lazy" @error="onBannerImgError">
+                <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between;">
+                  <div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.4rem;">
+                      <div style="font-weight: 700; font-size: 0.88rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="item.title">
+                        {{ item.title }}
+                      </div>
+                      <span :class="['badge-pill', 'status-badge-' + (item.status || 'watching')]" style="flex-shrink: 0;">
+                        {{ getAnimeStatusLabel(item.status) }}
+                      </span>
+                    </div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.15rem;">
+                      ⭐ {{ item.rating || 0 }} · {{ item.year || '未知年份' }} · {{ item.studio || '未知制作' }}
+                    </div>
+                    <div class="anime-progress-bar">
+                      <div class="anime-progress-fill" :style="{ width: Math.min(100, item.totalEpisodes > 0 ? Math.round((item.progress / item.totalEpisodes) * 100) : 0) + '%' }"></div>
+                    </div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center;">
+                      <span>进度：{{ item.progress || 0 }} / {{ item.totalEpisodes || 12 }} 集</span>
+                      <button @click="incrementAnimeProgress(item)" class="btn btn-secondary btn-sm" style="padding: 0.1rem 0.45rem; font-size: 0.68rem;" title="已看集数 +1">+1 集</button>
+                    </div>
+                  </div>
+                  <div style="display: flex; justify-content: flex-end; gap: 0.3rem; margin-top: 0.45rem;">
+                    <button @click="openAnimeEditor(item)" class="btn btn-secondary btn-sm" style="padding: 0.22rem 0.5rem;">编辑</button>
+                    <button @click="deleteAnimeItem(item)" class="btn btn-danger btn-sm" style="padding: 0.22rem 0.5rem;">删除</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1485,22 +1862,92 @@
               </div>
             </div>
           </div>
+
+          <!-- Section 6: Sidebar Announcement Content Config -->
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
+              <div>
+                <div class="card-title" style="margin: 0;">📢 侧边栏站点公告栏内容 (src/config/announcementConfig.ts)</div>
+                <div class="card-subtitle" style="margin-bottom: 0;">开启上方“站点公告栏”小组件后将在侧栏展示以下公告内容</div>
+              </div>
+              <button @click="saveAnnouncementConfig" :disabled="saving.announcement" class="btn btn-secondary btn-sm">
+                💾 {{ saving.announcement ? '保存中...' : '仅保存公告' }}
+              </button>
+            </div>
+
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">公告标题（留空使用默认“公告”）</label>
+                <input type="text" v-model="announcementConfig.title" class="form-input" placeholder="例如：站点通知">
+              </div>
+              <div class="form-group">
+                <label class="form-label">允许访客关闭公告</label>
+                <label class="switch-row" style="margin-bottom: 0; padding: 0.45rem 0.75rem;">
+                  <span style="font-size: 0.78rem;">显示右上角关闭按钮 (closable)</span>
+                  <input type="checkbox" v-model="announcementConfig.closable" style="width: 18px; height: 18px;">
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">公告正文内容 (content)</label>
+              <textarea v-model="announcementConfig.content" class="form-textarea" rows="3" placeholder="输入欢迎语或站点通知内容..."></textarea>
+            </div>
+
+            <div class="grid-3">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">启用底部跳转按钮</label>
+                <label class="switch-row" style="margin-bottom: 0; padding: 0.45rem 0.75rem;">
+                  <span style="font-size: 0.76rem;">显示链接按钮</span>
+                  <input type="checkbox" v-model="announcementConfig.link.enable" style="width: 18px; height: 18px;">
+                </label>
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">按钮文字</label>
+                <input type="text" v-model="announcementConfig.link.text" class="form-input" placeholder="Learn More">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">跳转地址 (URL)</label>
+                <input type="text" v-model="announcementConfig.link.url" class="form-input" placeholder="/about/ 或 https://...">
+              </div>
+            </div>
+            <div style="margin-top: 0.5rem;">
+              <label style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.76rem; color: var(--text-muted); cursor: pointer;">
+                <input type="checkbox" v-model="announcementConfig.link.external">
+                在新标签页打开此链接 (external)
+              </label>
+            </div>
+          </div>
         </div>
 
-        <!-- ==================== TAB 5: 更多项目 (管理侧栏“其他”中的 3 项) ==================== -->
+        <!-- ==================== TAB 5: 侧栏可自定义项目 (覆盖全部特色页面与关于页) ==================== -->
         <div v-if="currentTab === 'others'">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
             <div>
-              <h2 style="font-size: 1.15rem; font-weight: 700;">“其他”专栏数据管理</h2>
-              <div style="font-size: 0.75rem; color: var(--text-muted);">管理项目展示、技能专长与时间线历程</div>
+              <h2 style="font-size: 1.15rem; font-weight: 700;">侧栏可自定义项目管理</h2>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">统一管理 AI 工具箱、设备清单、相册画廊、项目展示、技能专长、时间线历程与关于页面</div>
             </div>
-            <button @click="saveCurrentOtherCategory" :disabled="saving.others" class="btn btn-primary btn-sm">
-              💾 {{ saving.others ? '保存中...' : '保存修改' }}
-            </button>
+            <div style="display: flex; gap: 0.4rem;">
+              <button v-if="otherSubTab !== 'albums'" @click="saveCurrentOtherCategory" :disabled="saving.others" class="btn btn-primary btn-sm">
+                💾 {{ saving.others ? '保存中...' : '保存当前项修改' }}
+              </button>
+              <button v-else @click="fetchAlbums" :disabled="loading.albums" class="btn btn-secondary btn-sm">
+                🔄 {{ loading.albums ? '扫描中...' : '刷新相册' }}
+              </button>
+            </div>
           </div>
 
-          <!-- Sub pills switcher -->
+          <!-- Sub pills switcher (7 sidebar customizable pages) -->
           <div class="sub-nav">
+            <button @click="otherSubTab = 'aiTools'" :class="['sub-pill', otherSubTab === 'aiTools' ? 'active' : '']">
+              🤖 AI 工具 ({{ aiToolsList.length }})
+            </button>
+            <button @click="otherSubTab = 'devices'" :class="['sub-pill', otherSubTab === 'devices' ? 'active' : '']">
+              💻 我的设备 ({{ totalDevicesCount }})
+            </button>
+            <button @click="otherSubTab = 'albums'" :class="['sub-pill', otherSubTab === 'albums' ? 'active' : '']">
+              📷 相册画廊 ({{ albumsList.length }})
+            </button>
             <button @click="otherSubTab = 'projects'" :class="['sub-pill', otherSubTab === 'projects' ? 'active' : '']">
               🚀 项目展示 ({{ projectsList.length }})
             </button>
@@ -1510,6 +1957,213 @@
             <button @click="otherSubTab = 'timeline'" :class="['sub-pill', otherSubTab === 'timeline' ? 'active' : '']">
               ⏳ 时间线历程 ({{ timelineList.length }})
             </button>
+            <button @click="otherSubTab = 'about'" :class="['sub-pill', otherSubTab === 'about' ? 'active' : '']">
+              📄 关于页面
+            </button>
+          </div>
+
+          <!-- SUB 0: AI 工具箱 (AI Tools) -->
+          <div v-if="otherSubTab === 'aiTools'">
+            <div v-if="!featurePages.aiTools" class="card" style="border-left: 4px solid #f59e0b; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+              <div>
+                <strong style="color: #b45309;">ℹ️ AI 工具箱页面当前处于关闭状态</strong>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">
+                  开启后将在侧边栏/导航栏【其他】菜单中显示 /ai-tools/ 入口。
+                </div>
+              </div>
+              <button @click="quickEnableFeaturePage('aiTools', 'AI 工具箱')" class="btn btn-primary btn-sm">立即开启 AI 工具箱</button>
+            </div>
+
+            <div class="card">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
+                <div>
+                  <div class="card-title" style="margin: 0;">🤖 AI 工具箱 (src/data/ai-tools.ts)</div>
+                  <div class="card-subtitle" style="margin-bottom: 0;">管理常用 AI 工具卡片、分类、使用频率、多语言说明与主题色</div>
+                </div>
+                <div style="display: flex; gap: 0.4rem;">
+                  <a href="/ai-tools/" target="_blank" class="btn btn-secondary btn-sm">🔗 预览</a>
+                  <button @click="openAiToolEditor(null)" class="btn btn-primary btn-sm">➕ 新增 AI 工具</button>
+                </div>
+              </div>
+
+              <!-- Search & Category Filter -->
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
+                <div class="sub-nav" style="margin-bottom: 0; flex: 1;">
+                  <button @click="aiToolCategoryFilter = 'all'" :class="['sub-pill', aiToolCategoryFilter === 'all' ? 'active' : '']">全部 ({{ aiToolsList.length }})</button>
+                  <button v-for="cat in aiToolCategories" :key="cat.value" @click="aiToolCategoryFilter = cat.value" :class="['sub-pill', aiToolCategoryFilter === cat.value ? 'active' : '']">
+                    {{ cat.label }}
+                  </button>
+                </div>
+                <input type="text" v-model="aiToolSearch" class="form-input" placeholder="🔍 搜索 AI 工具..." style="max-width: 210px;">
+              </div>
+
+              <div v-if="filteredAiTools.length === 0" style="text-align: center; color: var(--text-muted); padding: 1.5rem 0;">
+                暂无匹配的 AI 工具，点击右上角“新增 AI 工具”添加！
+              </div>
+              <div v-else class="tool-admin-grid">
+                <div v-for="(tool, idx) in filteredAiTools" :key="tool.id || idx" class="tool-admin-card">
+                  <div>
+                    <div style="display: flex; align-items: flex-start; gap: 0.65rem;">
+                      <span class="icon-badge" style="width: 38px; height: 38px; font-size: 1.25rem;" :style="{ background: (tool.color || '#10b981') + '20', color: tool.color || '#10b981' }">
+                        <span class="iconify" :data-icon="tool.icon || 'material-symbols:smart-toy'"></span>
+                      </span>
+                      <div style="flex: 1; min-width: 0;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.4rem;">
+                          <div style="font-weight: 700; font-size: 0.92rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ tool.name }}</div>
+                          <span class="badge-pill" style="background: var(--primary-light); color: var(--primary-hover); flex-shrink: 0;">{{ getAiFrequencyLabel(tool.frequency) }}</span>
+                        </div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.1rem;">
+                          分类：{{ getAiCategoryLabel(tool.category) }} <span v-if="tool.usage?.zh_CN || tool.usage?.en">· {{ tool.usage?.zh_CN || tool.usage?.en }}</span>
+                        </div>
+                        <div style="font-size: 0.76rem; color: #334155; margin-top: 0.35rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                          {{ tool.description?.zh_CN || tool.description?.en || '暂无简介' }}
+                        </div>
+                      </div>
+                    </div>
+                    <div v-if="tool.tags && tool.tags.length" style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.55rem;">
+                      <span v-for="(tg, tIdx) in tool.tags" :key="tIdx" class="friend-tag-pill">{{ tg }}</span>
+                    </div>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 0.5rem; border-top: 1px solid #f1f5f9;">
+                    <div style="display: flex; gap: 0.25rem;">
+                      <template v-if="aiToolCategoryFilter === 'all' && !aiToolSearch.trim()">
+                        <button @click="moveAiTool(idx, -1)" :disabled="idx === 0" class="btn btn-secondary btn-sm" style="padding: 0.18rem 0.4rem;">⬆️</button>
+                        <button @click="moveAiTool(idx, 1)" :disabled="idx === aiToolsList.length - 1" class="btn btn-secondary btn-sm" style="padding: 0.18rem 0.4rem;">⬇️</button>
+                      </template>
+                      <a v-if="tool.url" :href="tool.url" target="_blank" class="btn btn-secondary btn-sm" style="padding: 0.18rem 0.45rem;" title="访问官网">🔗</a>
+                    </div>
+                    <div style="display: flex; gap: 0.3rem;">
+                      <button @click="openAiToolEditor(tool)" class="btn btn-secondary btn-sm">编辑</button>
+                      <button @click="deleteAiToolItem(tool)" class="btn btn-danger btn-sm">删除</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB 0.5: 我的设备 (Devices) -->
+          <div v-if="otherSubTab === 'devices'">
+            <div v-if="!featurePages.devices" class="card" style="border-left: 4px solid #f59e0b; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+              <div>
+                <strong style="color: #b45309;">ℹ️ 我的设备页面当前处于关闭状态</strong>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">
+                  开启后将在侧边栏/导航栏【我的】菜单中显示 /devices/ 入口。
+                </div>
+              </div>
+              <button @click="quickEnableFeaturePage('devices', '设备页面')" class="btn btn-primary btn-sm">立即开启设备页</button>
+            </div>
+
+            <div class="card">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
+                <div>
+                  <div class="card-title" style="margin: 0;">💻 我的设备清单 (src/data/devices.ts)</div>
+                  <div class="card-subtitle" style="margin-bottom: 0;">按品牌/分类管理主力数码设备、参数规格与展示图片</div>
+                </div>
+                <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                  <a href="/devices/" target="_blank" class="btn btn-secondary btn-sm">🔗 预览</a>
+                  <button @click="addDeviceCategory" class="btn btn-secondary btn-sm">📁 新增分类/品牌</button>
+                  <button @click="openDeviceEditor(null)" class="btn btn-primary btn-sm">➕ 新增设备</button>
+                </div>
+              </div>
+
+              <div v-if="deviceCategoryNames.length === 0" style="text-align: center; color: var(--text-muted); padding: 1.5rem 0;">
+                暂无设备分类，请先点击“新增分类/品牌”或“新增设备”！
+              </div>
+              <div v-else style="display: flex; flex-direction: column; gap: 1rem;">
+                <div v-for="catName in deviceCategoryNames" :key="catName" style="background: #f8fafc; border: 1px solid var(--border); border-radius: 14px; padding: 0.85rem;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem; flex-wrap: wrap; gap: 0.4rem;">
+                    <div style="font-weight: 700; font-size: 0.95rem;">
+                      🏷️ {{ catName }} <span style="font-size: 0.74rem; font-weight: 500; color: var(--text-muted);">({{ (devicesMap[catName] || []).length }} 台)</span>
+                    </div>
+                    <div style="display: flex; gap: 0.3rem;">
+                      <button @click="openDeviceEditor(null, catName)" class="btn btn-secondary btn-sm">➕ 添加到此分类</button>
+                      <button @click="renameDeviceCategory(catName)" class="btn btn-secondary btn-sm">✏️ 重命名</button>
+                      <button @click="deleteDeviceCategory(catName)" class="btn btn-danger btn-sm">🗑️ 删除分类</button>
+                    </div>
+                  </div>
+                  <div v-if="!devicesMap[catName] || devicesMap[catName].length === 0" style="font-size: 0.78rem; color: var(--text-muted); text-align: center; padding: 0.75rem 0;">
+                    此分类下暂无设备
+                  </div>
+                  <div v-else class="tool-admin-grid">
+                    <div v-for="(dev, dIdx) in devicesMap[catName]" :key="catName + '-' + dIdx" class="tool-admin-card" style="padding: 0.75rem;">
+                      <div style="display: flex; gap: 0.65rem; align-items: flex-start;">
+                        <img :src="dev.image || '/favicon.png'" :alt="dev.name" class="device-img-thumb" loading="lazy" @error="onBannerImgError">
+                        <div style="flex: 1; min-width: 0;">
+                          <div style="font-weight: 700; font-size: 0.9rem;">{{ dev.name }}</div>
+                          <div style="font-size: 0.74rem; color: var(--primary-hover); font-weight: 600; margin-top: 0.1rem;">{{ dev.specs }}</div>
+                          <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 0.2rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ dev.description }}</div>
+                        </div>
+                      </div>
+                      <div style="display: flex; justify-content: flex-end; gap: 0.3rem; padding-top: 0.45rem; border-top: 1px solid #f1f5f9;">
+                        <button @click="openDeviceEditor(dev, catName, dIdx)" class="btn btn-secondary btn-sm">编辑</button>
+                        <button @click="deleteDeviceItem(catName, dIdx)" class="btn btn-danger btn-sm">删除</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB 0.8: 相册画廊 (Albums) -->
+          <div v-if="otherSubTab === 'albums'">
+            <div v-if="!featurePages.albums" class="card" style="border-left: 4px solid #f59e0b; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+              <div>
+                <strong style="color: #b45309;">ℹ️ 相册画廊页面当前处于关闭状态</strong>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">
+                  开启后将在侧边栏/导航栏【我的】菜单中显示 /albums/ 入口。
+                </div>
+              </div>
+              <button @click="quickEnableFeaturePage('albums', '相册页面')" class="btn btn-primary btn-sm">立即开启相册页</button>
+            </div>
+
+            <div class="card">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
+                <div>
+                  <div class="card-title" style="margin: 0;">📷 相册画廊管理 (public/images/albums/)</div>
+                  <div class="card-subtitle" style="margin-bottom: 0;">直接管理相册文件夹、info.json 元数据、本地照片上传与外链相册</div>
+                </div>
+                <div style="display: flex; gap: 0.4rem;">
+                  <a href="/albums/" target="_blank" class="btn btn-secondary btn-sm">🔗 预览</a>
+                  <button @click="openAlbumEditor(null)" class="btn btn-primary btn-sm">➕ 新建相册</button>
+                </div>
+              </div>
+
+              <div v-if="loading.albums" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
+                正在扫描仓库相册目录...
+              </div>
+              <div v-else-if="albumsList.length === 0" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
+                暂未发现相册，点击右上角“新建相册”创建你的第一个画廊！
+              </div>
+              <div v-else class="tool-admin-grid">
+                <div v-for="album in albumsList" :key="album.id" class="tool-admin-card">
+                  <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+                    <img :src="album.coverPreview || '/favicon.png'" :alt="album.title" class="album-cover-thumb" loading="lazy" @error="onBannerImgError">
+                    <div style="flex: 1; min-width: 0;">
+                      <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
+                        <strong style="font-size: 0.92rem;">{{ album.info.title || album.id }}</strong>
+                        <span class="badge-pill" :style="album.info.mode === 'external' ? 'background:#e0f2fe; color:#0369a1;' : 'background:#dcfce7; color:#15803d;'">
+                          {{ album.info.mode === 'external' ? '外链' : '本地' }}
+                        </span>
+                        <span v-if="album.info.hidden" class="badge-pill" style="background:#f1f5f9; color:#64748b;">隐藏</span>
+                        <span v-if="album.info.password" class="badge-pill" style="background:#fef3c7; color:#b45309;">🔒 加密</span>
+                      </div>
+                      <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.15rem;">
+                        目录：<code>{{ album.id }}</code> · 📅 {{ album.info.date || '未设日期' }} · 🖼️ {{ album.photoCount }} 张照片
+                      </div>
+                      <div style="font-size: 0.74rem; color: #334155; margin-top: 0.2rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                        {{ album.info.description || '暂无简介' }}
+                      </div>
+                    </div>
+                  </div>
+                  <div style="display: flex; justify-content: flex-end; gap: 0.3rem; padding-top: 0.5rem; border-top: 1px solid #f1f5f9;">
+                    <button @click="openAlbumEditor(album)" class="btn btn-secondary btn-sm">编辑与传图</button>
+                    <button @click="deleteAlbum(album)" class="btn btn-danger btn-sm">删除相册</button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- SUB 1: 项目管理 (Projects) -->
@@ -1539,6 +2193,8 @@
                   </div>
                 </div>
                 <div style="display: flex; gap: 0.3rem;">
+                  <button @click="moveListItem(projectsList, idx, -1)" :disabled="idx === 0" class="btn btn-secondary btn-sm" style="padding: 0.2rem 0.4rem;">⬆️</button>
+                  <button @click="moveListItem(projectsList, idx, 1)" :disabled="idx === projectsList.length - 1" class="btn btn-secondary btn-sm" style="padding: 0.2rem 0.4rem;">⬇️</button>
                   <button @click="openProjectEditor(p)" class="btn btn-secondary btn-sm">编辑</button>
                   <button @click="deleteProjectItem(idx)" class="btn btn-danger btn-sm">删除</button>
                 </div>
@@ -1566,7 +2222,7 @@
                     <span class="iconify" :data-icon="sk.icon || 'material-symbols:code'"></span>
                   </span>
                   <div style="min-width: 0;">
-                    <div style="font-weight: 700; font-size: 0.84rem; truncate;">{{ sk.name }}</div>
+                    <div style="font-weight: 700; font-size: 0.84rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ sk.name }}</div>
                     <div style="font-size: 0.68rem; color: var(--text-muted);">{{ sk.level }} · {{ sk.category }}</div>
                   </div>
                 </div>
@@ -1596,7 +2252,7 @@
                 <div>
                   <div style="font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 0.4rem;">
                     <span>{{ tl.title }}</span>
-                    <span style="font-size: 0.72rem; color: var(--primary); font-weight: 600;">{{ tl.startDate }}</span>
+                    <span style="font-size: 0.72rem; color: var(--primary); font-weight: 600;">{{ tl.startDate }}<span v-if="tl.endDate"> ~ {{ tl.endDate }}</span></span>
                   </div>
                   <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">{{ tl.description }}</div>
                   <div class="post-meta-sub">机构: {{ tl.organization || '无' }} · 类型: {{ tl.type }}</div>
@@ -1605,6 +2261,29 @@
                   <button @click="openTimelineEditor(tl)" class="btn btn-secondary btn-sm">编辑</button>
                   <button @click="deleteTimelineItem(idx)" class="btn btn-danger btn-sm">删除</button>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB 4: 关于页面文档 (About) -->
+          <div v-if="otherSubTab === 'about'" class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
+              <div>
+                <div class="card-title" style="margin: 0;">📄 关于页面内容 (src/content/spec/about.md)</div>
+                <div class="card-subtitle" style="margin-bottom: 0;">编辑 /about/ 页面的 Markdown 正文，支持实时预览</div>
+              </div>
+              <a href="/about/" target="_blank" class="btn btn-secondary btn-sm">🔗 预览关于页</a>
+            </div>
+            <div class="editor-grid" style="height: 360px;">
+              <textarea
+                v-model="aboutDocContent"
+                class="form-textarea"
+                style="height: 100%; min-height: 300px; font-family: monospace; line-height: 1.6;"
+                placeholder="在此编写关于页面 Markdown 正文..."
+              ></textarea>
+              <div class="editor-preview">
+                <div v-if="renderedAboutDoc" v-html="renderedAboutDoc"></div>
+                <span v-else style="color: #94a3b8;">右侧将实时预览 Markdown 内容...</span>
               </div>
             </div>
           </div>
@@ -1669,11 +2348,30 @@
                 <label class="form-label">站点标题 (Title)</label>
                 <input type="text" v-model="siteMeta.title" class="form-input">
               </div>
+              <div class="form-group">
+                <label class="form-label">站点副标题 (Subtitle)</label>
+                <input type="text" v-model="siteMeta.subtitle" class="form-input" placeholder="Ciallo～(∠・ω< )⌒★">
+              </div>
+              <div class="form-group">
+                <label class="form-label">建站日期 (影响侧栏站点统计运行天数)</label>
+                <input type="text" v-model="siteMeta.siteStartDate" class="form-input" placeholder="2026-11-12">
+              </div>
             </div>
 
-            <div class="form-group" style="margin-bottom: 0;">
+            <div class="form-group">
               <label class="form-label">个人简介 / 个性签名 (Bio)</label>
               <textarea v-model="siteMeta.bio" class="form-textarea" rows="3"></textarea>
+            </div>
+
+            <div class="grid-2">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">首页横幅主标题 (banner.homeText.title)</label>
+                <input type="text" v-model="siteMeta.homeTitle" class="form-input" placeholder="わたしの部屋">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">首页横幅打字机副标题（每行一句）</label>
+                <textarea v-model="siteMeta.homeSubtitlesRaw" class="form-textarea" rows="2" placeholder="每行输入一句标语"></textarea>
+              </div>
             </div>
           </div>
         </div>
@@ -2044,6 +2742,21 @@
           </div>
         </div>
 
+        <div class="grid-3">
+          <div class="form-group">
+            <label class="form-label">使用经验 (年)</label>
+            <input type="number" min="0" v-model.number="editingSkill.expYears" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">使用经验 (月)</label>
+            <input type="number" min="0" max="11" v-model.number="editingSkill.expMonths" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">卡片主题色</label>
+            <input type="color" v-model="editingSkill.color" style="width: 100%; height: 34px; border: 1px solid var(--border); border-radius: 8px; padding: 2px; cursor: pointer;">
+          </div>
+        </div>
+
         <div class="form-group">
           <label class="form-label">技能描述</label>
           <textarea v-model="editingSkill.description" class="form-textarea" rows="2"></textarea>
@@ -2081,13 +2794,24 @@
             <input type="text" v-model="editingTimeline.startDate" class="form-input" placeholder="2024-05-01">
           </div>
           <div class="form-group">
+            <label class="form-label">结束日期（留空表示至今）</label>
+            <input type="text" v-model="editingTimeline.endDate" class="form-input" placeholder="可选 YYYY-MM-DD">
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
             <label class="form-label">分类类型</label>
             <select v-model="editingTimeline.type" class="form-select">
               <option value="project">项目 (project)</option>
               <option value="education">学业 (education)</option>
               <option value="work">工作 (work)</option>
-              <option value="life">生活 (life)</option>
+              <option value="achievement">成就 (achievement)</option>
             </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">职位 / 角色 (Position)</label>
+            <input type="text" v-model="editingTimeline.position" class="form-input" placeholder="可选">
           </div>
         </div>
 
@@ -2110,6 +2834,361 @@
         <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
           <button @click="editingTimeline = null" class="btn btn-secondary">取消</button>
           <button @click="saveTimelineAction" class="btn btn-primary">确认保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Anime Editor Modal -->
+    <div v-if="editingAnime" class="modal-overlay">
+      <div class="modal-card modal-card-lg">
+        <div class="modal-header">
+          <div class="modal-title">{{ editingAnime.isNew ? '🎬 新增番剧记录' : '✏️ 编辑番剧记录' }}</div>
+          <button @click="editingAnime = null" class="modal-close">✕</button>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">番剧名称 (title) *</label>
+            <input type="text" v-model="editingAnime.title" class="form-input" placeholder="例如：葬送的芙莉莲">
+          </div>
+          <div class="form-group">
+            <label class="form-label">追番状态 (status)</label>
+            <select v-model="editingAnime.status" class="form-select">
+              <option value="watching">在看 (watching)</option>
+              <option value="completed">看过 (completed)</option>
+              <option value="planned">想看 (planned)</option>
+              <option value="onhold">搁置 (onhold)</option>
+              <option value="dropped">抛弃 (dropped)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div class="form-group">
+            <label class="form-label">评分 (0-10)</label>
+            <input type="number" step="0.1" min="0" max="10" v-model.number="editingAnime.rating" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">已看集数 (progress)</label>
+            <input type="number" min="0" v-model.number="editingAnime.progress" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">总集数 (totalEpisodes)</label>
+            <input type="number" min="1" v-model.number="editingAnime.totalEpisodes" class="form-input">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">封面图地址 (cover)</label>
+          <div style="display: flex; gap: 0.4rem; align-items: center;">
+            <input type="text" v-model="editingAnime.cover" class="form-input" placeholder="https://... 或 /assets/anime/xxx.webp">
+            <label class="btn btn-secondary btn-sm" style="cursor: pointer; flex-shrink: 0;">
+              📤 上传封面
+              <input type="file" accept="image/*" style="display: none;" @change="uploadAnimeCover">
+            </label>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div class="form-group">
+            <label class="form-label">年份 (year)</label>
+            <input type="text" v-model="editingAnime.year" class="form-input" placeholder="2025">
+          </div>
+          <div class="form-group">
+            <label class="form-label">制作公司 (studio)</label>
+            <input type="text" v-model="editingAnime.studio" class="form-input" placeholder="A-1 Pictures">
+          </div>
+          <div class="form-group">
+            <label class="form-label">跳转链接 (link)</label>
+            <input type="text" v-model="editingAnime.link" class="form-input" placeholder="https://bgm.tv/subject/...">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">标签 / 类型 (genre，逗号隔开)</label>
+          <input type="text" v-model="editingAnime.rawGenre" class="form-input" placeholder="奇幻, 日常, 治愈">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">简介 / 短评 (description)</label>
+          <textarea v-model="editingAnime.description" class="form-textarea" rows="3" placeholder="番剧简介或个人短评..."></textarea>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+          <button @click="editingAnime = null" class="btn btn-secondary">取消</button>
+          <button @click="saveAnimeItemAction" class="btn btn-primary">确认暂存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Tool Editor Modal -->
+    <div v-if="editingAiTool" class="modal-overlay">
+      <div class="modal-card modal-card-lg">
+        <div class="modal-header">
+          <div class="modal-title">{{ editingAiTool.isNew ? '🤖 新增 AI 工具' : '✏️ 编辑 AI 工具' }}</div>
+          <button @click="editingAiTool = null" class="modal-close">✕</button>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">工具 ID *</label>
+            <input type="text" v-model="editingAiTool.id" class="form-input" placeholder="例如：claude / gemini">
+          </div>
+          <div class="form-group">
+            <label class="form-label">工具名称 *</label>
+            <input type="text" v-model="editingAiTool.name" class="form-input" placeholder="例如：Claude / Gemini">
+          </div>
+          <div class="form-group">
+            <label class="form-label">分类 (category)</label>
+            <select v-model="editingAiTool.category" class="form-select">
+              <option v-for="cat in aiToolCategories" :key="cat.value" :value="cat.value">{{ cat.label }} ({{ cat.value }})</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">使用频率 (frequency)</label>
+            <select v-model="editingAiTool.frequency" class="form-select">
+              <option value="daily">每天使用 (daily)</option>
+              <option value="weekly">每周使用 (weekly)</option>
+              <option value="occasional">偶尔使用 (occasional)</option>
+              <option value="experimental">尝鲜探索 (experimental)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Iconify 图标标识</label>
+            <div style="display: flex; gap: 0.4rem; align-items: center;">
+              <span class="icon-badge" :style="{ background: (editingAiTool.color || '#10b981') + '20', color: editingAiTool.color || '#10b981' }">
+                <span class="iconify" :data-icon="editingAiTool.icon || 'material-symbols:smart-toy'"></span>
+              </span>
+              <select v-model="editingAiTool.iconPreset" @change="onAiIconPresetChange" class="form-select" style="width: 45%;">
+                <option value="">-- 常用 AI 图标 --</option>
+                <option v-for="ic in aiToolIconPresets" :key="ic.id" :value="ic.id">{{ ic.name }}</option>
+              </select>
+              <input type="text" v-model="editingAiTool.icon" class="form-input" placeholder="simple-icons:googlegemini" style="flex: 1;">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">主题色 (color)</label>
+            <div style="display: flex; gap: 0.4rem; align-items: center;">
+              <input type="color" v-model="editingAiTool.color" style="width: 42px; height: 34px; border: 1px solid var(--border); border-radius: 8px; padding: 2px; cursor: pointer;">
+              <input type="text" v-model="editingAiTool.color" class="form-input" placeholder="#10b981">
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">访问地址 (url)</label>
+            <input type="url" v-model="editingAiTool.url" class="form-input" placeholder="https://...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">标签 (tags，逗号隔开)</label>
+            <input type="text" v-model="editingAiTool.rawTags" class="form-input" placeholder="Chat, Coding, Agent">
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">中文简介 (description.zh_CN) *</label>
+            <textarea v-model="editingAiTool.descZh" class="form-textarea" rows="2" placeholder="用于写作、编程与推理的 AI 助手"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">英文简介 (description.en，留空同中文)</label>
+            <textarea v-model="editingAiTool.descEn" class="form-textarea" rows="2" placeholder="Optional English description"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">中文使用场景 (usage.zh_CN)</label>
+            <input type="text" v-model="editingAiTool.usageZh" class="form-input" placeholder="每天：代码编写、思路整理">
+          </div>
+          <div class="form-group">
+            <label class="form-label">英文使用场景 (usage.en)</label>
+            <input type="text" v-model="editingAiTool.usageEn" class="form-input" placeholder="Daily: coding, brainstorming">
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+          <button @click="editingAiTool = null" class="btn btn-secondary">取消</button>
+          <button @click="saveAiToolAction" class="btn btn-primary">确认保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Device Editor Modal -->
+    <div v-if="editingDevice" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">{{ editingDevice.isNew ? '💻 新增设备' : '✏️ 编辑设备' }}</div>
+          <button @click="editingDevice = null" class="modal-close">✕</button>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">所属分类 / 品牌 *</label>
+            <input type="text" v-model="editingDevice.category" list="device-cat-datalist" class="form-input" placeholder="例如：OnePlus / Apple / Router">
+            <datalist id="device-cat-datalist">
+              <option v-for="c in deviceCategoryNames" :key="c" :value="c"></option>
+            </datalist>
+          </div>
+          <div class="form-group">
+            <label class="form-label">设备名称 *</label>
+            <input type="text" v-model="editingDevice.name" class="form-input" placeholder="OnePlus 13T">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">配置规格 (specs)</label>
+          <input type="text" v-model="editingDevice.specs" class="form-input" placeholder="Gray / 16G + 1TB">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">设备图片 (image)</label>
+          <div style="display: flex; gap: 0.4rem; align-items: center;">
+            <input type="text" v-model="editingDevice.image" class="form-input" placeholder="/images/device/xxx.webp 或外链 URL">
+            <label class="btn btn-secondary btn-sm" style="cursor: pointer; flex-shrink: 0;">
+              📤 上传图片
+              <input type="file" accept="image/*" style="display: none;" @change="uploadDeviceImage">
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">详情链接 (link)</label>
+          <input type="url" v-model="editingDevice.link" class="form-input" placeholder="https://...">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">设备简介 (description)</label>
+          <textarea v-model="editingDevice.description" class="form-textarea" rows="2"></textarea>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+          <button @click="editingDevice = null" class="btn btn-secondary">取消</button>
+          <button @click="saveDeviceAction" class="btn btn-primary">确认保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Album Editor Modal -->
+    <div v-if="editingAlbum" class="modal-overlay">
+      <div class="modal-card modal-card-lg">
+        <div class="modal-header">
+          <div class="modal-title">{{ editingAlbum.isNew ? '📷 新建相册' : '✏️ 编辑相册：' + editingAlbum.id }}</div>
+          <button @click="editingAlbum = null" class="modal-close">✕</button>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">相册文件夹 ID（英文/数字/短横线）*</label>
+            <input type="text" v-model="editingAlbum.id" :disabled="!editingAlbum.isNew" class="form-input" placeholder="例如：Tokyo2026">
+          </div>
+          <div class="form-group">
+            <label class="form-label">相册标题 *</label>
+            <input type="text" v-model="editingAlbum.title" class="form-input" placeholder="东京秋日随拍">
+          </div>
+          <div class="form-group">
+            <label class="form-label">日期</label>
+            <input type="text" v-model="editingAlbum.date" class="form-input" placeholder="2026-11-23">
+          </div>
+          <div class="form-group">
+            <label class="form-label">拍摄地点</label>
+            <input type="text" v-model="editingAlbum.location" class="form-input" placeholder="Tokyo / 线上">
+          </div>
+          <div class="form-group">
+            <label class="form-label">存储模式</label>
+            <select v-model="editingAlbum.mode" class="form-select">
+              <option value="local">本地图片模式 (上传至仓库目录)</option>
+              <option value="external">外链图片模式 (info.json 填写图床 URL)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">标签 (逗号隔开)</label>
+            <input type="text" v-model="editingAlbum.rawTags" class="form-input" placeholder="旅行, 摄影, 二次元">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">相册描述</label>
+          <textarea v-model="editingAlbum.description" class="form-textarea" rows="2"></textarea>
+        </div>
+
+        <div class="grid-3">
+          <div class="form-group">
+            <label class="form-label">隐藏此相册</label>
+            <label class="switch-row" style="margin-bottom: 0; padding: 0.45rem 0.75rem;">
+              <span style="font-size: 0.75rem;">不在前台展示</span>
+              <input type="checkbox" v-model="editingAlbum.hidden" style="width: 18px; height: 18px;">
+            </label>
+          </div>
+          <div class="form-group">
+            <label class="form-label">访问密码（可选）</label>
+            <input type="text" v-model="editingAlbum.password" class="form-input" placeholder="留空则公开">
+          </div>
+          <div class="form-group">
+            <label class="form-label">密码提示（可选）</label>
+            <input type="text" v-model="editingAlbum.passwordHint" class="form-input" placeholder="提示语">
+          </div>
+        </div>
+
+        <!-- Local Mode Cover & Photos -->
+        <div v-if="editingAlbum.mode === 'local'" class="form-group" style="background: rgba(16, 185, 129, 0.05); padding: 0.85rem; border-radius: 12px; border: 1px dashed var(--card-border);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.65rem;">
+            <div>
+              <strong style="font-size: 0.82rem;">🖼️ 本地相册封面与照片</strong>
+              <div class="help-tip">本地相册需要至少上传一张封面图 (cover.webp)，照片支持多选批量上传。</div>
+            </div>
+            <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+              <label class="btn btn-secondary btn-sm" style="cursor: pointer;">
+                📷 上传/更换封面
+                <input type="file" accept="image/*" style="display: none;" @change="uploadAlbumCover">
+              </label>
+              <label class="btn btn-primary btn-sm" style="cursor: pointer;">
+                ➕ 批量上传照片
+                <input type="file" accept="image/*" multiple style="display: none;" @change="uploadAlbumPhotos">
+              </label>
+            </div>
+          </div>
+
+          <div v-if="editingAlbum.localFiles && editingAlbum.localFiles.length > 0" class="banner-grid" style="grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));">
+            <div v-for="f in editingAlbum.localFiles" :key="f.path" class="banner-card">
+              <div class="banner-thumb-wrap" style="height: 68px;">
+                <img :src="'/images/albums/' + editingAlbum.id + '/' + f.name + '?t=' + imageCacheBust" class="banner-thumb" loading="lazy" @error="onBannerImgError">
+                <span v-if="f.name.startsWith('cover.')" class="badge-pill" style="position: absolute; top: 3px; left: 3px; background: var(--primary); color: #fff;">封面</span>
+              </div>
+              <div class="banner-actions">
+                <span style="font-size: 0.64rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 58px;">{{ f.name }}</span>
+                <button @click="deleteAlbumLocalPhoto(f)" class="btn btn-danger btn-sm" style="padding: 0.12rem 0.35rem; font-size: 0.65rem;">🗑️</button>
+              </div>
+            </div>
+          </div>
+          <div v-else class="help-tip">请先保存相册或直接点击上方按钮上传封面与照片（输入相册 ID 后即可直接上传）。</div>
+        </div>
+
+        <!-- External Mode Cover & Photos -->
+        <div v-else class="form-group" style="background: rgba(59, 130, 246, 0.05); padding: 0.85rem; border-radius: 12px; border: 1px dashed rgba(59, 130, 246, 0.3);">
+          <div class="form-group">
+            <label class="form-label">外链封面 URL (cover) *</label>
+            <input type="url" v-model="editingAlbum.cover" class="form-input" placeholder="https://...">
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <strong style="font-size: 0.8rem;">🔗 外链照片列表 ({{ editingAlbum.externalPhotos.length }})</strong>
+            <button @click="addExternalAlbumPhoto" class="btn btn-secondary btn-sm">➕ 添加一张外链照片</button>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 220px; overflow-y: auto;">
+            <div v-for="(ph, pIdx) in editingAlbum.externalPhotos" :key="pIdx" style="display: flex; gap: 0.4rem; align-items: center; background: #fff; padding: 0.45rem; border-radius: 8px; border: 1px solid var(--border);">
+              <input type="url" v-model="ph.src" class="form-input" placeholder="图片直链 URL *" style="flex: 2;">
+              <input type="text" v-model="ph.title" class="form-input" placeholder="标题（可选）" style="flex: 1;">
+              <button @click="editingAlbum.externalPhotos.splice(pIdx, 1)" class="btn btn-danger btn-sm">✕</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+          <button @click="editingAlbum = null" class="btn btn-secondary">取消</button>
+          <button @click="saveAlbumAction" :disabled="saving.albums" class="btn btn-primary">
+            {{ saving.albums ? '正在保存...' : '💾 保存相册信息' }}
+          </button>
         </div>
       </div>
     </div>
@@ -2171,14 +3250,15 @@
         const tabs = [
           { id: 'posts', name: '文章', icon: '✍️' },
           { id: 'diary', name: '日记', icon: '📖' },
+          { id: 'anime', name: '追番', icon: '🎬' },
           { id: 'friends', name: '友链', icon: '🤝' },
           { id: 'banners', name: '换图', icon: '🖼️' },
           { id: 'links', name: '导航与侧栏', icon: '🧭' },
-          { id: 'others', name: '更多项目', icon: '🧩' },
+          { id: 'others', name: '侧栏项目', icon: '🧩' },
           { id: 'settings', name: '设置', icon: '⚙️' },
         ];
         const currentTab = ref('posts');
-        const otherSubTab = ref('projects');
+        const otherSubTab = ref('aiTools');
 
         const switchTab = (tabId) => {
           currentTab.value = tabId;
@@ -2194,8 +3274,8 @@
         const showTokenModal = ref(!repoConfig.token);
         const isConnected = computed(() => !!repoConfig.token);
 
-        const loading = reactive({ posts: false, media: false, diary: false, friends: false });
-        const saving = reactive({ post: false, diary: false, friends: false, friendsDoc: false, links: false, site: false, banners: false, others: false });
+        const loading = reactive({ posts: false, media: false, diary: false, friends: false, anime: false, webdav: false, albums: false });
+        const saving = reactive({ post: false, diary: false, friends: false, friendsDoc: false, links: false, site: false, banners: false, others: false, anime: false, animeMode: false, webdavPush: false, webdavAction: false, announcement: false, albums: false });
         const toast = reactive({ show: false, message: '', type: 'info' });
         const imageCacheBust = ref(Date.now());
 
@@ -2209,6 +3289,44 @@
         // Diary state
         const diaryList = ref([]);
         const editingDiary = ref(null);
+
+        // Anime & WebDAV Sync state
+        const animeMode = ref('bangumi');
+        const animeTarget = ref('webdav');
+        const webdavAnimeList = ref([]);
+        const localAnimeList = ref([]);
+        const savedWebdavAnimeSnapshot = ref('[]');
+        const savedLocalAnimeSnapshot = ref('[]');
+        const animeSearch = ref('');
+        const animeStatusFilter = ref('all');
+        const editingAnime = ref(null);
+        const showWebdavHelp = ref(false);
+        const webdavSyncLog = ref(null);
+        const savedWebdavLocal = (() => {
+          try {
+            return JSON.parse(localStorage.getItem('akari_admin_webdav_anime') || '{}');
+          } catch (_e) {
+            return {};
+          }
+        })();
+        const webdavConfig = reactive({
+          url: savedWebdavLocal.url || '',
+          path: savedWebdavLocal.path || '/anime.json',
+          username: savedWebdavLocal.username || '',
+          password: savedWebdavLocal.password || '',
+          format: savedWebdavLocal.format || 'auto',
+          mergeMode: savedWebdavLocal.mergeMode || 'merge',
+          corsProxy: savedWebdavLocal.corsProxy || '',
+          enrichBangumi: savedWebdavLocal.enrichBangumi !== undefined ? !!savedWebdavLocal.enrichBangumi : true,
+        });
+        const animeStatusFilters = [
+          { value: 'all', label: '全部' },
+          { value: 'watching', label: '在看' },
+          { value: 'completed', label: '看过' },
+          { value: 'planned', label: '想看' },
+          { value: 'onhold', label: '搁置' },
+          { value: 'dropped', label: '抛弃' },
+        ];
 
         // Friends state
         const friendsList = ref([]);
@@ -2278,7 +3396,59 @@
           calendar: true,
         });
 
-        // "Others" 3 Categories (Projects, Skills, Timeline)
+        // Sidebar Customizable Pages State (AI Tools, Devices, Albums, Projects, Skills, Timeline, About)
+        const aiToolsList = ref([]);
+        const aiToolSearch = ref('');
+        const aiToolCategoryFilter = ref('all');
+        const editingAiTool = ref(null);
+        const aiToolCategories = [
+          { value: 'chat', label: '对话 Chat' },
+          { value: 'coding', label: '编程 Coding' },
+          { value: 'image', label: '图像 Image' },
+          { value: 'audio', label: '音频 Audio' },
+          { value: 'video', label: '视频 Video' },
+          { value: 'writing', label: '写作 Writing' },
+          { value: 'search', label: '搜索 Search' },
+          { value: 'other', label: '其他 Other' },
+        ];
+        const aiToolIconPresets = [
+          { id: 'simple-icons:googlegemini', name: 'Google Gemini' },
+          { id: 'simple-icons:anthropic', name: 'Anthropic / Claude' },
+          { id: 'simple-icons:openai', name: 'OpenAI / ChatGPT' },
+          { id: 'simple-icons:githubcopilot', name: 'GitHub Copilot' },
+          { id: 'simple-icons:perplexity', name: 'Perplexity' },
+          { id: 'simple-icons:huggingface', name: 'Hugging Face' },
+          { id: 'simple-icons:ollama', name: 'Ollama' },
+          { id: 'material-symbols:smart-toy', name: '通用 AI 机器人' },
+          { id: 'material-symbols:code', name: '代码编程' },
+          { id: 'material-symbols:image', name: '图像生成' },
+          { id: 'material-symbols:graphic-eq', name: '音频语音' },
+          { id: 'material-symbols:movie', name: '视频生成' },
+          { id: 'material-symbols:edit-note', name: '写作辅助' },
+          { id: 'material-symbols:search', name: 'AI 搜索' },
+        ];
+
+        const devicesMap = ref({});
+        const editingDevice = ref(null);
+
+        const albumsList = ref([]);
+        const editingAlbum = ref(null);
+
+        const aboutDocContent = ref('');
+        const aboutDocSha = ref(null);
+
+        const announcementConfig = reactive({
+          title: '',
+          content: '',
+          closable: true,
+          link: {
+            enable: true,
+            text: 'Learn More',
+            url: '/about/',
+            external: false,
+          }
+        });
+
         const projectsList = ref([]);
         const skillsList = ref([]);
         const timelineList = ref([]);
@@ -2294,9 +3464,13 @@
         });
         const siteMeta = reactive({
           hue: 130,
-          title: 'Akari',
+          title: 'AKARI.md',
+          subtitle: 'Ciallo～(∠・ω< )⌒★',
+          siteStartDate: '2026-11-12',
           name: 'Akari',
-          bio: '簡単なことも解らないわ あたしって何だっけ\n—フォニイ'
+          bio: '簡単なことも解らないわ あたしって何だっけ\n—フォニイ',
+          homeTitle: 'わたしの部屋',
+          homeSubtitlesRaw: 'Unsinkable Memory\n人生はどうにも妥協で出来てる',
         });
 
         // Icon Presets
@@ -2493,6 +3667,89 @@
               branch: repoConfig.branch
             })
           });
+        };
+
+        // Balanced bracket/brace extractor safe against nested arrays, strings & comments
+        const findBalancedLiteralRange = (source, openIndex) => {
+          const openCh = source[openIndex];
+          const closeCh = openCh === '[' ? ']' : openCh === '{' ? '}' : null;
+          if (!closeCh) return null;
+          let depth = 0;
+          let inSingle = false;
+          let inDouble = false;
+          let inTemplate = false;
+          let inLineComment = false;
+          let inBlockComment = false;
+          for (let i = openIndex; i < source.length; i++) {
+            const ch = source[i];
+            const next = source[i + 1];
+            if (inLineComment) {
+              if (ch === '\n') inLineComment = false;
+              continue;
+            }
+            if (inBlockComment) {
+              if (ch === '*' && next === '/') {
+                inBlockComment = false;
+                i++;
+              }
+              continue;
+            }
+            if (inSingle) {
+              if (ch === '\\') { i++; continue; }
+              if (ch === "'") inSingle = false;
+              continue;
+            }
+            if (inDouble) {
+              if (ch === '\\') { i++; continue; }
+              if (ch === '"') inDouble = false;
+              continue;
+            }
+            if (inTemplate) {
+              if (ch === '\\') { i++; continue; }
+              if (ch === '`') inTemplate = false;
+              continue;
+            }
+            if (ch === '/' && next === '/') { inLineComment = true; i++; continue; }
+            if (ch === '/' && next === '*') { inBlockComment = true; i++; continue; }
+            if (ch === "'") { inSingle = true; continue; }
+            if (ch === '"') { inDouble = true; continue; }
+            if (ch === '`') { inTemplate = true; continue; }
+            if (ch === openCh) depth++;
+            else if (ch === closeCh) {
+              depth--;
+              if (depth === 0) return { start: openIndex, end: i + 1 };
+            }
+          }
+          return null;
+        };
+
+        const extractAssignedLiteral = (content, assignPrefixRegex) => {
+          const m = assignPrefixRegex.exec(content);
+          if (!m) return null;
+          const afterPrefix = m.index + m[0].length;
+          let openIdx = afterPrefix;
+          while (openIdx < content.length && /\s/.test(content[openIdx])) openIdx++;
+          const range = findBalancedLiteralRange(content, openIdx);
+          if (!range) return null;
+          return {
+            literal: content.slice(range.start, range.end),
+            start: range.start,
+            end: range.end
+          };
+        };
+
+        const replaceAssignedLiteral = (content, assignPrefixRegex, newLiteral) => {
+          const found = extractAssignedLiteral(content, assignPrefixRegex);
+          if (!found) throw new Error('未能定位目标配置数组/对象');
+          return content.slice(0, found.start) + newLiteral + content.slice(found.end);
+        };
+
+        const moveListItem = (list, idx, dir) => {
+          const target = idx + dir;
+          if (target < 0 || target >= list.length) return;
+          const tmp = list[idx];
+          list[idx] = list[target];
+          list[target] = tmp;
         };
 
         // File reader preserving raw GIF animation frames
@@ -3094,14 +4351,15 @@
         };
 
         // ==================== DIARY MANAGEMENT (GIF SUPPORTED) ====================
+        const DIARY_ASSIGN_REGEX = /(?:export\s+)?const\s+diaryData:\s*DiaryItem\[\]\s*=\s*/;
         const fetchDiary = async () => {
           if (!repoConfig.token) return;
           loading.diary = true;
           try {
             const file = await getFile('src/data/diary.ts');
-            const match = file.content.match(/(?:export\s+)?const\s+diaryData:\s*DiaryItem\[\]\s*=\s*(\[[\s\S]*?\]);/);
-            if (match) {
-              diaryList.value = new Function('return ' + match[1])();
+            const found = extractAssignedLiteral(file.content, DIARY_ASSIGN_REGEX);
+            if (found) {
+              diaryList.value = new Function('return ' + found.literal)();
             }
           } catch (err) {
             console.warn('获取日记失败:', err);
@@ -3176,9 +4434,9 @@
               else list.unshift(diaryItem);
             }
 
-            const code = `export const diaryData: DiaryItem[] = ${JSON.stringify(list, null, '\t')};\n`;
+            const listJson = JSON.stringify(list, null, '\t');
             await updateFileSafe('src/data/diary.ts', (content) => {
-              return content.replace(/(?:export\s+)?const\s+diaryData:\s*DiaryItem\[\]\s*=\s*\[[\s\S]*?\];/, code.trim());
+              return replaceAssignedLiteral(content, DIARY_ASSIGN_REGEX, listJson);
             }, 'feat(diary): update moments data');
 
             diaryList.value = list;
@@ -3196,9 +4454,9 @@
           saving.diary = true;
           try {
             const list = diaryList.value.filter(i => i.id !== item.id);
-            const code = `export const diaryData: DiaryItem[] = ${JSON.stringify(list, null, '\t')};\n`;
+            const listJson = JSON.stringify(list, null, '\t');
             await updateFileSafe('src/data/diary.ts', (content) => {
-              return content.replace(/(?:export\s+)?const\s+diaryData:\s*DiaryItem\[\]\s*=\s*\[[\s\S]*?\];/, code.trim());
+              return replaceAssignedLiteral(content, DIARY_ASSIGN_REGEX, listJson);
             }, 'feat(diary): delete diary entry');
 
             diaryList.value = list;
@@ -3659,8 +4917,42 @@
             const hueMatch = content.match(/hue:\s*(\d+)/);
             if (hueMatch) siteMeta.hue = parseInt(hueMatch[1], 10);
 
-            const titleMatch = content.match(/title:\s*["']([^"']+)["']/);
+            const titleMatch = content.match(/export\s+const\s+siteConfig[\s\S]*?title:\s*["']([^"']*)["']/);
             if (titleMatch) siteMeta.title = titleMatch[1];
+
+            const subtitleMatch = content.match(/export\s+const\s+siteConfig[\s\S]*?subtitle:\s*["']([^"']*)["']/);
+            if (subtitleMatch) siteMeta.subtitle = subtitleMatch[1];
+
+            const startDateMatch = content.match(/siteStartDate:\s*["']([^"']*)["']/);
+            if (startDateMatch) siteMeta.siteStartDate = startDateMatch[1];
+
+            const homeTitleMatch = content.match(/homeText:\s*\{[\s\S]*?title:\s*["']([^"']*)["']/);
+            if (homeTitleMatch) siteMeta.homeTitle = homeTitleMatch[1];
+
+            const homeSubFound = extractAssignedLiteral(content, /homeText:\s*\{[\s\S]*?subtitle:\s*/);
+            if (homeSubFound) {
+              try {
+                const subArr = new Function('return ' + homeSubFound.literal)();
+                if (Array.isArray(subArr)) siteMeta.homeSubtitlesRaw = subArr.join('\n');
+                else if (typeof subArr === 'string') siteMeta.homeSubtitlesRaw = subArr;
+              } catch (_e) {}
+            }
+
+            const animeModeMatch = content.match(/anime:\s*\{[\s\S]*?mode:\s*["']([^"']+)["']/);
+            if (animeModeMatch) animeMode.value = animeModeMatch[1];
+
+            const webdavBlockMatch = content.match(/webdavAnime:\s*\{([\s\S]*?)\}/);
+            if (webdavBlockMatch) {
+              const wb = webdavBlockMatch[1];
+              const uM = wb.match(/url:\s*["']([^"']*)["']/);
+              const pM = wb.match(/path:\s*["']([^"']*)["']/);
+              const fM = wb.match(/format:\s*["']([^"']*)["']/);
+              const eM = wb.match(/enrichBangumi:\s*(true|false)/);
+              if (uM && !webdavConfig.url) webdavConfig.url = uM[1];
+              if (pM && !savedWebdavLocal.path) webdavConfig.path = pM[1];
+              if (fM && !savedWebdavLocal.format) webdavConfig.format = fM[1];
+              if (eM && savedWebdavLocal.enrichBangumi === undefined) webdavConfig.enrichBangumi = eM[1] === 'true';
+            }
 
             // Fetch sidebarConfig.ts
             const sideFile = await getFile('src/config/sidebarConfig.ts');
@@ -3671,8 +4963,72 @@
                 sidebarWidgets[key] = str.includes(`"${key}"`) || str.includes(`'${key}'`);
               }
             }
+
+            // Fetch musicConfig.ts
+            try {
+              const mFile = await getFile('src/config/musicConfig.ts');
+              const mId = mFile.content.match(/id:\s*["']([^"']*)["']/);
+              const mServer = mFile.content.match(/server:\s*["']([^"']*)["']/);
+              const mApi = mFile.content.match(/meting_api:\s*["']([^"']*)["']/);
+              if (mId) musicConfig.id = mId[1];
+              if (mServer) musicConfig.server = mServer[1];
+              if (mApi) musicConfig.meting_api = mApi[1];
+            } catch (_e) {}
+
+            // Fetch profile name & bio
+            try {
+              const pFile = await getFile('src/config/profileConfig.ts');
+              const pName = pFile.content.match(/name:\s*["']([^"']*)["']/);
+              const pBioBacktick = pFile.content.match(/bio:\s*`([\s\S]*?)`/);
+              const pBioQuote = pFile.content.match(/bio:\s*["']([^"']*)["']/);
+              if (pName) siteMeta.name = pName[1];
+              if (pBioBacktick) siteMeta.bio = pBioBacktick[1];
+              else if (pBioQuote) siteMeta.bio = pBioQuote[1];
+            } catch (_e) {}
+
+            // Fetch announcementConfig.ts
+            try {
+              const aFile = await getFile('src/config/announcementConfig.ts');
+              const aFound = extractAssignedLiteral(aFile.content, /export\s+const\s+announcementConfig\s*(?::\s*AnnouncementConfig)?\s*=\s*/);
+              if (aFound) {
+                const parsedAnn = new Function('return ' + aFound.literal)();
+                announcementConfig.title = parsedAnn.title || '';
+                announcementConfig.content = parsedAnn.content || '';
+                announcementConfig.closable = parsedAnn.closable !== false;
+                announcementConfig.link.enable = parsedAnn.link?.enable !== false;
+                announcementConfig.link.text = parsedAnn.link?.text || 'Learn More';
+                announcementConfig.link.url = parsedAnn.link?.url || '/about/';
+                announcementConfig.link.external = !!parsedAnn.link?.external;
+              }
+            } catch (_e) {}
           } catch (err) {
             console.warn('获取开关配置失败:', err);
+          }
+        };
+
+        const quickEnableFeaturePage = async (key, label) => {
+          try {
+            featurePages[key] = true;
+            await updateFileSafe('src/config/siteConfig.ts', (content) => {
+              const r = new RegExp(`(${key}:\\s*)(true|false)`);
+              return content.replace(r, '$1true');
+            }, `feat(site): enable ${key} feature page`);
+            showToast(`✅ 已开启「${label}」并同步到仓库！`);
+          } catch (err) {
+            showToast('开启失败: ' + err.message, 'error');
+          }
+        };
+
+        const saveAnnouncementConfig = async () => {
+          saving.announcement = true;
+          try {
+            const newAnnCode = `import type { AnnouncementConfig } from "../types/config";\n\n// 公告栏配置\nexport const announcementConfig: AnnouncementConfig = {\n\ttitle: ${JSON.stringify(announcementConfig.title || '')},\n\tcontent: ${JSON.stringify(announcementConfig.content || '')},\n\tclosable: ${!!announcementConfig.closable},\n\tlink: {\n\t\tenable: ${!!announcementConfig.link.enable},\n\t\ttext: ${JSON.stringify(announcementConfig.link.text || '')},\n\t\turl: ${JSON.stringify(announcementConfig.link.url || '')},\n\t\texternal: ${!!announcementConfig.link.external},\n\t},\n};\n`;
+            await putFile('src/config/announcementConfig.ts', newAnnCode, 'feat(announcement): update sidebar announcement config');
+            showToast('📢 站点公告栏内容已保存！');
+          } catch (err) {
+            showToast('保存公告失败: ' + err.message, 'error');
+          } finally {
+            saving.announcement = false;
           }
         };
 
@@ -3774,7 +5130,11 @@
               return content.replace(/components:\s*\{[\s\S]*?\}/, newCompBlock);
             }, 'feat(sidebar): update visible widgets layout');
 
-            showToast('所有导航、侧栏与显示配置已成功保存生效！');
+            // 5. Update announcementConfig.ts
+            const newAnnCode = `import type { AnnouncementConfig } from "../types/config";\n\n// 公告栏配置\nexport const announcementConfig: AnnouncementConfig = {\n\ttitle: ${JSON.stringify(announcementConfig.title || '')},\n\tcontent: ${JSON.stringify(announcementConfig.content || '')},\n\tclosable: ${!!announcementConfig.closable},\n\tlink: {\n\t\tenable: ${!!announcementConfig.link.enable},\n\t\ttext: ${JSON.stringify(announcementConfig.link.text || '')},\n\t\turl: ${JSON.stringify(announcementConfig.link.url || '')},\n\t\texternal: ${!!announcementConfig.link.external},\n\t},\n};\n`;
+            await putFile('src/config/announcementConfig.ts', newAnnCode, 'feat(announcement): update sidebar announcement config');
+
+            showToast('所有导航、侧栏、开关与公告配置已成功保存生效！');
           } catch (err) {
             showToast('保存配置失败: ' + err.message, 'error');
           } finally {
@@ -3782,13 +5142,1247 @@
           }
         };
 
-        // ==================== "OTHERS" 3 CATEGORIES (PROJECTS, SKILLS, TIMELINE) ====================
+        // ==================== ANIME MANAGEMENT & WEBDAV SYNC ====================
+        const LOCAL_ANIME_ASSIGN_REGEX = /(?:export\s+)?const\s+localAnimeList\s*(?::\s*AnimeItem\[\])?\s*=\s*/;
+
+        const persistWebdavLocal = () => {
+          try {
+            localStorage.setItem('akari_admin_webdav_anime', JSON.stringify({
+              url: webdavConfig.url,
+              path: webdavConfig.path,
+              username: webdavConfig.username,
+              password: webdavConfig.password,
+              format: webdavConfig.format,
+              mergeMode: webdavConfig.mergeMode,
+              corsProxy: webdavConfig.corsProxy,
+              enrichBangumi: webdavConfig.enrichBangumi,
+            }));
+          } catch (_e) {}
+        };
+
+        const getAnimeStatusLabel = (status) => {
+          const map = { watching: '在看', completed: '看过', planned: '想看', onhold: '搁置', dropped: '抛弃' };
+          return map[status] || status || '在看';
+        };
+
+        const activeAnimeList = computed(() => animeTarget.value === 'webdav' ? webdavAnimeList.value : localAnimeList.value);
+
+        const hasUnsavedAnimeChanges = computed(() => {
+          return JSON.stringify(webdavAnimeList.value) !== savedWebdavAnimeSnapshot.value
+            || JSON.stringify(localAnimeList.value) !== savedLocalAnimeSnapshot.value;
+        });
+
+        const countAnimeByStatus = (st) => {
+          if (st === 'all') return activeAnimeList.value.length;
+          return activeAnimeList.value.filter(a => a.status === st).length;
+        };
+
+        const filteredAnimeList = computed(() => {
+          const kw = animeSearch.value.trim().toLowerCase();
+          const st = animeStatusFilter.value;
+          return activeAnimeList.value.filter((item) => {
+            if (st !== 'all' && item.status !== st) return false;
+            if (!kw) return true;
+            const hay = [item.title, item.studio, item.description, item.year, ...(item.genre || [])].join(' ').toLowerCase();
+            return hay.includes(kw);
+          });
+        });
+
+        const normalizeAnimeStatus = (raw, isKazumi = false) => {
+          if (raw === undefined || raw === null || raw === '') return 'watching';
+          if (typeof raw === 'number') {
+            const kMap = { 1: 'watching', 2: 'completed', 3: 'planned', 4: 'onhold', 5: 'dropped' };
+            const bMap = { 1: 'planned', 2: 'completed', 3: 'watching', 4: 'onhold', 5: 'dropped' };
+            return (isKazumi ? kMap[raw] : bMap[raw]) || 'watching';
+          }
+          const s = String(raw).trim().toLowerCase();
+          if (['watching', 'do', 'doing', 'current', 'in_progress', '在看', '追番中', '观看中'].includes(s)) return 'watching';
+          if (['completed', 'collect', 'done', 'finished', 'watched', '看过', '已看完', '完结'].includes(s)) return 'completed';
+          if (['planned', 'wish', 'plan_to_watch', 'plan', 'want', '想看', '计划看'].includes(s)) return 'planned';
+          if (['onhold', 'on_hold', 'on-hold', 'paused', 'hold', '搁置', '暂停'].includes(s)) return 'onhold';
+          if (['dropped', 'drop', 'abandoned', '抛弃', '弃番'].includes(s)) return 'dropped';
+          return 'watching';
+        };
+
+        const toSafeNum = (val, fallback = 0) => {
+          if (typeof val === 'number' && Number.isFinite(val)) return val;
+          if (typeof val === 'string') {
+            const m = val.match(/-?\d+(\.\d+)?/);
+            if (m) {
+              const n = parseFloat(m[0]);
+              if (Number.isFinite(n)) return n;
+            }
+          }
+          return fallback;
+        };
+
+        const normalizeAnimeItem = (item, isKazumi = false) => {
+          if (!item || typeof item !== 'object') return null;
+          const sub = item.bangumiItem || item.subject || item.anime || item;
+          const title = String(item.title || item.name_cn || item.nameCn || sub.nameCn || sub.name_cn || sub.title || sub.name || item.name || item.series_title || '').trim();
+          if (!title) return null;
+
+          const status = normalizeAnimeStatus(item.status ?? item.state ?? item.type ?? item.collectType ?? item.my_status ?? (isKazumi ? 1 : 'watching'), isKazumi);
+          const progress = Math.max(0, Math.round(toSafeNum(item.progress ?? item.ep_status ?? item.watched_episodes ?? item.my_watched_episodes ?? item.lastWatchEpisode ?? item.episode ?? item.watched ?? 0, 0)));
+          let totalEpisodes = Math.max(0, Math.round(toSafeNum(item.totalEpisodes ?? item.total_episodes ?? item.eps ?? item.episodes ?? item.series_episodes ?? sub.eps ?? sub.totalEpisodes ?? 0, 0)));
+          if (totalEpisodes === 0) totalEpisodes = progress > 0 ? Math.max(progress, 12) : 12;
+          const rating = Number(toSafeNum(item.rating ?? item.rate ?? item.score ?? item.my_score ?? sub.ratingScore ?? sub.score ?? 0, 0).toFixed(1));
+
+          let cover = '';
+          const rawCover = item.cover ?? item.image ?? item.poster ?? item.img ?? sub.images?.large ?? sub.images?.common ?? sub.images?.medium ?? sub.cover ?? sub.image ?? '';
+          if (typeof rawCover === 'string') cover = rawCover.trim();
+          else if (rawCover && typeof rawCover === 'object') cover = String(rawCover.large || rawCover.common || rawCover.medium || rawCover.url || '').trim();
+
+          const subjectId = item.subject_id || item.bangumiId || item.bgmId || sub.id || item.series_animedb_id || '';
+          let link = String(item.link || item.url || sub.url || '').trim();
+          if (!link && subjectId && /^\d+$/.test(String(subjectId))) link = `https://bgm.tv/subject/${subjectId}`;
+
+          const rawDate = item.startDate || item.airDate || item.air_date || item.date || sub.airDate || sub.date || item.year || '';
+          const yearMatch = String(item.year || rawDate || '').match(/(19|20)\d{2}/);
+          const year = yearMatch ? yearMatch[0] : '';
+
+          const rawGenre = item.genre || item.genres || item.tags || sub.tags || [];
+          let genre = [];
+          if (Array.isArray(rawGenre)) {
+            genre = rawGenre.map(g => typeof g === 'string' ? g.trim() : String(g?.name || g?.label || '').trim()).filter(Boolean).slice(0, 6);
+          } else if (typeof rawGenre === 'string' && rawGenre.trim()) {
+            genre = rawGenre.split(/[,，、/|]/).map(s => s.trim()).filter(Boolean).slice(0, 6);
+          }
+
+          return {
+            title,
+            status,
+            rating,
+            cover: cover || '/assets/anime/default.webp',
+            description: String(item.description || item.summary || item.comment || sub.summary || sub.short_summary || '').trim(),
+            episodes: `${totalEpisodes} episodes`,
+            year,
+            genre,
+            studio: String(item.studio || item.company || sub.studio || '').trim(),
+            link: link || '#',
+            progress,
+            totalEpisodes,
+            startDate: String(item.startDate || rawDate || '').slice(0, 10),
+            endDate: String(item.endDate || '').slice(0, 10),
+            _bangumiId: subjectId && /^\d+$/.test(String(subjectId)) ? String(subjectId) : ''
+          };
+        };
+
+        const parseAnimeCsv = (text) => {
+          const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+          if (lines.length < 2) return [];
+          const delim = lines[0].includes('\t') && !lines[0].includes(',') ? '\t' : ',';
+          const splitLine = (line) => {
+            const out = [];
+            let cur = '';
+            let inQ = false;
+            for (let i = 0; i < line.length; i++) {
+              const ch = line[i];
+              if (ch === '"') {
+                if (inQ && line[i + 1] === '"') { cur += '"'; i++; }
+                else inQ = !inQ;
+              } else if (ch === delim && !inQ) {
+                out.push(cur.trim()); cur = '';
+              } else {
+                cur += ch;
+              }
+            }
+            out.push(cur.trim());
+            return out;
+          };
+          const headers = splitLine(lines[0]).map(h => h.toLowerCase());
+          const keyMap = {
+            title: ['title', 'name', '名称', '番名', '番剧名称', '动画名'],
+            status: ['status', 'state', '状态', '追番状态'],
+            rating: ['rating', 'score', 'rate', '评分'],
+            cover: ['cover', 'image', 'img', 'poster', '封面', '封面图'],
+            description: ['description', 'desc', 'summary', '简介', '备注'],
+            year: ['year', '年份', '首播年份'],
+            studio: ['studio', '制作', '制作公司', '动画制作'],
+            genre: ['genre', 'genres', 'tags', '标签', '类型'],
+            link: ['link', 'url', '链接'],
+            progress: ['progress', 'watched', '进度', '已看集数'],
+            totalEpisodes: ['totalepisodes', 'total', 'episodes', 'eps', '总集数'],
+          };
+          const res = [];
+          for (let i = 1; i < lines.length; i++) {
+            const row = splitLine(lines[i]);
+            const obj = {};
+            for (const [k, aliases] of Object.entries(keyMap)) {
+              for (const al of aliases) {
+                const idx = headers.indexOf(al);
+                if (idx !== -1 && row[idx]) { obj[k] = row[idx]; break; }
+              }
+            }
+            const norm = normalizeAnimeItem(obj);
+            if (norm) res.push(norm);
+          }
+          return res;
+        };
+
+        const parseAnimeMalXml = (text) => {
+          const blocks = text.match(/<anime>[\s\S]*?<\/anime>/gi) || [];
+          const getTag = (blk, tag) => {
+            const m = blk.match(new RegExp(`<${tag}>([\\s\\S]*?)<\\/${tag}>`, 'i'));
+            if (!m) return '';
+            return m[1].replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").trim();
+          };
+          return blocks.map((blk) => {
+            const title = getTag(blk, 'series_title');
+            if (!title) return null;
+            const malId = getTag(blk, 'series_animedb_id');
+            return normalizeAnimeItem({
+              title,
+              status: getTag(blk, 'my_status'),
+              progress: getTag(blk, 'my_watched_episodes'),
+              totalEpisodes: getTag(blk, 'series_episodes'),
+              rating: getTag(blk, 'my_score'),
+              description: getTag(blk, 'my_comments'),
+              tags: getTag(blk, 'my_tags'),
+              startDate: getTag(blk, 'my_start_date'),
+              endDate: getTag(blk, 'my_finish_date'),
+              link: malId ? `https://myanimelist.net/anime/${malId}` : '',
+            });
+          }).filter(Boolean);
+        };
+
+        const parseAnimePayloadText = (rawText, format = 'auto', filenameHint = '') => {
+          const trimmed = String(rawText || '').trim();
+          if (!trimmed) return [];
+          const isKazumiHint = format === 'kazumi' || /kazumi|collectibles|histories/i.test(filenameHint);
+          if (format === 'mal-xml' || (format === 'auto' && /<myanimelist[\s>]|<anime>/i.test(trimmed))) {
+            return parseAnimeMalXml(trimmed);
+          }
+          if (format === 'csv') return parseAnimeCsv(trimmed);
+
+          let parsed = null;
+          try {
+            parsed = JSON.parse(trimmed);
+          } catch (_e) {
+            const start = trimmed.search(/[\[{]/);
+            const end = Math.max(trimmed.lastIndexOf(']'), trimmed.lastIndexOf('}'));
+            if (start !== -1 && end > start) {
+              try { parsed = JSON.parse(trimmed.slice(start, end + 1)); } catch (_e2) {}
+            }
+          }
+          if (parsed !== null) {
+            let arr = [];
+            if (Array.isArray(parsed)) arr = parsed;
+            else if (typeof parsed === 'object') {
+              const keys = ['data', 'items', 'list', 'animes', 'anime', 'animeList', 'bangumi', 'collections', 'collectibles', 'histories', 'records'];
+              for (const k of keys) {
+                if (Array.isArray(parsed[k])) { arr = parsed[k]; break; }
+              }
+              if (arr.length === 0) {
+                const vals = Object.values(parsed);
+                if (vals.length > 0 && vals.every(v => v && typeof v === 'object' && !Array.isArray(v))) arr = vals;
+              }
+            }
+            return arr.map(it => normalizeAnimeItem(it, isKazumiHint)).filter(Boolean);
+          }
+          if (format === 'auto' && trimmed.includes('\n') && /[,;\t]/.test(trimmed.split('\n')[0])) {
+            return parseAnimeCsv(trimmed);
+          }
+          return [];
+        };
+
+        const stripInternalAnimeFields = (list) => list.map(({ _bangumiId, ...rest }) => rest);
+
+        const applySyncedAnimeRecords = async (incomingList, sourceLabel) => {
+          let processed = incomingList;
+          if (webdavConfig.enrichBangumi) {
+            const needEnrich = processed.filter(it => it._bangumiId && (!it.cover || it.cover === '/assets/anime/default.webp' || !it.description));
+            if (needEnrich.length > 0) {
+              showToast(`正在从 Bangumi 补全 ${Math.min(needEnrich.length, 30)} 部番剧封面与简介...`, 'info');
+              let count = 0;
+              for (const it of needEnrich) {
+                if (count >= 30) break;
+                count++;
+                try {
+                  const r = await fetch(`https://api.bgm.tv/v0/subjects/${it._bangumiId}`);
+                  if (r.ok) {
+                    const detail = await r.json();
+                    if ((!it.cover || it.cover === '/assets/anime/default.webp') && detail.images?.medium) it.cover = detail.images.medium;
+                    if (!it.description && detail.summary) it.description = detail.summary.trim();
+                    if (!it.year && detail.date) it.year = String(detail.date).slice(0, 4);
+                    if ((!it.genre || !it.genre.length) && Array.isArray(detail.tags)) it.genre = detail.tags.slice(0, 3).map(t => t.name);
+                  }
+                } catch (_e) {}
+              }
+            }
+          }
+
+          const cleanIncoming = stripInternalAnimeFields(processed);
+          const targetRef = animeTarget.value === 'webdav' ? webdavAnimeList : localAnimeList;
+
+          if (webdavConfig.mergeMode === 'replace') {
+            targetRef.value = cleanIncoming;
+          } else {
+            const map = new Map();
+            targetRef.value.forEach(item => map.set(item.title.toLowerCase(), item));
+            cleanIncoming.forEach(item => {
+              const key = item.title.toLowerCase();
+              const prev = map.get(key);
+              if (!prev) map.set(key, item);
+              else {
+                map.set(key, {
+                  ...prev,
+                  ...item,
+                  progress: Math.max(prev.progress || 0, item.progress || 0),
+                  totalEpisodes: Math.max(prev.totalEpisodes || 0, item.totalEpisodes || 0),
+                  cover: item.cover && item.cover !== '/assets/anime/default.webp' ? item.cover : prev.cover,
+                  description: item.description || prev.description,
+                  studio: item.studio || prev.studio,
+                  year: item.year || prev.year,
+                  genre: item.genre?.length ? item.genre : prev.genre,
+                });
+              }
+            });
+            targetRef.value = Array.from(map.values());
+          }
+
+          webdavSyncLog.value = {
+            type: 'success',
+            message: `✅ 已从 ${sourceLabel} 成功解析 ${cleanIncoming.length} 部番剧（模式：${webdavConfig.mergeMode === 'replace' ? '覆盖' : '增量合并'}），当前列表共 ${targetRef.value.length} 部。确认无误后请点击“保存全部追番记录”提交到 GitHub。`
+          };
+          showToast(`成功同步解析 ${cleanIncoming.length} 部番剧！`);
+        };
+
+        const buildWebdavRequestUrl = (baseUrl, remotePath) => {
+          const cleanBase = String(baseUrl || '').trim().replace(/\/+$/, '');
+          const cleanPath = String(remotePath || '').trim();
+          const full = !cleanPath || cleanPath === '/'
+            ? `${cleanBase}/`
+            : (/^https?:\/\//i.test(cleanPath) ? cleanPath : `${cleanBase}/${cleanPath.replace(/^\/+/, '')}`);
+          const proxy = String(webdavConfig.corsProxy || '').trim();
+          if (!proxy) return full;
+          return proxy.includes('{url}') ? proxy.replace('{url}', encodeURIComponent(full)) : `${proxy}${encodeURIComponent(full)}`;
+        };
+
+        const buildWebdavAuthHeaders = () => {
+          const headers = {};
+          if (webdavConfig.username || webdavConfig.password) {
+            const creds = btoa(unescape(encodeURIComponent(`${webdavConfig.username || ''}:${webdavConfig.password || ''}`)));
+            headers['Authorization'] = `Basic ${creds}`;
+          }
+          return headers;
+        };
+
+        const syncFromWebdavBrowser = async () => {
+          persistWebdavLocal();
+          if (!webdavConfig.url.trim()) {
+            showToast('请先填写 WebDAV 服务器地址 (URL)', 'error');
+            return;
+          }
+          loading.webdav = true;
+          webdavSyncLog.value = null;
+          try {
+            const headers = buildWebdavAuthHeaders();
+            const rawPath = (webdavConfig.path || '/anime.json').trim();
+            const isDir = rawPath.endsWith('/') || !/\.[a-z0-9]{2,5}$/i.test(rawPath);
+            let collected = [];
+
+            if (!isDir) {
+              const reqUrl = buildWebdavRequestUrl(webdavConfig.url, rawPath);
+              const res = await fetch(reqUrl, { method: 'GET', headers });
+              if (!res.ok) throw new Error(`WebDAV 返回 HTTP ${res.status} (${res.statusText || '请求失败'})`);
+              const text = await res.text();
+              collected = parseAnimePayloadText(text, webdavConfig.format, rawPath);
+            } else {
+              const candidates = ['anime.json', 'bangumi-data.json', 'bangumi.json', 'webdav-anime-data.json', 'collectibles.tmp', 'histories.tmp', 'kazumiSync/collectibles.tmp', 'kazumiSync/histories.tmp'];
+              for (const name of candidates) {
+                const subPath = `${rawPath.replace(/\/+$/, '')}/${name}`;
+                try {
+                  const res = await fetch(buildWebdavRequestUrl(webdavConfig.url, subPath), { method: 'GET', headers });
+                  if (res.ok) {
+                    const txt = await res.text();
+                    const parsed = parseAnimePayloadText(txt, webdavConfig.format, name);
+                    if (parsed.length > 0) collected = collected.concat(parsed);
+                  }
+                } catch (_e) {}
+              }
+            }
+
+            if (collected.length === 0) {
+              webdavSyncLog.value = {
+                type: 'error',
+                message: '未能从 WebDAV 文件中解析出有效番剧记录，请检查文件路径、文件内容格式（如 JSON / MAL XML / CSV / Kazumi 文本）或切换“数据格式”选项。'
+              };
+              showToast('未解析到有效追番记录', 'error');
+              return;
+            }
+            await applySyncedAnimeRecords(collected, `WebDAV (${rawPath})`);
+          } catch (err) {
+            const isCors = err instanceof TypeError || /failed to fetch|networkerror|cors/i.test(err.message || '');
+            webdavSyncLog.value = {
+              type: 'error',
+              message: isCors
+                ? '❌ 浏览器直连 WebDAV 被跨域 (CORS) 或网络策略拦截。解决方式：① 填写上方的 CORS 代理前缀；② 在 GitHub Secrets 配置 WEBDAV_* 后直接点击【触发 GitHub Actions 云端同步】（推荐，完全免 CORS）；③ 下载文件后点击【导入本地文件】。'
+                : `❌ WebDAV 同步失败：${err.message}`
+            };
+            showToast('WebDAV 拉取失败，请查看下方日志提示', 'error');
+          } finally {
+            loading.webdav = false;
+          }
+        };
+
+        const pushToWebdavBrowser = async () => {
+          persistWebdavLocal();
+          if (!webdavConfig.url.trim()) {
+            showToast('请先填写 WebDAV 服务器地址 (URL)', 'error');
+            return;
+          }
+          const rawPath = (webdavConfig.path || '/anime.json').trim();
+          if (rawPath.endsWith('/')) {
+            showToast('反向备份需指定具体文件路径（例如 /anime.json）', 'error');
+            return;
+          }
+          saving.webdavPush = true;
+          try {
+            const reqUrl = buildWebdavRequestUrl(webdavConfig.url, rawPath);
+            const res = await fetch(reqUrl, {
+              method: 'PUT',
+              headers: {
+                ...buildWebdavAuthHeaders(),
+                'Content-Type': 'application/json; charset=utf-8'
+              },
+              body: JSON.stringify(activeAnimeList.value, null, 2)
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            webdavSyncLog.value = {
+              type: 'success',
+              message: `✅ 已将当前 ${activeAnimeList.value.length} 部追番记录反向备份写入 WebDAV：${rawPath}`
+            };
+            showToast('已成功备份到 WebDAV！');
+          } catch (err) {
+            webdavSyncLog.value = {
+              type: 'error',
+              message: `❌ 反向备份失败（可能受 CORS 或权限限制）：${err.message}`
+            };
+            showToast('备份到 WebDAV 失败', 'error');
+          } finally {
+            saving.webdavPush = false;
+          }
+        };
+
+        const triggerWebdavGithubAction = async () => {
+          if (!repoConfig.token) {
+            showToast('请先配置 GitHub Token', 'error');
+            return;
+          }
+          saving.webdavAction = true;
+          try {
+            const res = await fetch(`https://api.github.com/repos/${repoConfig.owner}/${repoConfig.repo}/actions/workflows/sync-webdav-anime.yml/dispatches`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${repoConfig.token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                ref: repoConfig.branch,
+                inputs: {
+                  webdav_path: webdavConfig.path || '',
+                  format: webdavConfig.format || 'auto'
+                }
+              })
+            });
+            if (!res.ok) {
+              const errData = await res.json().catch(() => ({}));
+              throw new Error(errData.message || `HTTP ${res.status}（请确认 Token 含 workflow 权限）`);
+            }
+            webdavSyncLog.value = {
+              type: 'success',
+              message: '☁️ 已成功触发 GitHub Actions 云端 WebDAV 同步工作流！约 30 秒后刷新本页即可看到云端拉取结果（请确保仓库 Secrets 已配置 WEBDAV_URL / WEBDAV_USERNAME / WEBDAV_PASSWORD）。'
+            };
+            showToast('☁️ 已触发云端 WebDAV 同步任务！');
+          } catch (err) {
+            webdavSyncLog.value = {
+              type: 'error',
+              message: `❌ 触发云端同步失败：${err.message}`
+            };
+            showToast('触发 Actions 失败: ' + err.message, 'error');
+          } finally {
+            saving.webdavAction = false;
+          }
+        };
+
+        const importAnimeFromLocalFile = async (event) => {
+          const file = event.target.files?.[0];
+          if (!file) return;
+          try {
+            const text = await file.text();
+            const parsed = parseAnimePayloadText(text, webdavConfig.format, file.name);
+            if (parsed.length === 0) {
+              showToast('未从文件中解析出有效番剧记录，请检查格式', 'error');
+              return;
+            }
+            await applySyncedAnimeRecords(parsed, `本地文件 (${file.name})`);
+          } catch (err) {
+            showToast('读取文件失败: ' + err.message, 'error');
+          } finally {
+            event.target.value = '';
+          }
+        };
+
+        const exportCurrentAnimeJson = () => {
+          const blob = new Blob([JSON.stringify(activeAnimeList.value, null, 2)], { type: 'application/json;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = animeTarget.value === 'webdav' ? 'webdav-anime-data.json' : 'local-anime-data.json';
+          a.click();
+          URL.revokeObjectURL(url);
+          showToast('已导出当前追番 JSON 文件！');
+        };
+
+        const copyWebdavSampleJson = () => {
+          const sample = JSON.stringify([
+            {
+              title: "葬送的芙莉莲",
+              status: "completed",
+              rating: 9.6,
+              cover: "https://lain.bgm.tv/pic/cover/m/13/c5/400602_ZI8Y9.jpg",
+              description: "打倒魔王之后的奇幻旅程。",
+              year: "2023",
+              studio: "MADHOUSE",
+              genre: ["奇幻", "冒险", "治愈"],
+              link: "https://bgm.tv/subject/400602",
+              progress: 28,
+              totalEpisodes: 28
+            }
+          ], null, 2);
+          copyText(sample);
+        };
+
+        const fetchAnimeData = async () => {
+          if (!repoConfig.token) return;
+          loading.anime = true;
+          try {
+            try {
+              const wf = await getFile('src/data/webdav-anime-data.json');
+              const parsed = JSON.parse(wf.content || '[]');
+              if (Array.isArray(parsed)) {
+                webdavAnimeList.value = parsed;
+                savedWebdavAnimeSnapshot.value = JSON.stringify(parsed);
+              }
+            } catch (_e) {
+              webdavAnimeList.value = [];
+              savedWebdavAnimeSnapshot.value = '[]';
+            }
+
+            try {
+              const lf = await getFile('src/data/anime.ts');
+              const found = extractAssignedLiteral(lf.content, LOCAL_ANIME_ASSIGN_REGEX);
+              if (found) {
+                const parsed = new Function('return ' + found.literal)();
+                if (Array.isArray(parsed)) {
+                  localAnimeList.value = parsed;
+                  savedLocalAnimeSnapshot.value = JSON.stringify(parsed);
+                }
+              }
+            } catch (_e) {}
+          } finally {
+            loading.anime = false;
+          }
+        };
+
+        const saveAnimeModeConfig = async () => {
+          persistWebdavLocal();
+          saving.animeMode = true;
+          try {
+            await updateFileSafe('src/config/siteConfig.ts', (content) => {
+              let text = content.replace(/(anime:\s*\{[\s\S]*?mode:\s*["'])([^"']*)(["'])/, `$1${animeMode.value}$3`);
+              if (/webdavAnime:\s*\{/.test(text)) {
+                text = text.replace(/(webdavAnime:\s*\{[\s\S]*?url:\s*["'])([^"']*)(["'])/, `$1${webdavConfig.url || ''}$3`);
+                text = text.replace(/(webdavAnime:\s*\{[\s\S]*?path:\s*["'])([^"']*)(["'])/, `$1${webdavConfig.path || '/anime.json'}$3`);
+                text = text.replace(/(webdavAnime:\s*\{[\s\S]*?format:\s*["'])([^"']*)(["'])/, `$1${webdavConfig.format || 'auto'}$3`);
+                text = text.replace(/(webdavAnime:\s*\{[\s\S]*?enrichBangumi:\s*)(true|false)/, `$1${!!webdavConfig.enrichBangumi}`);
+              }
+              return text;
+            }, `feat(anime): set anime mode to ${animeMode.value} and update webdav config`);
+            showToast(`🎬 番剧模式已切换为「${animeMode.value}」并保存！`);
+          } catch (err) {
+            showToast('保存番剧模式失败: ' + err.message, 'error');
+          } finally {
+            saving.animeMode = false;
+          }
+        };
+
+        const openAnimeEditor = (item) => {
+          if (item) {
+            editingAnime.value = {
+              isNew: false,
+              originalTitle: item.title,
+              title: item.title || '',
+              status: item.status || 'watching',
+              rating: Number(item.rating) || 0,
+              cover: item.cover || '',
+              description: item.description || '',
+              year: item.year || '',
+              studio: item.studio || '',
+              link: item.link || '',
+              progress: Number(item.progress) || 0,
+              totalEpisodes: Number(item.totalEpisodes) || 12,
+              startDate: item.startDate || '',
+              endDate: item.endDate || '',
+              rawGenre: Array.isArray(item.genre) ? item.genre.join(', ') : ''
+            };
+          } else {
+            editingAnime.value = {
+              isNew: true,
+              originalTitle: '',
+              title: '',
+              status: 'watching',
+              rating: 8.5,
+              cover: '',
+              description: '',
+              year: String(new Date().getFullYear()),
+              studio: '',
+              link: '',
+              progress: 1,
+              totalEpisodes: 12,
+              startDate: '',
+              endDate: '',
+              rawGenre: ''
+            };
+          }
+        };
+
+        const uploadAnimeCover = async (event) => {
+          const file = event.target.files?.[0];
+          if (!file) return;
+          showToast('正在上传番剧封面...', 'info');
+          try {
+            const base64 = await convertToWebpBase64(file, 600, 0.88);
+            const fileName = `anime_${Date.now()}.webp`;
+            await putFile(`public/assets/anime/${fileName}`, base64, `feat(anime): upload cover ${fileName}`, null, true);
+            if (editingAnime.value) editingAnime.value.cover = `/assets/anime/${fileName}`;
+            showToast('番剧封面上传成功！');
+          } catch (err) {
+            showToast('封面上传失败: ' + err.message, 'error');
+          } finally {
+            event.target.value = '';
+          }
+        };
+
+        const saveAnimeItemAction = () => {
+          if (!editingAnime.value?.title?.trim()) {
+            showToast('请填写番剧名称', 'error');
+            return;
+          }
+          const totalEp = Math.max(1, Number(editingAnime.value.totalEpisodes) || 12);
+          const prog = Math.max(0, Number(editingAnime.value.progress) || 0);
+          const genre = editingAnime.value.rawGenre
+            ? editingAnime.value.rawGenre.split(/[,，]/).map(s => s.trim()).filter(Boolean)
+            : [];
+          const record = {
+            title: editingAnime.value.title.trim(),
+            status: editingAnime.value.status || 'watching',
+            rating: Number(Number(editingAnime.value.rating || 0).toFixed(1)),
+            cover: editingAnime.value.cover.trim() || '/assets/anime/default.webp',
+            description: (editingAnime.value.description || '').trim(),
+            episodes: `${totalEp} episodes`,
+            year: (editingAnime.value.year || '').trim(),
+            genre,
+            studio: (editingAnime.value.studio || '').trim(),
+            link: (editingAnime.value.link || '').trim() || '#',
+            progress: prog,
+            totalEpisodes: totalEp,
+            startDate: (editingAnime.value.startDate || '').trim(),
+            endDate: (editingAnime.value.endDate || '').trim(),
+          };
+
+          const targetRef = animeTarget.value === 'webdav' ? webdavAnimeList : localAnimeList;
+          if (editingAnime.value.isNew) {
+            targetRef.value.unshift(record);
+          } else {
+            const idx = targetRef.value.findIndex(a => a.title === editingAnime.value.originalTitle);
+            if (idx !== -1) targetRef.value[idx] = record;
+            else targetRef.value.unshift(record);
+          }
+          editingAnime.value = null;
+          showToast('已更新到待保存队列，点击上方【保存全部追番记录】生效！');
+        };
+
+        const incrementAnimeProgress = (item) => {
+          const next = (Number(item.progress) || 0) + 1;
+          item.progress = item.totalEpisodes > 0 ? Math.min(item.totalEpisodes, next) : next;
+          if (item.totalEpisodes > 0 && item.progress >= item.totalEpisodes && item.status === 'watching') {
+            item.status = 'completed';
+            showToast(`🎉 《${item.title}》已看完全部 ${item.totalEpisodes} 集，状态自动切换为“看过”！`);
+          } else {
+            showToast(`《${item.title}》进度更新为第 ${item.progress} 集，记得保存～`);
+          }
+        };
+
+        const deleteAnimeItem = (item) => {
+          if (!confirm(`确定要移除番剧《${item.title}》吗？`)) return;
+          const targetRef = animeTarget.value === 'webdav' ? webdavAnimeList : localAnimeList;
+          const idx = targetRef.value.indexOf(item);
+          if (idx !== -1) targetRef.value.splice(idx, 1);
+          showToast('已移除，点击上方【保存全部追番记录】生效！');
+        };
+
+        const resetAnimeDraft = () => {
+          try {
+            webdavAnimeList.value = JSON.parse(savedWebdavAnimeSnapshot.value);
+            localAnimeList.value = JSON.parse(savedLocalAnimeSnapshot.value);
+            showToast('已放弃未保存的追番修改');
+          } catch (_e) {
+            fetchAnimeData();
+          }
+        };
+
+        const saveAnimeListToRepo = async () => {
+          saving.anime = true;
+          try {
+            if (JSON.stringify(webdavAnimeList.value) !== savedWebdavAnimeSnapshot.value) {
+              await putFile(
+                'src/data/webdav-anime-data.json',
+                JSON.stringify(webdavAnimeList.value, null, 2) + '\n',
+                'feat(anime): update WebDAV synced anime records'
+              );
+              savedWebdavAnimeSnapshot.value = JSON.stringify(webdavAnimeList.value);
+            }
+            if (JSON.stringify(localAnimeList.value) !== savedLocalAnimeSnapshot.value) {
+              const localJson = JSON.stringify(localAnimeList.value, null, '\t');
+              await updateFileSafe('src/data/anime.ts', (content) => {
+                return replaceAssignedLiteral(content, LOCAL_ANIME_ASSIGN_REGEX, localJson);
+              }, 'feat(anime): update local anime list');
+              savedLocalAnimeSnapshot.value = JSON.stringify(localAnimeList.value);
+            }
+            showToast('🎉 追番记录已全部保存并同步至 GitHub！');
+          } catch (err) {
+            showToast('保存追番记录失败: ' + err.message, 'error');
+          } finally {
+            saving.anime = false;
+          }
+        };
+
+        // ==================== SIDEBAR CUSTOMIZABLE PAGES (AI TOOLS, DEVICES, ALBUMS, PROJECTS, SKILLS, TIMELINE, ABOUT) ====================
+        const AI_TOOLS_ASSIGN_REGEX = /(?:export\s+)?const\s+aiToolsData\s*(?::\s*AITool\[\])?\s*=\s*/;
+        const DEVICES_ASSIGN_REGEX = /(?:export\s+)?const\s+devicesData\s*(?::\s*DeviceCategory)?\s*=\s*/;
+        const PROJECTS_ASSIGN_REGEX = /(?:export\s+)?const\s+projectsData\s*(?::\s*Project\[\])?\s*=\s*/;
+        const SKILLS_ASSIGN_REGEX = /(?:export\s+)?const\s+skillsData\s*(?::\s*Skill\[\])?\s*=\s*/;
+        const TIMELINE_ASSIGN_REGEX = /(?:export\s+)?const\s+timelineData\s*(?::\s*TimelineItem\[\])?\s*=\s*/;
+
+        // --- AI Tools ---
+        const getAiCategoryLabel = (cat) => (aiToolCategories.find(c => c.value === cat)?.label || cat);
+        const getAiFrequencyLabel = (freq) => ({ daily: '每天使用', weekly: '每周使用', occasional: '偶尔使用', experimental: '尝鲜探索' }[freq] || freq);
+
+        const filteredAiTools = computed(() => {
+          const kw = aiToolSearch.value.trim().toLowerCase();
+          const cat = aiToolCategoryFilter.value;
+          return aiToolsList.value.filter(t => {
+            if (cat !== 'all' && t.category !== cat) return false;
+            if (!kw) return true;
+            const hay = [t.name, t.id, t.description?.zh_CN, t.description?.en, t.usage?.zh_CN, ...(t.tags || [])].join(' ').toLowerCase();
+            return hay.includes(kw);
+          });
+        });
+
+        const fetchAiTools = async () => {
+          if (!repoConfig.token) return;
+          try {
+            const file = await getFile('src/data/ai-tools.ts');
+            const found = extractAssignedLiteral(file.content, AI_TOOLS_ASSIGN_REGEX);
+            if (found) aiToolsList.value = new Function('return ' + found.literal)();
+          } catch (e) {
+            console.warn('获取 AI 工具失败:', e);
+          }
+        };
+
+        const openAiToolEditor = (tool) => {
+          if (tool) {
+            editingAiTool.value = {
+              isNew: false,
+              originalId: tool.id,
+              id: tool.id || '',
+              name: tool.name || '',
+              category: tool.category || 'chat',
+              frequency: tool.frequency || 'daily',
+              icon: tool.icon || 'material-symbols:smart-toy',
+              iconPreset: aiToolIconPresets.some(p => p.id === tool.icon) ? tool.icon : '',
+              color: tool.color || '#10b981',
+              url: tool.url || '',
+              descZh: tool.description?.zh_CN || tool.description?.en || '',
+              descEn: tool.description?.en || '',
+              usageZh: tool.usage?.zh_CN || tool.usage?.en || '',
+              usageEn: tool.usage?.en || '',
+              rawTags: Array.isArray(tool.tags) ? tool.tags.join(', ') : '',
+            };
+          } else {
+            editingAiTool.value = {
+              isNew: true,
+              originalId: '',
+              id: 'ai-' + Date.now().toString().slice(-4),
+              name: '',
+              category: 'chat',
+              frequency: 'daily',
+              icon: 'material-symbols:smart-toy',
+              iconPreset: 'material-symbols:smart-toy',
+              color: '#10b981',
+              url: 'https://',
+              descZh: '',
+              descEn: '',
+              usageZh: '',
+              usageEn: '',
+              rawTags: '',
+            };
+          }
+        };
+
+        const onAiIconPresetChange = () => {
+          if (editingAiTool.value && editingAiTool.value.iconPreset) {
+            editingAiTool.value.icon = editingAiTool.value.iconPreset;
+          }
+        };
+
+        const saveAiToolAction = () => {
+          const e = editingAiTool.value;
+          if (!e?.id?.trim() || !e?.name?.trim()) {
+            showToast('请填写工具 ID 与名称', 'error');
+            return;
+          }
+          const tags = e.rawTags ? e.rawTags.split(/[,，]/).map(s => s.trim()).filter(Boolean) : [];
+          const descZh = (e.descZh || '').trim();
+          const descEn = (e.descEn || '').trim() || descZh;
+          const usageZh = (e.usageZh || '').trim();
+          const usageEn = (e.usageEn || '').trim() || usageZh;
+
+          const item = {
+            id: e.id.trim(),
+            name: e.name.trim(),
+            description: {
+              en: descEn,
+              zh_CN: descZh || descEn,
+            },
+            icon: (e.icon || 'material-symbols:smart-toy').trim(),
+            category: e.category || 'chat',
+            frequency: e.frequency || 'daily',
+            ...(e.url?.trim() ? { url: e.url.trim() } : {}),
+            ...(usageZh || usageEn ? { usage: { en: usageEn, zh_CN: usageZh || usageEn } } : {}),
+            ...(tags.length ? { tags } : {}),
+            ...(e.color?.trim() ? { color: e.color.trim() } : {}),
+          };
+
+          if (e.isNew) {
+            aiToolsList.value.push(item);
+          } else {
+            const idx = aiToolsList.value.findIndex(t => t.id === e.originalId);
+            if (idx !== -1) aiToolsList.value[idx] = item;
+            else aiToolsList.value.push(item);
+          }
+          editingAiTool.value = null;
+          showToast('AI 工具已更新，点击右上角【保存当前项修改】提交！');
+        };
+
+        const deleteAiToolItem = (tool) => {
+          if (!confirm(`确定要移除 AI 工具「${tool.name}」吗？`)) return;
+          const idx = aiToolsList.value.indexOf(tool);
+          if (idx !== -1) aiToolsList.value.splice(idx, 1);
+          showToast('已移除，点击右上角保存生效！');
+        };
+
+        const moveAiTool = (idx, dir) => moveListItem(aiToolsList.value, idx, dir);
+
+        // --- Devices ---
+        const deviceCategoryNames = computed(() => Object.keys(devicesMap.value || {}));
+        const totalDevicesCount = computed(() => Object.values(devicesMap.value || {}).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0));
+
+        const fetchDevices = async () => {
+          if (!repoConfig.token) return;
+          try {
+            const file = await getFile('src/data/devices.ts');
+            const found = extractAssignedLiteral(file.content, DEVICES_ASSIGN_REGEX);
+            if (found) devicesMap.value = new Function('return ' + found.literal)();
+          } catch (e) {
+            console.warn('获取设备数据失败:', e);
+          }
+        };
+
+        const addDeviceCategory = () => {
+          const name = prompt('请输入新的设备分类/品牌名称（例如：Apple、Sony、PC）：');
+          if (!name || !name.trim()) return;
+          const clean = name.trim();
+          if (devicesMap.value[clean]) {
+            showToast('该分类已存在', 'error');
+            return;
+          }
+          devicesMap.value = { ...devicesMap.value, [clean]: [] };
+          showToast(`已新增分类「${clean}」`);
+        };
+
+        const renameDeviceCategory = (oldName) => {
+          const nextName = prompt(`重命名设备分类「${oldName}」为：`, oldName);
+          if (!nextName || !nextName.trim() || nextName.trim() === oldName) return;
+          const clean = nextName.trim();
+          if (devicesMap.value[clean]) {
+            showToast('目标分类名称已存在', 'error');
+            return;
+          }
+          const rebuilt = {};
+          for (const [k, v] of Object.entries(devicesMap.value)) {
+            rebuilt[k === oldName ? clean : k] = v;
+          }
+          devicesMap.value = rebuilt;
+          showToast('已重命名分类，点击右上角保存生效！');
+        };
+
+        const deleteDeviceCategory = (catName) => {
+          if (!confirm(`确定要删除设备分类「${catName}」及其下所有设备吗？`)) return;
+          const copy = { ...devicesMap.value };
+          delete copy[catName];
+          devicesMap.value = copy;
+          showToast('已删除分类，点击右上角保存生效！');
+        };
+
+        const openDeviceEditor = (dev, catName = '', index = -1) => {
+          if (dev) {
+            editingDevice.value = {
+              isNew: false,
+              oldCategory: catName,
+              oldIndex: index,
+              category: catName,
+              name: dev.name || '',
+              image: dev.image || '',
+              specs: dev.specs || '',
+              description: dev.description || '',
+              link: dev.link || '',
+            };
+          } else {
+            editingDevice.value = {
+              isNew: true,
+              oldCategory: '',
+              oldIndex: -1,
+              category: catName || deviceCategoryNames.value[0] || '自定义',
+              name: '',
+              image: '',
+              specs: '',
+              description: '',
+              link: '',
+            };
+          }
+        };
+
+        const uploadDeviceImage = async (event) => {
+          const file = event.target.files?.[0];
+          if (!file) return;
+          showToast('正在上传设备图片...', 'info');
+          try {
+            const url = await uploadFileAndGetPath(file, 'device', 'device');
+            if (editingDevice.value) editingDevice.value.image = url;
+            showToast('设备图片上传成功！');
+          } catch (err) {
+            showToast('上传失败: ' + err.message, 'error');
+          } finally {
+            event.target.value = '';
+          }
+        };
+
+        const saveDeviceAction = () => {
+          const e = editingDevice.value;
+          const cat = (e?.category || '').trim();
+          if (!cat || !e?.name?.trim()) {
+            showToast('请填写所属分类与设备名称', 'error');
+            return;
+          }
+          const item = {
+            name: e.name.trim(),
+            image: (e.image || '').trim(),
+            specs: (e.specs || '').trim(),
+            description: (e.description || '').trim(),
+            link: (e.link || '').trim(),
+          };
+          const mapCopy = { ...devicesMap.value };
+          if (!Array.isArray(mapCopy[cat])) mapCopy[cat] = [];
+          else mapCopy[cat] = [...mapCopy[cat]];
+
+          if (e.isNew) {
+            mapCopy[cat].push(item);
+          } else if (e.oldCategory === cat && e.oldIndex >= 0) {
+            mapCopy[cat][e.oldIndex] = item;
+          } else {
+            if (mapCopy[e.oldCategory] && e.oldIndex >= 0) {
+              mapCopy[e.oldCategory] = mapCopy[e.oldCategory].filter((_, i) => i !== e.oldIndex);
+            }
+            mapCopy[cat].push(item);
+          }
+          devicesMap.value = mapCopy;
+          editingDevice.value = null;
+          showToast('设备已更新，点击右上角保存生效！');
+        };
+
+        const deleteDeviceItem = (catName, idx) => {
+          if (!confirm('确定要移除这台设备吗？')) return;
+          const copy = { ...devicesMap.value };
+          copy[catName] = (copy[catName] || []).filter((_, i) => i !== idx);
+          devicesMap.value = copy;
+          showToast('已移除，点击右上角保存生效！');
+        };
+
+        // --- Albums ---
+        const fetchAlbums = async () => {
+          if (!repoConfig.token) return;
+          loading.albums = true;
+          try {
+            const entries = await githubFetch(`/contents/public/images/albums?ref=${repoConfig.branch}`);
+            const dirs = Array.isArray(entries) ? entries.filter(e => e.type === 'dir') : [];
+            const loaded = [];
+            for (const dir of dirs) {
+              try {
+                const files = await githubFetch(`/contents/${dir.path}?ref=${repoConfig.branch}`);
+                const infoEntry = Array.isArray(files) ? files.find(f => f.name === 'info.json') : null;
+                let info = { title: dir.name, hidden: false, description: '', date: '', location: '', tags: [] };
+                let infoSha = null;
+                if (infoEntry) {
+                  const infoFile = await getFile(infoEntry.path);
+                  infoSha = infoFile.sha;
+                  info = JSON.parse(infoFile.content || '{}');
+                }
+                const imageFiles = (Array.isArray(files) ? files : []).filter(f => /\.(webp|png|jpe?g|gif|avif)$/i.test(f.name));
+                const coverFile = imageFiles.find(f => f.name === 'cover.webp' || f.name === 'cover.jpg');
+                const isExternal = info.mode === 'external';
+                const coverPreview = isExternal
+                  ? (info.cover || '')
+                  : (coverFile ? `/images/albums/${dir.name}/${coverFile.name}?t=${imageCacheBust.value}` : '');
+                const photoCount = isExternal
+                  ? (Array.isArray(info.photos) ? info.photos.length : 0)
+                  : imageFiles.filter(f => f.name !== 'cover.webp' && f.name !== 'cover.jpg').length;
+
+                loaded.push({
+                  id: dir.name,
+                  info,
+                  infoSha,
+                  localFiles: imageFiles,
+                  allFiles: Array.isArray(files) ? files : [],
+                  coverPreview,
+                  photoCount,
+                });
+              } catch (err) {
+                console.warn('读取相册失败:', dir.name, err);
+              }
+            }
+            albumsList.value = loaded;
+          } catch (e) {
+            console.warn('扫描相册目录失败:', e);
+          } finally {
+            loading.albums = false;
+          }
+        };
+
+        const openAlbumEditor = (album) => {
+          if (album) {
+            editingAlbum.value = {
+              isNew: false,
+              id: album.id,
+              infoSha: album.infoSha,
+              title: album.info.title || album.id,
+              description: album.info.description || '',
+              date: album.info.date || new Date().toISOString().split('T')[0],
+              location: album.info.location || '',
+              rawTags: Array.isArray(album.info.tags) ? album.info.tags.join(', ') : '',
+              mode: album.info.mode === 'external' ? 'external' : 'local',
+              hidden: !!album.info.hidden,
+              password: album.info.password || '',
+              passwordHint: album.info.passwordHint || '',
+              cover: album.info.cover || '',
+              externalPhotos: Array.isArray(album.info.photos) ? album.info.photos.map(p => ({ ...p })) : [],
+              localFiles: [...(album.localFiles || [])],
+            };
+          } else {
+            editingAlbum.value = {
+              isNew: true,
+              id: 'Album_' + Date.now().toString().slice(-4),
+              infoSha: null,
+              title: '',
+              description: '',
+              date: new Date().toISOString().split('T')[0],
+              location: '',
+              rawTags: '',
+              mode: 'local',
+              hidden: false,
+              password: '',
+              passwordHint: '',
+              cover: '',
+              externalPhotos: [],
+              localFiles: [],
+            };
+          }
+        };
+
+        const addExternalAlbumPhoto = () => {
+          if (!editingAlbum.value) return;
+          editingAlbum.value.externalPhotos.push({ src: '', title: '' });
+        };
+
+        const uploadAlbumCover = async (event) => {
+          const file = event.target.files?.[0];
+          if (!file || !editingAlbum.value) return;
+          const albumId = (editingAlbum.value.id || '').trim();
+          if (!/^[a-zA-Z0-9_-]+$/.test(albumId)) {
+            showToast('相册 ID 仅支持英文字母、数字、下划线或短横线', 'error');
+            event.target.value = '';
+            return;
+          }
+          showToast('正在上传相册封面...', 'info');
+          try {
+            const base64 = await convertToWebpBase64(file, 1600, 0.88);
+            const path = `public/images/albums/${albumId}/cover.webp`;
+            await putFile(path, base64, `feat(albums): upload cover for ${albumId}`, null, true);
+            imageCacheBust.value = Date.now();
+            if (!editingAlbum.value.localFiles.some(f => f.name === 'cover.webp')) {
+              editingAlbum.value.localFiles.unshift({ name: 'cover.webp', path });
+            }
+            showToast('封面上传成功！');
+          } catch (err) {
+            showToast('封面上传失败: ' + err.message, 'error');
+          } finally {
+            event.target.value = '';
+          }
+        };
+
+        const uploadAlbumPhotos = async (event) => {
+          const files = Array.from(event.target.files || []);
+          if (!files.length || !editingAlbum.value) return;
+          const albumId = (editingAlbum.value.id || '').trim();
+          if (!/^[a-zA-Z0-9_-]+$/.test(albumId)) {
+            showToast('相册 ID 仅支持英文字母、数字、下划线或短横线', 'error');
+            event.target.value = '';
+            return;
+          }
+          showToast(`正在上传 ${files.length} 张照片...`, 'info');
+          try {
+            for (let i = 0; i < files.length; i++) {
+              const f = files[i];
+              const isGif = f.type === 'image/gif' || f.name.toLowerCase().endsWith('.gif');
+              const ext = isGif ? 'gif' : 'webp';
+              const fname = `photo_${Date.now()}_${i}.${ext}`;
+              const path = `public/images/albums/${albumId}/${fname}`;
+              const base64 = isGif ? await readFileAsBase64(f) : await convertToWebpBase64(f, 1920, 0.88);
+              await putFile(path, base64, `feat(albums): add photo ${fname} to ${albumId}`, null, true);
+              editingAlbum.value.localFiles.push({ name: fname, path });
+            }
+            imageCacheBust.value = Date.now();
+            showToast(`成功上传 ${files.length} 张照片！`);
+          } catch (err) {
+            showToast('上传照片失败: ' + err.message, 'error');
+          } finally {
+            event.target.value = '';
+          }
+        };
+
+        const deleteAlbumLocalPhoto = async (f) => {
+          if (!confirm(`确定要永久删除相册照片 ${f.name} 吗？`)) return;
+          try {
+            await deleteFile(f.path, f.sha || null, `feat(albums): delete ${f.name}`);
+            editingAlbum.value.localFiles = editingAlbum.value.localFiles.filter(item => item.path !== f.path);
+            showToast(`已删除 ${f.name}`);
+          } catch (err) {
+            showToast('删除失败: ' + err.message, 'error');
+          }
+        };
+
+        const saveAlbumAction = async () => {
+          const e = editingAlbum.value;
+          const albumId = (e?.id || '').trim();
+          if (!/^[a-zA-Z0-9_-]+$/.test(albumId)) {
+            showToast('相册 ID 仅支持英文字母、数字、下划线或短横线', 'error');
+            return;
+          }
+          if (!e.title?.trim()) {
+            showToast('请填写相册标题', 'error');
+            return;
+          }
+          if (e.mode === 'external' && !e.cover?.trim()) {
+            showToast('外链模式必须填写封面 URL', 'error');
+            return;
+          }
+          saving.albums = true;
+          try {
+            const tags = e.rawTags ? e.rawTags.split(/[,，]/).map(s => s.trim()).filter(Boolean) : [];
+            const infoObj = {
+              ...(e.mode === 'external' ? { mode: 'external' } : {}),
+              title: e.title.trim(),
+              hidden: !!e.hidden,
+              description: (e.description || '').trim(),
+              date: (e.date || '').trim() || new Date().toISOString().split('T')[0],
+              location: (e.location || '').trim(),
+              tags,
+              layout: 'masonry',
+              columns: 3,
+              ...(e.password?.trim() ? { password: e.password.trim() } : {}),
+              ...(e.passwordHint?.trim() ? { passwordHint: e.passwordHint.trim() } : {}),
+              ...(e.mode === 'external' ? {
+                cover: e.cover.trim(),
+                photos: (e.externalPhotos || []).filter(p => p.src && p.src.trim()).map((p, idx) => ({
+                  id: p.id || `${albumId}-ext-${idx + 1}`,
+                  src: p.src.trim(),
+                  alt: (p.title || p.alt || `Photo ${idx + 1}`).trim(),
+                  ...(p.title?.trim() ? { title: p.title.trim() } : {}),
+                }))
+              } : {})
+            };
+            await putFile(
+              `public/images/albums/${albumId}/info.json`,
+              JSON.stringify(infoObj, null, '\t') + '\n',
+              `feat(albums): save info.json for ${albumId}`,
+              e.infoSha
+            );
+            editingAlbum.value = null;
+            showToast('📷 相册信息已保存！');
+            await fetchAlbums();
+          } catch (err) {
+            showToast('保存相册失败: ' + err.message, 'error');
+          } finally {
+            saving.albums = false;
+          }
+        };
+
+        const deleteAlbum = async (album) => {
+          if (!confirm(`确定要彻底删除整个相册「${album.info.title || album.id}」及其下所有文件吗？此操作不可恢复！`)) return;
+          saving.albums = true;
+          try {
+            for (const f of (album.allFiles || [])) {
+              if (f.type === 'file') {
+                await deleteFile(f.path, f.sha, `feat(albums): delete ${album.id}/${f.name}`);
+              }
+            }
+            showToast(`已删除相册「${album.id}」`);
+            await fetchAlbums();
+          } catch (err) {
+            showToast('删除相册失败: ' + err.message, 'error');
+          } finally {
+            saving.albums = false;
+          }
+        };
+
+        // --- About Spec Doc ---
+        const renderedAboutDoc = computed(() => {
+          if (!aboutDocContent.value || !window.marked) return '';
+          return marked.parse(aboutDocContent.value);
+        });
+
+        const fetchAboutDoc = async () => {
+          if (!repoConfig.token) return;
+          try {
+            const file = await getFile('src/content/spec/about.md');
+            aboutDocContent.value = file.content || '';
+            aboutDocSha.value = file.sha || null;
+          } catch (_e) {
+            aboutDocContent.value = '';
+            aboutDocSha.value = null;
+          }
+        };
+
+        // --- Projects / Skills / Timeline ---
         const fetchProjects = async () => {
           if (!repoConfig.token) return;
           try {
             const file = await getFile('src/data/projects.ts');
-            const match = file.content.match(/(?:export\s+)?const\s+projectsData:\s*Project\[\]\s*=\s*(\[[\s\S]*?\]);/);
-            if (match) projectsList.value = new Function('return ' + match[1])();
+            const found = extractAssignedLiteral(file.content, PROJECTS_ASSIGN_REGEX);
+            if (found) projectsList.value = new Function('return ' + found.literal)();
           } catch (e) {
             console.warn('获取项目失败:', e);
           }
@@ -3798,8 +6392,8 @@
           if (!repoConfig.token) return;
           try {
             const file = await getFile('src/data/skills.ts');
-            const match = file.content.match(/(?:export\s+)?const\s+skillsData:\s*Skill\[\]\s*=\s*(\[[\s\S]*?\]);/);
-            if (match) skillsList.value = new Function('return ' + match[1])();
+            const found = extractAssignedLiteral(file.content, SKILLS_ASSIGN_REGEX);
+            if (found) skillsList.value = new Function('return ' + found.literal)();
           } catch (e) {
             console.warn('获取技能失败:', e);
           }
@@ -3809,8 +6403,8 @@
           if (!repoConfig.token) return;
           try {
             const file = await getFile('src/data/timeline.ts');
-            const match = file.content.match(/(?:export\s+)?const\s+timelineData:\s*TimelineItem\[\]\s*=\s*(\[[\s\S]*?\]);/);
-            if (match) timelineList.value = new Function('return ' + match[1])();
+            const found = extractAssignedLiteral(file.content, TIMELINE_ASSIGN_REGEX);
+            if (found) timelineList.value = new Function('return ' + found.literal)();
           } catch (e) {
             console.warn('获取时间线失败:', e);
           }
@@ -3898,6 +6492,8 @@
               icon: sk.icon,
               category: sk.category || 'tools',
               level: sk.level || 'intermediate',
+              expYears: sk.experience?.years ?? 1,
+              expMonths: sk.experience?.months ?? 0,
               color: sk.color || '#10b981'
             };
           } else {
@@ -3909,6 +6505,8 @@
               icon: 'logos:javascript',
               category: 'frontend',
               level: 'advanced',
+              expYears: 1,
+              expMonths: 0,
               color: '#3b82f6'
             };
           }
@@ -3926,7 +6524,10 @@
             icon: editingSkill.value.icon,
             category: editingSkill.value.category,
             level: editingSkill.value.level,
-            experience: { years: 1, months: 0 },
+            experience: {
+              years: Math.max(0, Number(editingSkill.value.expYears) || 0),
+              months: Math.max(0, Math.min(11, Number(editingSkill.value.expMonths) || 0))
+            },
             color: editingSkill.value.color
           };
 
@@ -3948,13 +6549,16 @@
 
         const openTimelineEditor = (tl) => {
           if (tl) {
+            const safeType = ['project', 'education', 'work', 'achievement'].includes(tl.type) ? tl.type : 'project';
             editingTimeline.value = {
               isNew: false,
               id: tl.id,
               title: tl.title,
               description: tl.description,
-              type: tl.type || 'project',
+              type: safeType,
               startDate: tl.startDate,
+              endDate: tl.endDate || '',
+              position: tl.position || '',
               organization: tl.organization || '',
               location: tl.location || ''
             };
@@ -3966,6 +6570,8 @@
               description: '',
               type: 'project',
               startDate: new Date().toISOString().split('T')[0],
+              endDate: '',
+              position: '',
               organization: '',
               location: ''
             };
@@ -3977,14 +6583,19 @@
             showToast('请填写标题和ID', 'error');
             return;
           }
+          const safeType = ['project', 'education', 'work', 'achievement'].includes(editingTimeline.value.type)
+            ? editingTimeline.value.type
+            : 'project';
           const item = {
             id: editingTimeline.value.id,
             title: editingTimeline.value.title,
             description: editingTimeline.value.description,
-            type: editingTimeline.value.type,
+            type: safeType,
             startDate: editingTimeline.value.startDate,
-            organization: editingTimeline.value.organization || undefined,
-            location: editingTimeline.value.location || undefined,
+            ...(editingTimeline.value.endDate ? { endDate: editingTimeline.value.endDate } : {}),
+            ...(editingTimeline.value.position ? { position: editingTimeline.value.position } : {}),
+            ...(editingTimeline.value.organization ? { organization: editingTimeline.value.organization } : {}),
+            ...(editingTimeline.value.location ? { location: editingTimeline.value.location } : {}),
             icon: 'material-symbols:event',
             color: '#10b981'
           };
@@ -4008,24 +6619,45 @@
         const saveCurrentOtherCategory = async () => {
           saving.others = true;
           try {
-            if (otherSubTab.value === 'projects') {
-              const code = `export const projectsData: Project[] = ${JSON.stringify(projectsList.value, null, '\t')};\n`;
+            if (otherSubTab.value === 'aiTools') {
+              const literal = JSON.stringify(aiToolsList.value, null, '\t');
+              await updateFileSafe('src/data/ai-tools.ts', (content) => {
+                return replaceAssignedLiteral(content, AI_TOOLS_ASSIGN_REGEX, literal);
+              }, 'feat(ai-tools): update AI tools data');
+              showToast('🤖 AI 工具箱数据已成功保存至仓库！');
+            } else if (otherSubTab.value === 'devices') {
+              const literal = JSON.stringify(devicesMap.value, null, '\t');
+              await updateFileSafe('src/data/devices.ts', (content) => {
+                return replaceAssignedLiteral(content, DEVICES_ASSIGN_REGEX, literal);
+              }, 'feat(devices): update devices data');
+              showToast('💻 我的设备清单已成功保存至仓库！');
+            } else if (otherSubTab.value === 'projects') {
+              const literal = JSON.stringify(projectsList.value, null, '\t');
               await updateFileSafe('src/data/projects.ts', (content) => {
-                return content.replace(/(?:export\s+)?const\s+projectsData:\s*Project\[\]\s*=\s*\[[\s\S]*?\];/, code.trim());
+                return replaceAssignedLiteral(content, PROJECTS_ASSIGN_REGEX, literal);
               }, 'feat(projects): update projects data');
-              showToast('项目展示数据已成功保存至仓库！');
+              showToast('🚀 项目展示数据已成功保存至仓库！');
             } else if (otherSubTab.value === 'skills') {
-              const code = `export const skillsData: Skill[] = ${JSON.stringify(skillsList.value, null, '\t')};\n`;
+              const literal = JSON.stringify(skillsList.value, null, '\t');
               await updateFileSafe('src/data/skills.ts', (content) => {
-                return content.replace(/(?:export\s+)?const\s+skillsData:\s*Skill\[\]\s*=\s*\[[\s\S]*?\];/, code.trim());
+                return replaceAssignedLiteral(content, SKILLS_ASSIGN_REGEX, literal);
               }, 'feat(skills): update skills data');
-              showToast('技能专长数据已成功保存至仓库！');
+              showToast('💡 技能专长数据已成功保存至仓库！');
             } else if (otherSubTab.value === 'timeline') {
-              const code = `export const timelineData: TimelineItem[] = ${JSON.stringify(timelineList.value, null, '\t')};\n`;
+              const literal = JSON.stringify(timelineList.value, null, '\t');
               await updateFileSafe('src/data/timeline.ts', (content) => {
-                return content.replace(/(?:export\s+)?const\s+timelineData:\s*TimelineItem\[\]\s*=\s*\[[\s\S]*?\];/, code.trim());
+                return replaceAssignedLiteral(content, TIMELINE_ASSIGN_REGEX, literal);
               }, 'feat(timeline): update timeline data');
-              showToast('时间线历程数据已成功保存至仓库！');
+              showToast('⏳ 时间线历程数据已成功保存至仓库！');
+            } else if (otherSubTab.value === 'about') {
+              const res = await putFile(
+                'src/content/spec/about.md',
+                aboutDocContent.value,
+                'feat(about): update about page content',
+                aboutDocSha.value
+              );
+              aboutDocSha.value = res?.content?.sha || await getFileSha('src/content/spec/about.md');
+              showToast('📄 关于页面内容已成功保存至仓库！');
             }
           } catch (err) {
             showToast('保存失败: ' + err.message, 'error');
@@ -4039,25 +6671,44 @@
           saving.site = true;
           try {
             await updateFileSafe('src/config/musicConfig.ts', (content) => {
-              let text = content.replace(/id:\s*["'][^"']*["']/, `id: "${musicConfig.id}"`);
-              text = text.replace(/server:\s*["'][^"']*["']/, `server: "${musicConfig.server}"`);
-              text = text.replace(/meting_api:\s*["'][^"']*["']/, `meting_api: "${musicConfig.meting_api}"`);
+              let text = content.replace(/id:\s*["'][^"']*["']/, `id: ${JSON.stringify(musicConfig.id)}`);
+              text = text.replace(/server:\s*["'][^"']*["']/, `server: ${JSON.stringify(musicConfig.server)}`);
+              text = text.replace(/meting_api:\s*["'][^"']*["']/, `meting_api: ${JSON.stringify(musicConfig.meting_api)}`);
               return text;
             }, `feat(music): set playlist to ${musicConfig.id}`);
 
             await updateFileSafe('src/config/siteConfig.ts', (content) => {
               let text = content.replace(/hue:\s*\d+/, `hue: ${siteMeta.hue}`);
-              text = text.replace(/title:\s*["'][^"']*["']/, `title: "${siteMeta.title}"`);
+              text = text.replace(/(export\s+const\s+siteConfig[\s\S]*?title:\s*)(["'][^"']*["'])/, `$1${JSON.stringify(siteMeta.title)}`);
+              text = text.replace(/(export\s+const\s+siteConfig[\s\S]*?subtitle:\s*)(["'][^"']*["'])/, `$1${JSON.stringify(siteMeta.subtitle)}`);
+              if (siteMeta.siteStartDate) {
+                text = text.replace(/(siteStartDate:\s*)(["'][^"']*["'])/, `$1${JSON.stringify(siteMeta.siteStartDate)}`);
+              }
+              if (siteMeta.homeTitle !== undefined) {
+                text = text.replace(/(homeText:\s*\{[\s\S]*?title:\s*)(["'][^"']*["'])/, `$1${JSON.stringify(siteMeta.homeTitle)}`);
+              }
+              const homeSubs = (siteMeta.homeSubtitlesRaw || '').split('\n').map(s => s.trim()).filter(Boolean);
+              if (homeSubs.length > 0) {
+                try {
+                  const arrLiteral = '[\n' + homeSubs.map(s => `\t\t\t\t${JSON.stringify(s)},`).join('\n') + '\n\t\t\t]';
+                  text = replaceAssignedLiteral(text, /homeText:\s*\{[\s\S]*?subtitle:\s*/, arrLiteral);
+                } catch (_e) {}
+              }
               return text;
-            }, `feat(site): update hue to ${siteMeta.hue} and title`);
+            }, `feat(site): update site appearance and metadata`);
 
             await updateFileSafe('src/config/profileConfig.ts', (content) => {
-              let text = content.replace(/name:\s*["'][^"']*["']/, `name: "${siteMeta.name}"`);
-              text = text.replace(/bio:\s*`[\s\S]*?`/, `bio: \`${siteMeta.bio}\``);
+              let text = content.replace(/name:\s*["'][^"']*["']/, `name: ${JSON.stringify(siteMeta.name)}`);
+              const safeBio = String(siteMeta.bio || '').replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
+              if (/bio:\s*`[\s\S]*?`/.test(text)) {
+                text = text.replace(/bio:\s*`[\s\S]*?`/, `bio: \`${safeBio}\``);
+              } else {
+                text = text.replace(/bio:\s*["'][^"']*["']/, `bio: \`${safeBio}\``);
+              }
               return text;
             }, 'feat(profile): update name and bio');
 
-            showToast('站点与音乐配置已全部保存生效！');
+            showToast('站点、横幅文案与音乐配置已全部保存生效！');
           } catch (err) {
             showToast('保存站点配置失败: ' + err.message, 'error');
           } finally {
@@ -4104,14 +6755,19 @@
           if (!repoConfig.token) return;
           fetchPosts();
           fetchDiary();
+          fetchAnimeData();
           fetchFriends();
           fetchBannersConfig();
           fetchMediaGallery();
           fetchLinksConfig();
           fetchSwitchesConfig();
+          fetchAiTools();
+          fetchDevices();
+          fetchAlbums();
           fetchProjects();
           fetchSkills();
           fetchTimeline();
+          fetchAboutDoc();
         };
 
         onMounted(() => {
@@ -4138,6 +6794,20 @@
           renderedMarkdown,
           diaryList,
           editingDiary,
+          animeMode,
+          animeTarget,
+          webdavAnimeList,
+          localAnimeList,
+          activeAnimeList,
+          hasUnsavedAnimeChanges,
+          animeSearch,
+          animeStatusFilter,
+          animeStatusFilters,
+          filteredAnimeList,
+          editingAnime,
+          showWebdavHelp,
+          webdavSyncLog,
+          webdavConfig,
           friendsList,
           friendSearch,
           friendTagFilter,
@@ -4165,10 +6835,26 @@
           socialAccounts,
           featurePages,
           sidebarWidgets,
+          announcementConfig,
           featurePageList,
           sidebarWidgetList,
           iconPresets,
           isPresetIcon,
+          aiToolsList,
+          aiToolSearch,
+          aiToolCategoryFilter,
+          filteredAiTools,
+          editingAiTool,
+          aiToolCategories,
+          aiToolIconPresets,
+          devicesMap,
+          deviceCategoryNames,
+          totalDevicesCount,
+          editingDevice,
+          albumsList,
+          editingAlbum,
+          aboutDocContent,
+          renderedAboutDoc,
           projectsList,
           skillsList,
           timelineList,
@@ -4181,15 +6867,58 @@
           showToast,
           copyText,
           formatDateTime,
+          moveListItem,
           saveTokenConfig,
           disconnectRepo,
           fetchPosts,
           fetchDiary,
+          fetchAnimeData,
           fetchFriends,
           fetchBannersConfig,
           fetchMediaGallery,
           fetchLinksConfig,
           fetchSwitchesConfig,
+          fetchAlbums,
+          quickEnableFeaturePage,
+          saveAnnouncementConfig,
+          persistWebdavLocal,
+          getAnimeStatusLabel,
+          countAnimeByStatus,
+          syncFromWebdavBrowser,
+          pushToWebdavBrowser,
+          triggerWebdavGithubAction,
+          importAnimeFromLocalFile,
+          exportCurrentAnimeJson,
+          copyWebdavSampleJson,
+          saveAnimeModeConfig,
+          openAnimeEditor,
+          uploadAnimeCover,
+          saveAnimeItemAction,
+          incrementAnimeProgress,
+          deleteAnimeItem,
+          resetAnimeDraft,
+          saveAnimeListToRepo,
+          getAiCategoryLabel,
+          getAiFrequencyLabel,
+          openAiToolEditor,
+          onAiIconPresetChange,
+          saveAiToolAction,
+          deleteAiToolItem,
+          moveAiTool,
+          addDeviceCategory,
+          renameDeviceCategory,
+          deleteDeviceCategory,
+          openDeviceEditor,
+          uploadDeviceImage,
+          saveDeviceAction,
+          deleteDeviceItem,
+          openAlbumEditor,
+          addExternalAlbumPhoto,
+          uploadAlbumCover,
+          uploadAlbumPhotos,
+          deleteAlbumLocalPhoto,
+          saveAlbumAction,
+          deleteAlbum,
           replaceBanner,
           deleteBanner,
           addNewBanner,

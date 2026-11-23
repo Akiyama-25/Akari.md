@@ -55,6 +55,9 @@ async function main() {
 	} else if (mode === "bangumi") {
 		console.log("Detected anime mode: bangumi, running update-bangumi.mjs");
 		await runScript(path.join(scriptsDir, "update-bangumi.mjs"));
+	} else if (mode === "webdav") {
+		console.log("Detected anime mode: webdav, running update-webdav-anime.mjs");
+		await runScript(path.join(scriptsDir, "update-webdav-anime.mjs"));
 	} else {
 		console.log(`Anime mode is "${mode}", skipping data update.`);
 	}

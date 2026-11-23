@@ -93,9 +93,18 @@ export interface SiteConfig {
 		useWebp?: boolean; // 是否使用WebP格式（默认 true）
 	};
 
+	// 添加 WebDAV 追番同步配置（账号密码请通过环境变量或管理后台本地存储配置，切勿写入源码）
+	webdavAnime?: {
+		url?: string; // WebDAV 服务地址，例如 https://dav.jianguoyun.com/dav/
+		path?: string; // 追番记录文件路径或目录，例如 /anime.json 或 /kazumiSync/
+		format?: "auto" | "json" | "kazumi" | "mal-xml" | "csv"; // 数据格式
+		fetchOnDev?: boolean; // 是否在开发环境下读取已同步的 JSON 数据
+		enrichBangumi?: boolean; // 缺失封面/简介时是否通过 Bangumi 公开 API 自动补全
+	};
+
 	// 添加番剧页面配置
 	anime?: {
-		mode?: "bangumi" | "local" | "bilibili"; // 番剧页面模式
+		mode?: "bangumi" | "local" | "bilibili" | "webdav"; // 番剧页面模式
 	};
 
 	// 日记页面 Memos API 地址，客户端 fetch 获取动态数据

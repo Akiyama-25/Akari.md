@@ -71,8 +71,16 @@ export const siteConfig: SiteConfig = {
 		// 安全提示：如 SESSDATA 已泄露，请打开 B站手机端 —— 我的 —— 设置 —— 安全隐私 —— 登陆设备管理 —— 一键退登，销毁已泄露的账号凭证
 	},
 
+	webdavAnime: {
+		url: "", // WebDAV 服务地址（仅保存非敏感地址，用户名密码请放在 GitHub Secrets 或管理后台本地配置）
+		path: "/anime.json", // 远程追番文件路径或目录，支持 JSON / Kazumi / MAL XML / CSV
+		format: "auto", // "auto" | "json" | "kazumi" | "mal-xml" | "csv"
+		fetchOnDev: true, // 开发环境是否读取已同步的 webdav-anime-data.json
+		enrichBangumi: true, // 缺少封面或详情时自动尝试从 Bangumi 公开 API 补全
+	},
+
 	anime: {
-		mode: "bangumi", // 番剧页面模式："bangumi" 使用Bangumi API，"local" 使用本地配置，"bilibili" 使用Bilibili API
+		mode: "bangumi", // 番剧页面模式："bangumi" 使用Bangumi API，"webdav" 使用WebDAV同步，"local" 使用本地配置，"bilibili" 使用Bilibili API
 	},
 
 	// 日记页面 Memos API 地址，留空则使用静态数据
