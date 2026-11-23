@@ -173,7 +173,6 @@ export const siteConfig: SiteConfig = {
 			switchable: true,
 
 			subtitle: [
-				"Unsinkable Memory",
 				"人生はどうにも妥協で出来てる",
 			],
 			typewriter: {
