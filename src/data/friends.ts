@@ -11,16 +11,7 @@ export interface FriendItem {
 }
 
 // 友情链接数据
-export const friendsData: FriendItem[] = [
-	{
-		id: 1,
-		title: "Astro",
-		imgurl: "https://avatars.githubusercontent.com/u/44914786?v=4&s=640",
-		desc: "The web framework for content-driven websites",
-		siteurl: "https://github.com/withastro/astro",
-		tags: ["Framework"],
-	},
-];
+export const friendsData: FriendItem[] = [];
 
 // 获取所有友情链接数据
 export function getFriendsList(): FriendItem[] {
