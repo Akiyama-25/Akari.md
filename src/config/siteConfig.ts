@@ -24,7 +24,7 @@ export const siteConfig: SiteConfig = {
 		friends: true, // 友链页面开关
 		projects: true, // 项目页面开关
 		skills: false, // 技能页面开关
-		timeline: true, // 时间线页面开关
+		timeline: false, // 时间线页面开关
 		albums: false, // 相册页面开关
 		devices: false, // 设备页面开关
 		aiTools: true, // AI 工具页面开关
