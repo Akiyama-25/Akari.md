@@ -12,6 +12,7 @@ import SidebarTrackInfo from "./components/SidebarTrackInfo.svelte";
 
 let playerState: MusicPlayerState = $state(musicPlayerStore.getState());
 let showPlaylist = $state(false);
+let unsubscribe: (() => void) | undefined;
 
 function handleStateUpdate(event: Event) {
 	const custom = event as CustomEvent<MusicPlayerState>;
@@ -21,10 +22,18 @@ function handleStateUpdate(event: Event) {
 }
 
 onMount(() => {
+	unsubscribe = musicPlayerStore.subscribe((nextState) => {
+		playerState = nextState;
+	});
 	window.addEventListener("music-sidebar:state", handleStateUpdate);
+	void musicPlayerStore.initialize();
 });
 
 onDestroy(() => {
+	if (unsubscribe) {
+		unsubscribe();
+		unsubscribe = undefined;
+	}
 	if (typeof window !== "undefined") {
 		window.removeEventListener("music-sidebar:state", handleStateUpdate);
 	}

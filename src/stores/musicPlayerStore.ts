@@ -37,6 +37,7 @@ class MusicPlayerStore {
 	private audio: HTMLAudioElement | null = null;
 	private state: MusicPlayerState;
 	private isInitialized = false;
+	private playlistLoadPromise: Promise<void> | null = null;
 	private unregisterInteraction: (() => void) | undefined;
 	private listeners = new Set<(state: MusicPlayerState) => void>();
 	private loadedSourceUrl = "";
@@ -96,21 +97,42 @@ class MusicPlayerStore {
 	}
 
 	async initialize(): Promise<void> {
-		if (typeof window === "undefined" || this.isInitialized) {
+		if (typeof window === "undefined") {
 			return;
 		}
-		this.isInitialized = true;
-
 		if (!musicPlayerConfig.enable) {
 			return;
 		}
+
+		if (this.isInitialized) {
+			if (this.state.playlist.length === 0) {
+				await this.ensurePlaylistLoaded();
+			} else {
+				this.broadcastState();
+			}
+			return;
+		}
+		this.isInitialized = true;
 
 		this.audio = new Audio();
 		this.audio.preload = "none";
 		this.setupAudioListeners();
 		this.loadVolumeFromStorage();
 		this.registerInteractionHandler();
-		await this.loadPlaylist();
+		await this.ensurePlaylistLoaded();
+	}
+
+	private async ensurePlaylistLoaded(): Promise<void> {
+		if (this.state.playlist.length > 0) {
+			return;
+		}
+		if (this.playlistLoadPromise) {
+			return this.playlistLoadPromise;
+		}
+		this.playlistLoadPromise = this.loadPlaylist().finally(() => {
+			this.playlistLoadPromise = null;
+		});
+		return this.playlistLoadPromise;
 	}
 
 	private setupAudioListeners(): void {
@@ -281,26 +303,51 @@ class MusicPlayerStore {
 		this.state.isLoading = true;
 		this.broadcastState();
 
-		const apiUrl = api
-			.replace(":server", server)
-			.replace(":type", type)
-			.replace(":id", id)
-			.replace(":auth", "")
-			.replace(":r", Date.now().toString());
+		const fallbackApis = [
+			api,
+			"https://api.i-meto.com/meting/api?server=:server&type=:type&id=:id&auth=:auth&r=:r",
+		];
+		const candidateApis = Array.from(new Set(fallbackApis.filter(Boolean)));
 
-		try {
-			const res = await fetch(apiUrl);
-			if (!res.ok) {
-				throw new Error("meting api error");
+		let loadedSongs: Song[] = [];
+		for (const candidateApi of candidateApis) {
+			const apiUrl = candidateApi
+				.replace(":server", server)
+				.replace(":type", type)
+				.replace(":id", id)
+				.replace(":auth", "")
+				.replace(":r", Date.now().toString());
+
+			const controller = new AbortController();
+			const timeoutId = setTimeout(() => controller.abort(), 10000);
+			try {
+				const res = await fetch(apiUrl, { signal: controller.signal });
+				if (!res.ok) {
+					continue;
+				}
+				const list: unknown = await res.json();
+				if (!Array.isArray(list) || list.length === 0) {
+					continue;
+				}
+				const converted = (list as Record<string, unknown>[])
+					.map((song) => this.convertMetingSong(song))
+					.filter((song) => Boolean(song.url));
+				if (converted.length > 0) {
+					loadedSongs = converted;
+					break;
+				}
+			} catch (_e) {
+				// 尝试下一个备用 Meting API 源
+			} finally {
+				clearTimeout(timeoutId);
 			}
-			const list: Record<string, unknown>[] = await res.json();
-			this.state.playlist = list.map((song) => this.convertMetingSong(song));
+		}
+
+		if (loadedSongs.length > 0) {
+			this.state.playlist = loadedSongs;
 			this.state.isLoading = false;
-
-			if (this.state.playlist.length > 0) {
-				this.selectSong(this.state.playlist[0], false);
-			}
-		} catch (_e) {
+			this.selectSong(this.state.playlist[0], false);
+		} else {
 			this.showError(i18n(Key.musicPlayerErrorPlaylist));
 			this.state.isLoading = false;
 		}
@@ -443,7 +490,15 @@ class MusicPlayerStore {
 	}
 
 	toggle(): void {
-		if (!this.audio || !this.state.currentSong.url) {
+		if (!this.audio) {
+			return;
+		}
+		if (!this.state.currentSong.url) {
+			void this.ensurePlaylistLoaded().then(() => {
+				if (this.state.currentSong.url) {
+					this.requestPlayback(true);
+				}
+			});
 			return;
 		}
 		if (this.state.isPlaying) {
