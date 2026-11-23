@@ -27,6 +27,7 @@ import type { PanelHandler } from "./handlers/panel-handler";
 import { getPanelHandler, initPanelHandler } from "./handlers/panel-handler";
 import { checkKatex, initCustomScrollbar } from "./handlers/scroll-handler";
 import { initAnimeHandler, initAnimePage } from "./anime-handler";
+import { initTwikooHandler, initTwikooPage } from "./twikoo-handler";
 
 /**
  * Swup 管理器类
@@ -124,16 +125,21 @@ export class SwupManager {
 			initAnime: () => {
 				initAnimePage();
 			},
+			initComments: () => {
+				void initTwikooPage();
+			},
 		});
 
-		// 启动 Anime 页面交互与事件监听
+		// 启动 Anime 页面交互与评论系统全局监听
 		initAnimeHandler();
+		initTwikooHandler();
 
 		// 如果 Swup 已经就绪，直接设置钩子
 		if (window?.swup?.hooks) {
 			initFancybox();
 			checkKatex();
 			initAnimePage();
+			void initTwikooPage();
 			this.hooksManager.registerHooks();
 		} else {
 			// 监听 Swup 就绪事件
@@ -149,11 +155,13 @@ export class SwupManager {
 					await initFancybox();
 					checkKatex();
 					initAnimePage();
+					void initTwikooPage();
 				});
 			} else {
 				initFancybox();
 				checkKatex();
 				initAnimePage();
+				void initTwikooPage();
 			}
 		}
 	}

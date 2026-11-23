@@ -33,7 +33,7 @@ const commentEnabled = post ? (post.data.comment ?? true) : true;
 
 {
 	commentConfig?.enable && commentEnabled && path && (
-		<div class="card-base p-6 mb-4">
+		<div class="card-base twikoo-card p-6 mb-4">
 			{commentService === "twikoo" && <Twikoo path={path} />}
 			{commentService === "giscus" && <Giscus path={path} />}
 			{commentService === "" && null}
